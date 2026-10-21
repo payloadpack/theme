@@ -65,8 +65,11 @@
     /* 5. Checkbox */
     .checkbox-input__visuals {
       --color-bg-brand: var(--color-text);
-      --color-bg-brand-hover: var(--color-text-secondary);
+      --color-bg-brand-hover: var(--color-text);
+      --color-bg-secondary-pressed: var(--color-bg-secondary-hover);
       --color-icon-onbrand: var(--color-icon-oninverse);
+
+      transition: none;
     }
 
     .checkbox-input__mark-halo {

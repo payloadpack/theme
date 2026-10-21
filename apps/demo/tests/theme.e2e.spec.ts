@@ -150,6 +150,23 @@ test.describe('Theme values', () => {
     expect(await center('.checkbox-input__input')).toBe(await center('.field-label'))
   })
 
+  test('a click changes the checkbox in one step', async ({ page }) => {
+    await openShowcase(page)
+    const featured = page.locator('.field-type.checkbox').filter({ hasText: 'Featured' })
+    const visuals = featured.locator('.checkbox-input__visuals')
+    await expect(featured.getByRole('checkbox')).toBeEnabled()
+    const box = await featured.locator('.checkbox-input__input').boundingBox()
+
+    await page.mouse.move((box?.x ?? 0) + 9, (box?.y ?? 0) + 9)
+    const hovered = await visuals.evaluate((element) => getComputedStyle(element).backgroundColor)
+    await page.mouse.down()
+    await expect(visuals).toHaveCSS('background-color', hovered)
+    await page.mouse.up()
+
+    await expect(visuals).toHaveCSS('transition-duration', '0s')
+    await expect(visuals).toHaveCSS('background-color', 'rgb(243, 242, 237)')
+  })
+
   test('Payload icons keep the Payload tick without its halo', async ({ page }) => {
     await page.context().addCookies([cookie('icons', 'payload')])
     await openShowcase(page)
