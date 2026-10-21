@@ -216,7 +216,7 @@ test.describe('Theme values', () => {
     await expect(cards.first()).toHaveCSS('background-color', 'rgb(32, 32, 30)')
     await expect(cards.nth(1)).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
     await expect(cards.first().locator('.radio-input__label > :last-child')).toHaveCSS('color', 'rgb(163, 162, 155)')
-    await expect(cards.first()).toHaveCSS('border-radius', '9px')
+    await expect(cards.first()).toHaveCSS('border-radius', await style(page, '.field-type.text input', 'border-radius'))
   })
 
   test('Payload icons keep the Payload tick without its halo', async ({ page }) => {
