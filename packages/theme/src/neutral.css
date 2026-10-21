@@ -64,14 +64,10 @@
 
     /* 5. Checkbox */
     .checkbox-input__visuals {
-      --color-bg-brand: var(--color-bg-secondary);
-      --color-bg-brand-hover: var(--color-bg-secondary-pressed);
-      --color-icon-onbrand: var(--color-text);
-      --special-border-translucent: var(--special-border-translucent-strong);
-    }
-
-    .checkbox-input__control:hover + .checkbox-input__visuals {
-      --color-bg-brand: var(--color-bg-secondary-hover);
+      --color-bg-brand: var(--color-text);
+      --color-bg-brand-hover: var(--color-text);
+      --color-bg-secondary-pressed: var(--color-bg-secondary-hover);
+      --color-icon-onbrand: var(--color-icon-oninverse);
     }
 
     .checkbox-input__mark-halo {

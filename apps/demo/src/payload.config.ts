@@ -9,6 +9,33 @@ import { seed } from './seed'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
+const AMENITIES = [
+  'wifi',
+  'parking',
+  'pool',
+  'gym',
+  'spa',
+  'breakfast',
+  'pets',
+  'accessible',
+  'evCharging',
+  'airConditioning',
+  'balcony',
+  'kitchen',
+  'laundry',
+  'workspace',
+  'elevator',
+  'garden',
+  'sauna',
+  'bikeRental',
+  'airportShuttle',
+  'roomService',
+  'bar',
+  'restaurant',
+  'beachAccess',
+  'skiStorage'
+]
+
 export default buildConfig({
   admin: {
     importMap: { baseDir: path.resolve(dirname) },
@@ -34,6 +61,23 @@ export default buildConfig({
         { name: 'title', type: 'text', required: true },
         { name: 'type', type: 'select', options: ['one', 'two'] },
         { name: 'featured', type: 'checkbox', admin: { description: 'Show this first on the front page' } },
+        {
+          name: 'size',
+          type: 'radio',
+          options: ['xs', 's', 'm', 'l', 'xl', 'xxl', 'xxxl', 'custom'],
+          admin: { layout: 'horizontal' }
+        },
+        { name: 'tags', type: 'select', hasMany: true, options: AMENITIES },
+        {
+          name: 'amenities',
+          type: 'group',
+          fields: [
+            {
+              type: 'row',
+              fields: AMENITIES.map((name) => ({ name, type: 'checkbox' as const, admin: { width: '25%' } }))
+            }
+          ]
+        },
         {
           name: 'body',
           type: 'richText',

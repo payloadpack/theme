@@ -237,6 +237,61 @@ export interface Showcase {
    * Show this first on the front page
    */
   featured?: boolean | null;
+  size?: ('xs' | 's' | 'm' | 'l' | 'xl' | 'xxl' | 'xxxl' | 'custom') | null;
+  tags?:
+    | (
+        | 'wifi'
+        | 'parking'
+        | 'pool'
+        | 'gym'
+        | 'spa'
+        | 'breakfast'
+        | 'pets'
+        | 'accessible'
+        | 'evCharging'
+        | 'airConditioning'
+        | 'balcony'
+        | 'kitchen'
+        | 'laundry'
+        | 'workspace'
+        | 'elevator'
+        | 'garden'
+        | 'sauna'
+        | 'bikeRental'
+        | 'airportShuttle'
+        | 'roomService'
+        | 'bar'
+        | 'restaurant'
+        | 'beachAccess'
+        | 'skiStorage'
+      )[]
+    | null;
+  amenities?: {
+    wifi?: boolean | null;
+    parking?: boolean | null;
+    pool?: boolean | null;
+    gym?: boolean | null;
+    spa?: boolean | null;
+    breakfast?: boolean | null;
+    pets?: boolean | null;
+    accessible?: boolean | null;
+    evCharging?: boolean | null;
+    airConditioning?: boolean | null;
+    balcony?: boolean | null;
+    kitchen?: boolean | null;
+    laundry?: boolean | null;
+    workspace?: boolean | null;
+    elevator?: boolean | null;
+    garden?: boolean | null;
+    sauna?: boolean | null;
+    bikeRental?: boolean | null;
+    airportShuttle?: boolean | null;
+    roomService?: boolean | null;
+    bar?: boolean | null;
+    restaurant?: boolean | null;
+    beachAccess?: boolean | null;
+    skiStorage?: boolean | null;
+  };
   body?: LexicalRichText<LexicalNodes_4E9B5B0F> | null;
   links?:
     | {
@@ -410,6 +465,36 @@ export interface ShowcaseSelect<T extends boolean = true> {
   title?: T;
   type?: T;
   featured?: T;
+  size?: T;
+  tags?: T;
+  amenities?:
+    | T
+    | {
+        wifi?: T;
+        parking?: T;
+        pool?: T;
+        gym?: T;
+        spa?: T;
+        breakfast?: T;
+        pets?: T;
+        accessible?: T;
+        evCharging?: T;
+        airConditioning?: T;
+        balcony?: T;
+        kitchen?: T;
+        laundry?: T;
+        workspace?: T;
+        elevator?: T;
+        garden?: T;
+        sauna?: T;
+        bikeRental?: T;
+        airportShuttle?: T;
+        roomService?: T;
+        bar?: T;
+        restaurant?: T;
+        beachAccess?: T;
+        skiStorage?: T;
+      };
   body?: T;
   links?:
     | T
