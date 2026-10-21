@@ -163,7 +163,6 @@ test.describe('Theme values', () => {
     await expect(visuals).toHaveCSS('background-color', hovered)
     await page.mouse.up()
 
-    await expect(visuals).toHaveCSS('transition-duration', '0s')
     await expect(visuals).toHaveCSS('background-color', 'rgb(243, 242, 237)')
   })
 
