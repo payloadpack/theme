@@ -33,7 +33,7 @@ Open the user menu → **Settings**.
 | Icons       | Payload, Lucide      | Lucide      |
 
 - **Neutral** gives dark mode a warm near-black palette and swaps Payload's blue selection for neutral greys. In both modes it draws a 2px focus ring in the text color and fills checked checkboxes with the text color instead of blue.
-- **Comfortable** sets 14px body text, 40px fields, 32px buttons and 18px checkboxes, and fixes Payload components that hard-code their sizes.
+- **Comfortable** sets 14px body text, 40px fields, 32px buttons and 18px checkboxes, gives dialogs more room, and fixes Payload components that hard-code their sizes.
 - **Lucide** replaces Payload's icons with [Lucide](https://lucide.dev) and adds icons to the nav and the document menu. The icons are bundled, so nothing loads from a CDN.
 
 Stock, Compact and Payload icons together are untouched Payload.

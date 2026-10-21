@@ -116,6 +116,33 @@ const hardCodedByPayload = [
     declaration: '.popup-button { height: var(--spacer-4, 1.5rem); }'
   },
   { file: 'css/theme.css', selector: ':root', declaration: '--popup-radius: var(--radius-large);' },
+  { file: 'elements/Dialog/index.css', selector: '.dialog--small', declaration: '--dialog-width: 280px;' },
+  {
+    file: 'elements/Dialog/index.css',
+    selector: '.dialog__header',
+    declaration: 'padding: var(--spacer-2) var(--spacer-3);'
+  },
+  {
+    file: 'elements/Dialog/index.css',
+    selector: '.dialog__header--has-close',
+    declaration: 'padding-inline-end: var(--spacer-2);'
+  },
+  { file: 'elements/Dialog/index.css', selector: '.dialog__body', declaration: 'padding: var(--spacer-3);' },
+  {
+    file: 'elements/Dialog/index.css',
+    selector: '.dialog:has(.dialog__header) .dialog__body',
+    declaration: 'padding-top: var(--spacer-2);'
+  },
+  {
+    file: 'elements/Dialog/index.css',
+    selector: '.dialog:has(.dialog__footer) .dialog__body',
+    declaration: 'padding-bottom: var(--spacer-2);'
+  },
+  {
+    file: 'elements/Dialog/index.css',
+    selector: '.dialog__footer',
+    declaration: 'padding-block: var(--spacer-2); padding-inline-start: var(--spacer-3); padding-inline-end: var(--spacer-2);'
+  },
   { file: 'icons/Dots/index.css', selector: '.dots', declaration: 'height: var(--spacer-4);' }
 ]
 
