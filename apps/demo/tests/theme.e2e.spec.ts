@@ -129,6 +129,30 @@ test.describe('Theme values', () => {
     expect((await table.boundingBox())?.y).toBe(before?.y)
   })
 
+  test('outline checkboxes at the comfortable size', async ({ page }) => {
+    await openShowcase(page)
+    const featured = page.locator('.field-type.checkbox').filter({ hasText: 'Featured' })
+    const visuals = featured.locator('.checkbox-input__visuals')
+    await expect(featured.getByRole('checkbox')).toBeEnabled()
+    const uncheckedBackground = await visuals.evaluate((element) => getComputedStyle(element).backgroundColor)
+
+    await featured.getByRole('checkbox').check()
+    await page.mouse.move(0, 0)
+
+    await expect(visuals).toHaveCSS('background-color', uncheckedBackground)
+    await expect(featured.locator('.checkbox-input__check .checkbox-input__mark')).toHaveCSS('stroke', 'rgb(243, 242, 237)')
+    await expect(featured.locator('.checkbox-input__check .checkbox-input__mark-halo')).toBeHidden()
+    expect(await size(page, '.field-type.checkbox .checkbox-input__input')).toEqual({ height: 18, width: 18 })
+    expect(await size(page, '.field-type.checkbox .checkbox-input__check')).toEqual({ height: 18, width: 18 })
+    await expect(featured.locator('.field-description')).toHaveCSS('padding-left', '26px')
+
+    const center = async (selector: string) => {
+      const box = await featured.locator(selector).boundingBox()
+      return box && box.y + box.height / 2
+    }
+    expect(await center('.checkbox-input__input')).toBe(await center('.field-label'))
+  })
+
   test('large buttons on the dashboard', async ({ page }) => {
     await page.goto('/admin')
 

@@ -73,7 +73,22 @@ const hardCodedByPayload = [
   {
     file: 'fields/Checkbox/index.css',
     selector: '.checkbox-input__input',
-    declaration: 'margin-block: var(--spacer-1);'
+    declaration: 'width: var(--spacer-3); height: var(--spacer-3); margin-block: var(--spacer-1);'
+  },
+  {
+    file: 'fields/Checkbox/index.css',
+    selector: '.checkbox-input__mixed',
+    declaration: 'width: var(--spacer-3); height: var(--spacer-3);'
+  },
+  {
+    file: 'fields/Checkbox/index.css',
+    selector: '.checkbox > .field-description',
+    declaration: 'padding-inline-start: var(--spacer-4);'
+  },
+  {
+    file: 'fields/Checkbox/index.css',
+    selector: '.checkbox-input__tooltip.tooltip--caret-left .tooltip__caret',
+    declaration: 'left: 0.5rem;'
   },
   { file: 'elements/ReactSelect/MultiValue/index.css', selector: '.multi-value', declaration: 'height: 1.25rem;' },
   {

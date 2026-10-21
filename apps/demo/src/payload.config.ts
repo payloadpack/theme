@@ -33,6 +33,7 @@ export default buildConfig({
       fields: [
         { name: 'title', type: 'text', required: true },
         { name: 'type', type: 'select', options: ['one', 'two'] },
+        { name: 'featured', type: 'checkbox', admin: { description: 'Show this first on the front page' } },
         {
           name: 'body',
           type: 'richText',
