@@ -130,19 +130,15 @@ test.describe('Theme values', () => {
     expect((await table.boundingBox())?.y).toBe(before?.y)
   })
 
-  test('outline checkboxes at the comfortable size', async ({ page }) => {
+  test('checked checkboxes fill with the text color and use the Lucide tick', async ({ page }) => {
     await openShowcase(page)
     const featured = page.locator('.field-type.checkbox').filter({ hasText: 'Featured' })
-    const visuals = featured.locator('.checkbox-input__visuals')
-    await expect(featured.getByRole('checkbox')).toBeEnabled()
-    const uncheckedBackground = await visuals.evaluate((element) => getComputedStyle(element).backgroundColor)
-
     await featured.getByRole('checkbox').check()
     await page.mouse.move(0, 0)
 
-    await expect(visuals).toHaveCSS('background-color', uncheckedBackground)
-    await expect(featured.locator('.checkbox-input__check .checkbox-input__mark')).toHaveCSS('stroke', 'rgb(243, 242, 237)')
-    await expect(featured.locator('.checkbox-input__check .checkbox-input__mark-halo')).toBeHidden()
+    await expect(featured.locator('.checkbox-input__visuals')).toHaveCSS('background-color', 'rgb(243, 242, 237)')
+    await expect(featured.locator('.checkbox-input__check')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0.9)')
+    expect(await style(page, '.field-type.checkbox .checkbox-input__check', 'mask-image')).toContain('data:image/svg+xml')
     expect(await size(page, '.field-type.checkbox .checkbox-input__input')).toEqual({ height: 18, width: 18 })
     expect(await size(page, '.field-type.checkbox .checkbox-input__check')).toEqual({ height: 18, width: 18 })
     await expect(featured.locator('.field-description')).toHaveCSS('padding-left', '26px')
@@ -152,6 +148,16 @@ test.describe('Theme values', () => {
       return box && box.y + box.height / 2
     }
     expect(await center('.checkbox-input__input')).toBe(await center('.field-label'))
+  })
+
+  test('Payload icons keep the Payload tick without its halo', async ({ page }) => {
+    await page.context().addCookies([cookie('icons', 'payload')])
+    await openShowcase(page)
+    const featured = page.locator('.field-type.checkbox').filter({ hasText: 'Featured' })
+    await featured.getByRole('checkbox').check()
+
+    await expect(featured.locator('.checkbox-input__check .checkbox-input__mark')).toHaveCSS('stroke', 'rgba(0, 0, 0, 0.9)')
+    await expect(featured.locator('.checkbox-input__check .checkbox-input__mark-halo')).toBeHidden()
   })
 
   test('large buttons on the dashboard', async ({ page }) => {
