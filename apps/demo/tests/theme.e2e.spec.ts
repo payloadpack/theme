@@ -219,6 +219,20 @@ test.describe('Theme values', () => {
     expect(narrow.advanced.top).toBe(narrow.general.top)
   })
 
+  test('roomier confirmation dialogs', async ({ page }) => {
+    await openShowcase(page)
+    await page.locator('.field-type.checkbox').filter({ hasText: 'Featured' }).getByRole('checkbox').check()
+    await page.locator('#nav-users').click()
+    const dialog = page.locator('.dialog--small').filter({ hasText: 'Leave without saving' })
+
+    await expect(dialog).toBeVisible()
+    expect((await dialog.boundingBox())?.width).toBe(400)
+    await expect(dialog.locator('.dialog__header')).toHaveCSS('padding', '16px 16px 16px 24px')
+    await expect(dialog.locator('.dialog-title')).toHaveCSS('font-size', '16px')
+    await expect(dialog.locator('.dialog__body')).toHaveCSS('padding', '24px')
+    await expect(dialog.locator('.dialog__footer')).toHaveCSS('padding', '16px 24px')
+  })
+
   test('each area sizes its buttons independently', async ({ page }) => {
     await openShowcase(page)
     await page.addStyleTag({ content: 'html { --payloadpack-row-button-height: 2.5rem; }' })

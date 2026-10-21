@@ -274,5 +274,31 @@
     .table-grid-popup__input-group {
       height: var(--control-height);
     }
+
+    /* 8. Dialogs */
+    .dialog--small {
+      --dialog-width: 25rem;
+    }
+
+    .dialog__header {
+      padding: var(--spacer-3) var(--spacer-4);
+    }
+
+    .dialog__header--has-close {
+      padding-inline-end: var(--spacer-3);
+    }
+
+    .dialog-title {
+      font-size: var(--text-body-large-font-size);
+      line-height: var(--text-body-large-line-height);
+    }
+
+    .dialog__body {
+      padding: var(--spacer-4);
+    }
+
+    .dialog__footer {
+      padding: var(--spacer-3) var(--spacer-4);
+    }
   }
 }
