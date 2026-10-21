@@ -1,4 +1,4 @@
-import { VERTICAL_TABS } from '@payloadpack/theme'
+import { RADIO_CARDS, VERTICAL_TABS } from '@payloadpack/theme'
 import { expect, type Page, test } from '@playwright/test'
 
 const baseURL = 'http://localhost:3020'
@@ -166,6 +166,59 @@ test.describe('Theme values', () => {
     await expect(visuals).toHaveCSS('background-color', 'rgb(243, 242, 237)')
   })
 
+  test('radios share the checkbox look and focus ring', async ({ page }) => {
+    await openShowcase(page)
+    const featured = page.locator('.field-type.checkbox').filter({ hasText: 'Featured' })
+    const checkbox = featured.locator('.checkbox-input__visuals')
+    const sizes = page.locator('.radio-group').filter({ hasText: 'Size' })
+    const radio = (label: string) =>
+      sizes
+        .locator('.radio-input')
+        .filter({ hasText: new RegExp(`^${label}$`) })
+        .locator('.radio-input__styled-radio')
+    await expect(featured.getByRole('checkbox')).toBeEnabled()
+
+    for (const property of ['background-color', 'border-top-color']) {
+      const expected = await checkbox.evaluate((element, name) => getComputedStyle(element).getPropertyValue(name), property)
+      await expect(radio('xs')).toHaveCSS(property, expected)
+    }
+
+    await radio('m').click()
+    await expect(radio('m')).toHaveCSS('background-color', 'rgb(243, 242, 237)')
+    expect(await radio('m').evaluate((element) => getComputedStyle(element, '::before').backgroundColor)).toBe(
+      'rgba(0, 0, 0, 0.9)'
+    )
+    expect(await radio('m').boundingBox()).toMatchObject({ height: 18, width: 18 })
+
+    await page.keyboard.press('ArrowRight')
+    await expect(radio('l')).toHaveCSS('box-shadow', /0px 0px 0px 3px/)
+    await page.keyboard.press('Shift+Tab')
+    await expect(checkbox).toHaveCSS('box-shadow', /0px 0px 0px 3px/)
+  })
+
+  test('radio cards stack with the radio on the right', async ({ page }) => {
+    await openShowcase(page)
+    const cards = page.locator(`.${RADIO_CARDS} .radio-input`)
+    await cards.first().click()
+    await page.mouse.move(0, 0)
+
+    const layout = await page.locator(`.${RADIO_CARDS}`).evaluate((root) =>
+      [...root.querySelectorAll('.radio-input')].map((card) => {
+        const box = card.getBoundingClientRect()
+        const radio = card.querySelector('.radio-input__styled-radio')?.getBoundingClientRect()
+        return { bottom: box.bottom, radioRight: radio?.right, right: box.right, top: box.top }
+      })
+    )
+    expect(layout).toHaveLength(3)
+    expect(layout[1].top).toBeGreaterThan(layout[0].bottom)
+    expect(layout[0].radioRight).toBe(layout[0].right - 17)
+
+    await expect(cards.first()).toHaveCSS('background-color', 'rgb(32, 32, 30)')
+    await expect(cards.nth(1)).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
+    await expect(cards.first().locator('.radio-input__label > :last-child')).toHaveCSS('color', 'rgb(163, 162, 155)')
+    await expect(cards.first()).toHaveCSS('border-radius', await style(page, '.field-type.text input', 'border-radius'))
+  })
+
   test('Payload icons keep the Payload tick without its halo', async ({ page }) => {
     await page.context().addCookies([cookie('icons', 'payload')])
     await openShowcase(page)
@@ -305,7 +358,13 @@ test.describe('Theme values', () => {
     })
 
     expect(total).toBeGreaterThan(0)
-    expect(applied).toContain(`.${VERTICAL_TABS}`)
-    expect(applied.filter((selector) => !selector.startsWith(`.${VERTICAL_TABS}`))).toEqual([])
+    const fieldLayouts = [`.${VERTICAL_TABS}`, `.${RADIO_CARDS}`]
+    for (const layout of fieldLayouts) {
+      expect(
+        applied.some((selector) => selector.startsWith(layout)),
+        layout
+      ).toBe(true)
+    }
+    expect(applied.filter((selector) => !fieldLayouts.some((layout) => selector.startsWith(layout)))).toEqual([])
   })
 })

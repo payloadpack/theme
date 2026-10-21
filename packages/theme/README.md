@@ -32,8 +32,8 @@ Open the user menu → **Settings**.
 | Density     | Compact, Comfortable | Comfortable |
 | Icons       | Payload, Lucide      | Lucide      |
 
-- **Neutral** gives dark mode a warm near-black palette and swaps Payload's blue selection for neutral greys. In both modes it draws a 2px focus ring in the text color and fills checked checkboxes with the text color instead of blue.
-- **Comfortable** sets 14px body text, 40px fields, 32px buttons and 18px checkboxes, gives dialogs more room, and fixes Payload components that hard-code their sizes.
+- **Neutral** gives dark mode a warm near-black palette and swaps Payload's blue selection for neutral greys. In both modes it draws a 2px focus ring in the text color and fills checked checkboxes and selected radios with the text color instead of blue.
+- **Comfortable** sets 14px body text, 40px fields, 32px buttons and 18px checkboxes and radios, gives dialogs more room, and fixes Payload components that hard-code their sizes.
 - **Lucide** replaces Payload's icons with [Lucide](https://lucide.dev) and adds icons to the nav and the document menu. The icons are bundled, so nothing loads from a CDN.
 
 Stock, Compact and Payload icons together are untouched Payload.
@@ -71,6 +71,27 @@ const field = {
 
 From 768px wide the tabs stack in a 270px column on the left. Narrower screens keep Payload's horizontal tabs. The layout applies whatever each person picks in Settings. Payload's tab list moves between tabs with the Left and Right arrow keys, and that doesn't change.
 
+## Radio cards
+
+Give a radio field the `RADIO_CARDS` class to show its options as stacked cards with the radio on the right:
+
+```ts
+import { RADIO_CARDS } from '@payloadpack/theme'
+
+const field = {
+  name: 'plan',
+  type: 'radio',
+  admin: { className: RADIO_CARDS },
+  options: ['plus', 'pro', 'enterprise']
+}
+```
+
+A label can also be JSX. Its first element is the title and any element after it is shown as a muted description:
+
+```tsx
+{ value: 'plus', label: <><strong>Plus</strong><span>For individuals and small teams.</span></> }
+```
+
 ## Nav icons
 
 With Icons set to Lucide, every collection and global in the nav gets an icon. Common names get a matching one automatically: a slug containing `page`, `post`, `media`, `user`, `categor`, `product`, `order`, `form`, `tag`, `event` or [more than 30 other words](src/lucide.css) is recognized. Anything else gets a generic icon.
@@ -99,6 +120,19 @@ Each toolbar sizes its buttons from its own token. They all default to Payload's
 | `--payloadpack-list-controls-button-height` | List toolbar: Filters, Group by, Columns |
 | `--payloadpack-row-button-height`           | Array and block rows                     |
 | `--payloadpack-menu-item-height`            | Popup menu items                         |
+
+Checkboxes and radios share their size and colors:
+
+| Token                                 | Controls                                   |
+| ------------------------------------- | ------------------------------------------ |
+| `--payloadpack-toggle-size`           | Box and circle size in Comfortable density |
+| `--payloadpack-toggle-bg`             | Unchecked background                       |
+| `--payloadpack-toggle-bg-hover`       | Unchecked background on hover              |
+| `--payloadpack-toggle-border`         | Unchecked border                           |
+| `--payloadpack-toggle-checked-bg`     | Checked fill                               |
+| `--payloadpack-toggle-checked-border` | Checked border                             |
+| `--payloadpack-toggle-mark`           | Tick and dot                               |
+| `--payloadpack-toggle-ring`           | Keyboard focus ring                        |
 
 ```css
 html {

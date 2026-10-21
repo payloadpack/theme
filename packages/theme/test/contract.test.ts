@@ -3,7 +3,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
-import { VERTICAL_TABS } from '../src/index.js'
+import { RADIO_CARDS, VERTICAL_TABS } from '../src/index.js'
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)))
 
@@ -26,6 +26,7 @@ const scopes: Record<string, string> = {
   'comfortable.css': "html[data-density='comfortable']",
   'lucide.css': "html[data-icons='lucide']",
   'neutral.css': "html[data-admin-theme='neutral']",
+  'radio-cards.css': `.${RADIO_CARDS}`,
   'vertical-tabs.css': `.${VERTICAL_TABS}`
 }
 
@@ -82,6 +83,16 @@ const hardCodedByPayload = [
     file: 'fields/Checkbox/index.css',
     selector: '.checkbox-input__mixed',
     declaration: 'width: var(--spacer-3); height: var(--spacer-3);'
+  },
+  {
+    file: 'fields/RadioGroup/Radio/index.css',
+    selector: '.radio-input__styled-radio',
+    declaration: 'width: 1rem; height: 1rem;'
+  },
+  {
+    file: 'fields/RadioGroup/Radio/index.css',
+    selector: "input[type='radio']",
+    declaration: 'width: 1rem; height: 1rem;'
   },
   {
     file: 'fields/Checkbox/index.css',
@@ -209,11 +220,12 @@ const rules = (css: string, parent = ''): { properties: string[]; selector: stri
   })
 
 const ruleBody = (css: string, selector: string) => {
-  const start = css.indexOf(`${selector} {`)
+  const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const start = css.search(new RegExp(`(?:^|\\n)[ \\t]*${escaped} \\{`))
   if (start === -1) {
     return null
   }
-  const open = css.indexOf('{', start)
+  const open = css.indexOf('{', start + selector.length)
   let depth = 1
   let index = open + 1
   while (depth > 0 && index < css.length) {
