@@ -263,6 +263,19 @@ test.describe('Theme values', () => {
     expect(await style(page, '.nav__link', 'mask-image', '::after')).toContain('data:image/svg+xml')
   })
 
+  test('sidebar tabs sit 3px inside their track', async ({ page }) => {
+    await page.goto('/admin')
+    const inset = await page.locator('.sidebar-tabs__tabs').evaluate((track) => {
+      const outer = track.getBoundingClientRect()
+      const inner = track.querySelector('.sidebar-tabs__tab--active')!.getBoundingClientRect()
+      return [inner.top - outer.top, outer.bottom - inner.bottom, inner.left - outer.left]
+    })
+
+    expect(inset).toEqual([3, 3, 3])
+    await expect(page.locator('.sidebar-tabs__tabs')).toHaveCSS('height', '32px')
+    await expect(page.locator('.sidebar-tabs__tab--active')).toHaveCSS('border-radius', '2px')
+  })
+
   test('vertical tabs from 768px wide', async ({ page }) => {
     await openShowcase(page)
     const tabs = page.locator(`.${VERTICAL_TABS}`)

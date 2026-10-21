@@ -48,6 +48,15 @@
       --popup-radius: calc(var(--radius-medium) + var(--spacer-1));
     }
 
+    .sidebar-tabs__tabs {
+      padding: 3px;
+    }
+
+    .sidebar-tabs__tab {
+      height: calc(var(--button-height) - 6px);
+      border-radius: calc(var(--button-radius) - 3px);
+    }
+
     /* 4. Date picker */
     .react-datepicker {
       background-color: var(--color-bg-elevated);
