@@ -4,6 +4,8 @@ import { type Setting, settings } from './appearance.js'
 
 const PACKAGE_NAME = '@payloadpack/theme'
 
+export const VERTICAL_TABS = 'payloadpack-vertical-tabs'
+
 export type ThemePluginConfig = {
   codeEditorFontSize?: false | number
 }

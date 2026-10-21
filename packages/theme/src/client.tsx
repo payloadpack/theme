@@ -8,6 +8,7 @@ import { useMonacoFontSize } from './monaco.js'
 import './neutral.css'
 import './comfortable.css'
 import './lucide.css'
+import './vertical-tabs.css'
 
 const ONE_YEAR_IN_SECONDS = 60 * 60 * 24 * 365
 

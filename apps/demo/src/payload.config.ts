@@ -1,6 +1,6 @@
 import { sqliteAdapter } from '@payloadcms/db-sqlite'
 import { FixedToolbarFeature, lexicalEditor } from '@payloadcms/richtext-lexical'
-import { themePlugin } from '@payloadpack/theme'
+import { themePlugin, VERTICAL_TABS } from '@payloadpack/theme'
 import path from 'path'
 import { buildConfig } from 'payload'
 import { fileURLToPath } from 'url'
@@ -44,7 +44,15 @@ export default buildConfig({
         { name: 'code', type: 'code' },
         { name: 'smallCode', type: 'code', admin: { editorOptions: { fontSize: 10 } } },
         { name: 'publishedAt', type: 'date', admin: { position: 'sidebar' } },
-        { name: 'slug', type: 'slug', useAsSlug: 'title' }
+        { name: 'slug', type: 'slug', useAsSlug: 'title' },
+        {
+          type: 'tabs',
+          admin: { className: VERTICAL_TABS },
+          tabs: [
+            { label: 'General', fields: [{ name: 'metaTitle', type: 'text' }] },
+            { label: 'Advanced', fields: [{ name: 'canonicalUrl', type: 'text' }] }
+          ]
+        }
       ],
       versions: { drafts: true }
     }

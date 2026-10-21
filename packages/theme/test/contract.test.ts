@@ -3,6 +3,8 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
+import { VERTICAL_TABS } from '../src/index.js'
+
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)))
 
 const packageRoot = (name: string) => {
@@ -23,7 +25,8 @@ const lucideIcons = path.join(packageRoot('lucide-static'), 'icons')
 const scopes: Record<string, string> = {
   'comfortable.css': "html[data-density='comfortable']",
   'lucide.css': "html[data-icons='lucide']",
-  'neutral.css': "html[data-admin-theme='neutral']"
+  'neutral.css': "html[data-admin-theme='neutral']",
+  'vertical-tabs.css': `.${VERTICAL_TABS}`
 }
 
 const keptPayloadIcons = ['dots', 'error', 'eye', 'minimize-maximize', 'sort', 'spinner', 'success']
@@ -241,7 +244,7 @@ describe('theme contract with Payload', () => {
     const selectorText = selectors(allThemeCss)
     const classes = matchAll(selectorText, /\.(-?[_a-zA-Z][\w-]*)/g)
     const ids = matchAll(selectorText, /#([\w-]+)/g)
-    expect([...classes, ...ids].filter((name) => !existsInPayload(name))).toEqual([])
+    expect([...classes, ...ids].filter((name) => !name.startsWith('payloadpack-') && !existsInPayload(name))).toEqual([])
   })
 
   it('is never outranked by unlayered Payload rules on the properties it sets', () => {

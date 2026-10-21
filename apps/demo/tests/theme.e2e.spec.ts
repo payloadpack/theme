@@ -1,3 +1,4 @@
+import { VERTICAL_TABS } from '@payloadpack/theme'
 import { expect, type Page, test } from '@playwright/test'
 
 const baseURL = 'http://localhost:3020'
@@ -187,6 +188,37 @@ test.describe('Theme values', () => {
     expect(await style(page, '.nav__link', 'mask-image', '::after')).toContain('data:image/svg+xml')
   })
 
+  test('vertical tabs from 768px wide', async ({ page }) => {
+    await openShowcase(page)
+    const tabs = page.locator(`.${VERTICAL_TABS}`)
+    const layout = () =>
+      tabs.evaluate((root) => {
+        const [general, advanced] = [...root.querySelectorAll('[role="tab"]')].map((tab) => tab.getBoundingClientRect())
+        return {
+          advanced: { left: advanced.left, top: advanced.top },
+          content: root.querySelector('.tabs-field__content-wrap')?.getBoundingClientRect().left,
+          general: { bottom: general.bottom, left: general.left, right: general.right, top: general.top },
+          list: root.querySelector('.tabs-field__tabs-wrap')?.getBoundingClientRect().width
+        }
+      })
+
+    const wide = await layout()
+    expect(wide.advanced).toEqual({ left: wide.general.left, top: wide.general.bottom })
+    expect(wide.list).toBe(270)
+    expect(wide.content).toBeGreaterThan(wide.general.right)
+    expect(await style(page, `.${VERTICAL_TABS} .tabs-field__tab-button--active`, 'width', '::after')).toBe('3px')
+    expect(await style(page, `.${VERTICAL_TABS} .tabs-field__tab-button--active`, 'height', '::after')).toBe(
+      `${wide.general.bottom - wide.general.top}px`
+    )
+
+    await tabs.getByRole('tab', { name: 'Advanced' }).click()
+    await expect(tabs.getByLabel('Canonical Url')).toBeVisible()
+
+    await page.setViewportSize({ width: 700, height: 900 })
+    const narrow = await layout()
+    expect(narrow.advanced.top).toBe(narrow.general.top)
+  })
+
   test('each area sizes its buttons independently', async ({ page }) => {
     await openShowcase(page)
     await page.addStyleTag({ content: 'html { --payloadpack-row-button-height: 2.5rem; }' })
@@ -206,16 +238,19 @@ test.describe('Theme values', () => {
     await expect(page.locator('.popup__content:visible').first()).toHaveCSS('border-radius', '2px')
   })
 
-  test('stock, compact and Payload icons apply none of the theme', async ({ page }) => {
+  test('stock, compact and Payload icons apply none of the theme settings', async ({ page }) => {
     await page.context().addCookies([cookie('admin-theme', 'stock'), cookie('density', 'compact'), cookie('icons', 'payload')])
     await openShowcase(page)
 
     const { applied, total } = await page.evaluate(() => {
+      const styleRules = (list: CSSRuleList): CSSStyleRule[] =>
+        [...list].flatMap((rule) =>
+          rule instanceof CSSMediaRule ? styleRules(rule.cssRules) : rule instanceof CSSStyleRule ? [rule] : []
+        )
       const rules = [...document.styleSheets]
         .flatMap((sheet) => [...sheet.cssRules])
         .filter((rule): rule is CSSLayerBlockRule => rule instanceof CSSLayerBlockRule && rule.name === 'payload')
-        .flatMap((layer) => [...layer.cssRules])
-        .filter((rule): rule is CSSStyleRule => rule instanceof CSSStyleRule)
+        .flatMap((layer) => styleRules(layer.cssRules))
       const elementSelector = (selector: string) => selector.replace(/::[\w-]+/g, '')
       return {
         applied: rules
@@ -226,6 +261,7 @@ test.describe('Theme values', () => {
     })
 
     expect(total).toBeGreaterThan(0)
-    expect(applied).toEqual([])
+    expect(applied).toContain(`.${VERTICAL_TABS}`)
+    expect(applied.filter((selector) => !selector.startsWith(`.${VERTICAL_TABS}`))).toEqual([])
   })
 })
