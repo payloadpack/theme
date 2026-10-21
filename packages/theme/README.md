@@ -32,8 +32,8 @@ Open the user menu → **Settings**.
 | Density     | Compact, Comfortable | Comfortable |
 | Icons       | Payload, Lucide      | Lucide      |
 
-- **Neutral** gives dark mode a warm near-black palette, swaps Payload's blue selection for neutral greys and draws a 2px focus ring in the text color. Light mode stays stock.
-- **Comfortable** sets 14px body text, 40px fields and 32px buttons, and fixes Payload components that hard-code their sizes.
+- **Neutral** gives dark mode a warm near-black palette and swaps Payload's blue selection for neutral greys. In both modes it draws a 2px focus ring in the text color and checks checkboxes with a text-colored tick instead of a blue fill.
+- **Comfortable** sets 14px body text, 40px fields, 32px buttons and 18px checkboxes, and fixes Payload components that hard-code their sizes.
 - **Lucide** replaces Payload's icons with [Lucide](https://lucide.dev) and adds icons to the nav and the document menu. The icons are bundled, so nothing loads from a CDN.
 
 Stock, Compact and Payload icons together are untouched Payload.

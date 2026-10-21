@@ -233,6 +233,10 @@ export interface Showcase {
   id: number;
   title: string;
   type?: ('one' | 'two') | null;
+  /**
+   * Show this first on the front page
+   */
+  featured?: boolean | null;
   body?: LexicalRichText<LexicalNodes_4E9B5B0F> | null;
   links?:
     | {
@@ -403,6 +407,7 @@ export interface FoldersSelect<T extends boolean = true> {
 export interface ShowcaseSelect<T extends boolean = true> {
   title?: T;
   type?: T;
+  featured?: T;
   body?: T;
   links?:
     | T
