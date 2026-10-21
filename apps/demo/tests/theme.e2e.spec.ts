@@ -272,8 +272,9 @@ test.describe('Theme values', () => {
     })
 
     expect(inset).toEqual([3, 3, 3])
-    await expect(page.locator('.sidebar-tabs__tabs')).toHaveCSS('height', '32px')
-    await expect(page.locator('.sidebar-tabs__tab--active')).toHaveCSS('border-radius', '2px')
+    await expect(page.locator('.sidebar-tabs__tabs')).toHaveCSS('height', '40px')
+    await expect(page.locator('.sidebar-tabs__tabs')).toHaveCSS('border-radius', '8px')
+    await expect(page.locator('.sidebar-tabs__tab--active')).toHaveCSS('border-radius', '5px')
   })
 
   test('vertical tabs from 768px wide', async ({ page }) => {

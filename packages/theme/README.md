@@ -110,7 +110,7 @@ Any single-color SVG works. It is used as a mask, so it takes the nav's text col
 
 The theme's CSS sits in `@layer payload`, so your own `custom.css` overrides it without specificity fights.
 
-Each toolbar sizes its buttons from its own token. They all default to Payload's `--button-height`:
+Each toolbar sizes its buttons from its own token. All but the sidebar tabs default to Payload's `--button-height`:
 
 | Token                                       | Controls                                 |
 | ------------------------------------------- | ---------------------------------------- |
@@ -120,6 +120,7 @@ Each toolbar sizes its buttons from its own token. They all default to Payload's
 | `--payloadpack-list-controls-button-height` | List toolbar: Filters, Group by, Columns |
 | `--payloadpack-row-button-height`           | Array and block rows                     |
 | `--payloadpack-menu-item-height`            | Popup menu items                         |
+| `--payloadpack-sidebar-tabs-height`         | Collections and Folders tabs, 40px       |
 
 Checkboxes and radios share their size and colors:
 

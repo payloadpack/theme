@@ -54,7 +54,7 @@
 
     .sidebar-tabs__tab {
       height: calc(var(--button-height) - 6px);
-      border-radius: calc(var(--button-radius) - 3px);
+      border-radius: calc(var(--button-radius) + 3px);
     }
 
     /* 4. Date picker */
