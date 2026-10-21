@@ -1,0 +1,48 @@
+@layer payload {
+  .payloadpack-vertical-tabs {
+    @media (min-width: 768px) {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+
+      .tabs-field__tabs-wrap {
+        flex-shrink: 0;
+        min-width: 16.875rem;
+        margin-bottom: 0;
+        padding-bottom: 0;
+        padding-inline-start: calc(var(--gutter-h) * var(--field-border-bleed, 1));
+        overflow: visible;
+      }
+
+      .tabs-field__tabs {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        min-width: 0;
+        box-shadow: inset 1px 0 var(--color-border);
+
+        &::before,
+        &::after {
+          display: none;
+        }
+      }
+
+      .tabs-field__tab-button {
+        justify-content: flex-start;
+        margin-bottom: 0;
+        padding: var(--spacer-2) var(--spacer-3);
+
+        &::after {
+          inset: 0 auto 0 0;
+          width: 3px;
+          height: auto;
+        }
+      }
+
+      .tabs-field__content-wrap {
+        flex-grow: 1;
+        min-width: 0;
+      }
+    }
+  }
+}

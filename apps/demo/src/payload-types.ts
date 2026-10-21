@@ -245,6 +245,8 @@ export interface Showcase {
   smallCode?: string | null;
   publishedAt?: string | null;
   slug: string;
+  metaTitle?: string | null;
+  canonicalUrl?: string | null;
   createdBy?: {
     relationTo: 'users';
     value: number | User;
@@ -415,6 +417,8 @@ export interface ShowcaseSelect<T extends boolean = true> {
   smallCode?: T;
   publishedAt?: T;
   slug?: T;
+  metaTitle?: T;
+  canonicalUrl?: T;
   createdBy?: T;
   updatedBy?: T;
   updatedAt?: T;

@@ -52,6 +52,25 @@ themePlugin({
 | -------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `codeEditorFontSize` | `13`    | Font size for code editors in Comfortable density. Payload's default is 11. Fields that set `admin.editorOptions.fontSize` keep their own size. `false` turns it off. |
 
+## Vertical tabs
+
+Give a tabs field the `VERTICAL_TABS` class to list its tabs in a column beside the fields:
+
+```ts
+import { VERTICAL_TABS } from '@payloadpack/theme'
+
+const field = {
+  type: 'tabs',
+  admin: { className: VERTICAL_TABS },
+  tabs: [
+    { label: 'General', fields: [] },
+    { label: 'Advanced', fields: [] }
+  ]
+}
+```
+
+From 768px wide the tabs stack in a 270px column on the left. Narrower screens keep Payload's horizontal tabs. The layout applies whatever each person picks in Settings. Payload's tab list moves between tabs with the Left and Right arrow keys, and that doesn't change.
+
 ## Customize
 
 The theme's CSS sits in `@layer payload`, so your own `custom.css` overrides it without specificity fights.
