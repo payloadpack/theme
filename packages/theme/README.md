@@ -26,11 +26,11 @@ payload generate:importmap
 
 Open the user menu → **Settings**.
 
-| Setting     | Options              | Default     |
-| ----------- | -------------------- | ----------- |
-| Admin theme | Stock, Neutral       | Neutral     |
-| Density     | Compact, Comfortable | Comfortable |
-| Icons       | Payload, Lucide      | Lucide      |
+| Setting | Options              | Default     |
+| ------- | -------------------- | ----------- |
+| Style   | Stock, Neutral       | Neutral     |
+| Density | Compact, Comfortable | Comfortable |
+| Icons   | Payload, Lucide      | Lucide      |
 
 - **Neutral** gives dark mode a warm near-black palette and swaps Payload's blue selection for neutral greys. In both modes it draws a 2px focus ring in the text color and fills checked checkboxes and selected radios with the text color instead of blue.
 - **Comfortable** sets 14px body text, 40px fields, 32px buttons and 18px checkboxes and radios, gives dialogs more room, and fixes Payload components that hard-code their sizes.

@@ -2,7 +2,7 @@ export const settings = {
   adminTheme: {
     cookie: 'admin-theme',
     default: 'neutral',
-    label: 'Admin theme',
+    label: 'Style',
     options: { stock: 'Stock', neutral: 'Neutral' }
   },
   density: {
