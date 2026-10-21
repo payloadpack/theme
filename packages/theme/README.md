@@ -71,6 +71,27 @@ const field = {
 
 From 768px wide the tabs stack in a 270px column on the left. Narrower screens keep Payload's horizontal tabs. The layout applies whatever each person picks in Settings. Payload's tab list moves between tabs with the Left and Right arrow keys, and that doesn't change.
 
+## Radio cards
+
+Give a radio field the `RADIO_CARDS` class to show its options as stacked cards with the radio on the right:
+
+```ts
+import { RADIO_CARDS } from '@payloadpack/theme'
+
+const field = {
+  name: 'plan',
+  type: 'radio',
+  admin: { className: RADIO_CARDS },
+  options: ['plus', 'pro', 'enterprise']
+}
+```
+
+A label can also be JSX. Its first element is the title and any element after it is shown as a muted description:
+
+```tsx
+{ value: 'plus', label: <><strong>Plus</strong><span>For individuals and small teams.</span></> }
+```
+
 ## Nav icons
 
 With Icons set to Lucide, every collection and global in the nav gets an icon. Common names get a matching one automatically: a slug containing `page`, `post`, `media`, `user`, `categor`, `product`, `order`, `form`, `tag`, `event` or [more than 30 other words](src/lucide.css) is recognized. Anything else gets a generic icon.

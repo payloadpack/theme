@@ -9,6 +9,7 @@ import './neutral.css'
 import './comfortable.css'
 import './lucide.css'
 import './vertical-tabs.css'
+import './radio-cards.css'
 
 const ONE_YEAR_IN_SECONDS = 60 * 60 * 24 * 365
 

@@ -1,4 +1,4 @@
-import { VERTICAL_TABS } from '@payloadpack/theme'
+import { RADIO_CARDS, VERTICAL_TABS } from '@payloadpack/theme'
 import { expect, type Page, test } from '@playwright/test'
 
 const baseURL = 'http://localhost:3020'
@@ -196,6 +196,28 @@ test.describe('Theme values', () => {
     await expect(checkbox).toHaveCSS('box-shadow', /0px 0px 0px 3px/)
   })
 
+  test('radio cards stack with the radio on the right', async ({ page }) => {
+    await openShowcase(page)
+    const cards = page.locator(`.${RADIO_CARDS} .radio-input`)
+    await cards.first().click()
+    await page.mouse.move(0, 0)
+
+    const layout = await page.locator(`.${RADIO_CARDS}`).evaluate((root) =>
+      [...root.querySelectorAll('.radio-input')].map((card) => {
+        const box = card.getBoundingClientRect()
+        const radio = card.querySelector('.radio-input__styled-radio')?.getBoundingClientRect()
+        return { bottom: box.bottom, radioRight: radio?.right, right: box.right, top: box.top }
+      })
+    )
+    expect(layout).toHaveLength(3)
+    expect(layout[1].top).toBeGreaterThan(layout[0].bottom)
+    expect(layout[0].radioRight).toBe(layout[0].right - 17)
+
+    await expect(cards.first()).toHaveCSS('background-color', 'rgb(32, 32, 30)')
+    await expect(cards.nth(1)).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
+    await expect(cards.first().locator('.radio-input__label > :last-child')).toHaveCSS('color', 'rgb(163, 162, 155)')
+  })
+
   test('Payload icons keep the Payload tick without its halo', async ({ page }) => {
     await page.context().addCookies([cookie('icons', 'payload')])
     await openShowcase(page)
@@ -335,7 +357,13 @@ test.describe('Theme values', () => {
     })
 
     expect(total).toBeGreaterThan(0)
-    expect(applied).toContain(`.${VERTICAL_TABS}`)
-    expect(applied.filter((selector) => !selector.startsWith(`.${VERTICAL_TABS}`))).toEqual([])
+    const fieldLayouts = [`.${VERTICAL_TABS}`, `.${RADIO_CARDS}`]
+    for (const layout of fieldLayouts) {
+      expect(
+        applied.some((selector) => selector.startsWith(layout)),
+        layout
+      ).toBe(true)
+    }
+    expect(applied.filter((selector) => !fieldLayouts.some((layout) => selector.startsWith(layout)))).toEqual([])
   })
 })

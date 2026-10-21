@@ -1,13 +1,17 @@
 import { sqliteAdapter } from '@payloadcms/db-sqlite'
 import { FixedToolbarFeature, lexicalEditor } from '@payloadcms/richtext-lexical'
-import { themePlugin, VERTICAL_TABS } from '@payloadpack/theme'
+import { RADIO_CARDS, themePlugin, VERTICAL_TABS } from '@payloadpack/theme'
 import path from 'path'
+import { createElement, Fragment } from 'react'
 import { buildConfig } from 'payload'
 import { fileURLToPath } from 'url'
 
 import { seed } from './seed'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
+
+const choice = (title: string, description: string) =>
+  createElement(Fragment, null, createElement('strong', null, title), createElement('span', null, description))
 
 const AMENITIES = [
   'wifi',
@@ -66,6 +70,16 @@ export default buildConfig({
           type: 'radio',
           options: ['xs', 's', 'm', 'l', 'xl', 'xxl', 'xxxl', 'custom'],
           admin: { layout: 'horizontal' }
+        },
+        {
+          name: 'plan',
+          type: 'radio',
+          admin: { className: RADIO_CARDS },
+          options: [
+            { label: choice('Plus', 'For individuals and small teams.'), value: 'plus' },
+            { label: choice('Pro', 'For growing businesses.'), value: 'pro' },
+            { label: choice('Enterprise', 'For large teams and enterprises.'), value: 'enterprise' }
+          ]
         },
         { name: 'tags', type: 'select', hasMany: true, options: AMENITIES },
         {

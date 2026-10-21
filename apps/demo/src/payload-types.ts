@@ -238,6 +238,7 @@ export interface Showcase {
    */
   featured?: boolean | null;
   size?: ('xs' | 's' | 'm' | 'l' | 'xl' | 'xxl' | 'xxxl' | 'custom') | null;
+  plan?: ('plus' | 'pro' | 'enterprise') | null;
   tags?:
     | (
         | 'wifi'
@@ -466,6 +467,7 @@ export interface ShowcaseSelect<T extends boolean = true> {
   type?: T;
   featured?: T;
   size?: T;
+  plan?: T;
   tags?: T;
   amenities?:
     | T
