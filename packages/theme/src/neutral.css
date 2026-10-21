@@ -12,6 +12,11 @@
       outline-offset: calc(-1 * var(--stroke-width-medium));
     }
 
+    .nav__close:focus-visible .sidebar-toggle {
+      outline: var(--accessibility-outline);
+      outline-offset: calc(-1 * var(--stroke-width-medium));
+    }
+
     /* 2. Dark palette */
     &[data-theme='dark'],
     [data-theme='dark'] {
@@ -50,11 +55,11 @@
 
     .sidebar-tabs__tabs {
       padding: 3px;
+      border-radius: calc(var(--button-radius) + 3px);
     }
 
     .sidebar-tabs__tab {
       height: calc(var(--button-height) - 6px);
-      border-radius: calc(var(--button-radius) + 3px);
     }
 
     /* 4. Date picker */

@@ -277,6 +277,14 @@ test.describe('Theme values', () => {
     await expect(page.locator('.sidebar-tabs__tab--active')).toHaveCSS('border-radius', '5px')
   })
 
+  test('hide sidebar button shows the focus ring', async ({ page }) => {
+    await page.goto('/admin')
+    await page.getByRole('button', { name: 'Hide sidebar' }).focus()
+
+    await expect(page.locator('.nav__close .sidebar-toggle')).toHaveCSS('outline-style', 'solid')
+    await expect(page.locator('.nav__close .sidebar-toggle')).toHaveCSS('outline-width', '2px')
+  })
+
   test('vertical tabs from 768px wide', async ({ page }) => {
     await openShowcase(page)
     const tabs = page.locator(`.${VERTICAL_TABS}`)
