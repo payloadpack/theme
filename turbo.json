@@ -1,0 +1,30 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalEnv": ["NODE_ENV", "PAYLOAD_SECRET", "DATABASE_URI", "CI"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", ".next/**"]
+    },
+    "dev": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "persistent": true
+    },
+    "test": {
+      "dependsOn": ["^build"]
+    },
+    "test:e2e": {
+      "dependsOn": ["^build"],
+      "cache": false
+    },
+    "generate:importmap": {
+      "dependsOn": ["^build"],
+      "outputs": ["src/app/**/admin/importMap.js"]
+    },
+    "generate:types": {
+      "dependsOn": ["^build"],
+      "outputs": ["src/payload-types.ts"]
+    }
+  }
+}

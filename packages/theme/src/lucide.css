@@ -1,0 +1,214 @@
+@layer payload {
+  html[data-icons='lucide'] {
+    /* 1. Payload icons */
+    svg.icon:is(
+      .icon--align-justified,
+      .icon--arrow,
+      .icon--calendar,
+      .icon--check,
+      .icon--chevron,
+      .icon--circled-x,
+      .icon--circle-plus,
+      .icon--clipboard,
+      .icon--clock,
+      .icon--close-menu,
+      .icon--code-block,
+      .icon--collapse,
+      .icon--copy,
+      .icon--crop,
+      .icon--document,
+      .icon--download,
+      .icon--duplicate,
+      .icon--edit,
+      .icon--expand,
+      .icon--filter,
+      .icon--folder,
+      .icon--gear,
+      .icon--grid-view,
+      .icon--info,
+      .icon--interaction-enter,
+      .icon--key,
+      .icon--language,
+      .icon--line,
+      .icon--link,
+      .icon--lock,
+      .icon--lock-open,
+      .icon--logout,
+      .icon--minimize-maximize--maximized,
+      .icon--minimize-maximize--minimized,
+      .icon--more,
+      .icon--move-folder,
+      .icon--new-tab,
+      .icon--people,
+      .icon--pin,
+      .icon--plus,
+      .icon--preview,
+      .icon--refresh,
+      .icon--replace,
+      .icon--reset,
+      .icon--schedule,
+      .icon--search,
+      .icon--sidebar,
+      .icon--swap,
+      .icon--table,
+      .icon--tag,
+      .icon--trash,
+      .icon--variable-color,
+      .icon--warning,
+      .icon--warning-triangle,
+      .icon--write,
+      .icon--x
+    ) {
+      background-color: currentColor;
+      mask: var(--payloadpack-icon) center / min(100%, var(--payloadpack-icon-size, 0.875rem)) no-repeat;
+
+      > * {
+        display: none;
+      }
+    }
+
+    svg.icon--align-justified { --payloadpack-icon: url('lucide-static/icons/align-justify.svg'); }
+    svg.icon--arrow { --payloadpack-icon: url('lucide-static/icons/arrow-up.svg'); }
+    svg.icon--calendar { --payloadpack-icon: url('lucide-static/icons/calendar.svg'); }
+    svg.icon--check { --payloadpack-icon: url('lucide-static/icons/check.svg'); }
+    svg.icon--chevron { --payloadpack-icon: url('lucide-static/icons/chevron-down.svg'); --payloadpack-icon-size: 0.75rem; }
+    svg.icon--circled-x { --payloadpack-icon: url('lucide-static/icons/circle-x.svg'); }
+    svg.icon--circle-plus { --payloadpack-icon: url('lucide-static/icons/circle-plus.svg'); }
+    svg.icon--clipboard { --payloadpack-icon: url('lucide-static/icons/clipboard.svg'); }
+    svg.icon--clock { --payloadpack-icon: url('lucide-static/icons/clock.svg'); }
+    svg.icon--close-menu { --payloadpack-icon: url('lucide-static/icons/x.svg'); }
+    svg.icon--code-block { --payloadpack-icon: url('lucide-static/icons/code-xml.svg'); }
+    svg.icon--collapse { --payloadpack-icon: url('lucide-static/icons/minimize-2.svg'); }
+    svg.icon--copy { --payloadpack-icon: url('lucide-static/icons/copy.svg'); }
+    svg.icon--crop { --payloadpack-icon: url('lucide-static/icons/crop.svg'); }
+    svg.icon--document { --payloadpack-icon: url('lucide-static/icons/file.svg'); }
+    svg.icon--download { --payloadpack-icon: url('lucide-static/icons/download.svg'); }
+    svg.icon--duplicate { --payloadpack-icon: url('lucide-static/icons/copy-plus.svg'); }
+    svg.icon--edit { --payloadpack-icon: url('lucide-static/icons/pencil.svg'); --payloadpack-icon-size: 0.75rem; }
+    svg.icon--expand { --payloadpack-icon: url('lucide-static/icons/maximize-2.svg'); }
+    svg.icon--filter { --payloadpack-icon: url('lucide-static/icons/list-filter.svg'); }
+    svg.icon--folder { --payloadpack-icon: url('lucide-static/icons/folder.svg'); }
+    svg.icon--gear { --payloadpack-icon: url('lucide-static/icons/settings.svg'); }
+    svg.icon--grid-view { --payloadpack-icon: url('lucide-static/icons/layout-grid.svg'); }
+    svg.icon--info { --payloadpack-icon: url('lucide-static/icons/info.svg'); }
+    svg.icon--interaction-enter { --payloadpack-icon: url('lucide-static/icons/log-in.svg'); }
+    svg.icon--key { --payloadpack-icon: url('lucide-static/icons/key-round.svg'); }
+    svg.icon--language { --payloadpack-icon: url('lucide-static/icons/languages.svg'); }
+    svg.icon--line { --payloadpack-icon: url('lucide-static/icons/minus.svg'); }
+    svg.icon--link { --payloadpack-icon: url('lucide-static/icons/link.svg'); }
+    svg.icon--lock { --payloadpack-icon: url('lucide-static/icons/lock.svg'); }
+    svg.icon--lock-open { --payloadpack-icon: url('lucide-static/icons/lock-open.svg'); }
+    svg.icon--logout { --payloadpack-icon: url('lucide-static/icons/log-out.svg'); }
+    svg.icon--minimize-maximize--maximized { --payloadpack-icon: url('lucide-static/icons/minimize-2.svg'); }
+    svg.icon--minimize-maximize--minimized { --payloadpack-icon: url('lucide-static/icons/maximize-2.svg'); }
+    svg.icon--more { --payloadpack-icon: url('lucide-static/icons/ellipsis.svg'); --payloadpack-icon-size: 1rem; }
+    svg.icon--move-folder { --payloadpack-icon: url('lucide-static/icons/folder-input.svg'); }
+    svg.icon--new-tab { --payloadpack-icon: url('lucide-static/icons/external-link.svg'); }
+    svg.icon--people { --payloadpack-icon: url('lucide-static/icons/users.svg'); }
+    svg.icon--pin { --payloadpack-icon: url('lucide-static/icons/pin.svg'); }
+    svg.icon--plus { --payloadpack-icon: url('lucide-static/icons/plus.svg'); }
+    svg.icon--preview { --payloadpack-icon: url('lucide-static/icons/scan-eye.svg'); }
+    svg.icon--refresh { --payloadpack-icon: url('lucide-static/icons/refresh-cw.svg'); }
+    svg.icon--replace { --payloadpack-icon: url('lucide-static/icons/arrow-right.svg'); }
+    svg.icon--reset { --payloadpack-icon: url('lucide-static/icons/rotate-ccw.svg'); }
+    svg.icon--schedule { --payloadpack-icon: url('lucide-static/icons/calendar-clock.svg'); }
+    svg.icon--search { --payloadpack-icon: url('lucide-static/icons/search.svg'); }
+    svg.icon--sidebar { --payloadpack-icon: url('lucide-static/icons/panel-left.svg'); }
+    svg.icon--swap { --payloadpack-icon: url('lucide-static/icons/arrow-right-left.svg'); }
+    svg.icon--table { --payloadpack-icon: url('lucide-static/icons/table.svg'); }
+    svg.icon--tag { --payloadpack-icon: url('lucide-static/icons/tag.svg'); }
+    svg.icon--trash { --payloadpack-icon: url('lucide-static/icons/trash-2.svg'); }
+    svg.icon--variable-color { --payloadpack-icon: url('lucide-static/icons/sun-moon.svg'); }
+    svg.icon--warning { --payloadpack-icon: url('lucide-static/icons/triangle-alert.svg'); }
+    svg.icon--warning-triangle { --payloadpack-icon: url('lucide-static/icons/triangle-alert.svg'); }
+    svg.icon--write { --payloadpack-icon: url('lucide-static/icons/square-pen.svg'); }
+    svg.icon--x { --payloadpack-icon: url('lucide-static/icons/x.svg'); }
+
+    .collapsible__indicator svg.icon--chevron { --payloadpack-icon-size: 1rem; }
+    .sidebar-tabs__tab svg.icon--align-justified { --payloadpack-icon: url('lucide-static/icons/layers-2.svg'); }
+
+    /* 2. Added icons */
+    .nav__link::after,
+    .doc-controls__popup .popup-button-list__button::before {
+      content: '';
+      order: -1;
+      flex-shrink: 0;
+      align-self: center;
+      width: 1rem;
+      height: 1rem;
+      margin-inline-end: var(--spacer-2);
+      background-color: currentColor;
+      opacity: 0.5;
+      transition: opacity 150ms ease-in-out;
+      mask: var(--payloadpack-icon) center / contain no-repeat;
+    }
+
+    .nav__link:hover::after,
+    .nav__link--selected::after,
+    .doc-controls__popup .popup-button-list__button:hover::before {
+      opacity: 1;
+    }
+
+    /* 3. Document menu */
+    .doc-controls__popup .popup-button-list__button::before {
+      margin-inline: var(--spacer-2) 0;
+    }
+
+    .doc-controls__popup .popup-button-list__button { --payloadpack-icon: url('lucide-static/icons/circle-dot.svg'); }
+    #copy-locale-data__button { --payloadpack-icon: url('lucide-static/icons/clipboard-paste.svg'); }
+    #action-create { --payloadpack-icon: url('lucide-static/icons/circle-plus.svg'); }
+    #action-duplicate { --payloadpack-icon: url('lucide-static/icons/copy.svg'); }
+    #action-duplicate-locales { --payloadpack-icon: url('lucide-static/icons/languages.svg'); }
+    #action-delete,
+    #delete-forever { --payloadpack-icon: url('lucide-static/icons/trash-2.svg'); }
+    #action-unpublish,
+    #action-unpublish-locale { --payloadpack-icon: url('lucide-static/icons/eye-off.svg'); }
+
+    /* 4. Navigation */
+    .nav__link { --payloadpack-icon: url('lucide-static/icons/layers-2.svg'); }
+    .nav__link[id^='nav-global-'] { --payloadpack-icon: url('lucide-static/icons/app-window.svg'); }
+    .nav__link[id*='header'] { --payloadpack-icon: url('lucide-static/icons/panel-top.svg'); }
+    .nav__link[id*='footer'] { --payloadpack-icon: url('lucide-static/icons/panel-bottom.svg'); }
+    .nav__link[id*='page'] { --payloadpack-icon: url('lucide-static/icons/file.svg'); }
+    .nav__link[id*='post'] { --payloadpack-icon: url('lucide-static/icons/pencil-line.svg'); }
+    .nav__link[id*='categor'] { --payloadpack-icon: url('lucide-static/icons/folder-tree.svg'); }
+    .nav__link[id*='order'] { --payloadpack-icon: url('lucide-static/icons/package.svg'); }
+    .nav__link[id*='product'] { --payloadpack-icon: url('lucide-static/icons/shopping-cart.svg'); }
+    .nav__link[id*='media'] { --payloadpack-icon: url('lucide-static/icons/image.svg'); }
+    .nav__link[id*='upload'] { --payloadpack-icon: url('lucide-static/icons/upload.svg'); }
+    .nav__link[id*='form'] { --payloadpack-icon: url('lucide-static/icons/file-text.svg'); }
+    .nav__link[id*='submission'] { --payloadpack-icon: url('lucide-static/icons/message-square.svg'); }
+    .nav__link[id*='block'],
+    .nav__link[id*='lock'] { --payloadpack-icon: url('lucide-static/icons/boxes.svg'); }
+    .nav__link[id*='redirect'] { --payloadpack-icon: url('lucide-static/icons/route.svg'); }
+    .nav__link[id*='settings'] { --payloadpack-icon: url('lucide-static/icons/settings.svg'); }
+    .nav__link[id*='user'] { --payloadpack-icon: url('lucide-static/icons/users.svg'); }
+    .nav__link[id*='session'] { --payloadpack-icon: url('lucide-static/icons/key.svg'); }
+    .nav__link[id*='verification'] { --payloadpack-icon: url('lucide-static/icons/rectangle-ellipsis.svg'); }
+    .nav__link[id*='account'] { --payloadpack-icon: url('lucide-static/icons/shield-user.svg'); }
+    .nav__link[id*='signup-invite'] { --payloadpack-icon: url('lucide-static/icons/user-plus.svg'); }
+    .nav__link[id*='twoFactor'],
+    .nav__link[id*='two-factor'] { --payloadpack-icon: url('lucide-static/icons/shield-check.svg'); }
+    .nav__link[id*='nav-apikey'] { --payloadpack-icon: url('lucide-static/icons/key-round.svg'); }
+    .nav__link[id*='nav-invitation'] { --payloadpack-icon: url('lucide-static/icons/mail-plus.svg'); }
+    .nav__link[id*='nav-organization'] { --payloadpack-icon: url('lucide-static/icons/building-2.svg'); }
+    .nav__link[id*='nav-team'] { --payloadpack-icon: url('lucide-static/icons/users-round.svg'); }
+    .nav__link[id*='nav-member'] { --payloadpack-icon: url('lucide-static/icons/user-plus.svg'); }
+    .nav__link[id*='comment'] { --payloadpack-icon: url('lucide-static/icons/message-circle.svg'); }
+    .nav__link[id*='nav-passkey'] { --payloadpack-icon: url('lucide-static/icons/fingerprint-pattern.svg'); }
+    .nav__link[id*='review'] { --payloadpack-icon: url('lucide-static/icons/star.svg'); }
+    .nav__link[id*='search'] { --payloadpack-icon: url('lucide-static/icons/search.svg'); }
+    .nav__link[id*='tag'] { --payloadpack-icon: url('lucide-static/icons/tags.svg'); }
+    .nav__link[id*='analytics'] { --payloadpack-icon: url('lucide-static/icons/bar-chart.svg'); }
+    .nav__link[id*='appointment'],
+    .nav__link[id*='booking'],
+    .nav__link[id*='event'],
+    .nav__link[id*='calendar'] { --payloadpack-icon: url('lucide-static/icons/calendar-clock.svg'); }
+    .nav__link[id*='subscription'] { --payloadpack-icon: url('lucide-static/icons/credit-card.svg'); }
+    .nav__link[id*='budget'] { --payloadpack-icon: url('lucide-static/icons/chart-pie.svg'); }
+    .nav__link[id*='budget-rate'] { --payloadpack-icon: url('lucide-static/icons/percent.svg'); }
+    .nav__link[id*='budget-ticket'] { --payloadpack-icon: url('lucide-static/icons/ticket.svg'); }
+    .nav__link[id*='time-log'] { --payloadpack-icon: url('lucide-static/icons/clock.svg'); }
+    .nav__link[id*='api-key'] { --payloadpack-icon: url('lucide-static/icons/key-round.svg'); }
+  }
+}

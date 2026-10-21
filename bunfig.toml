@@ -1,0 +1,4 @@
+[install]
+# Don't auto-install peer dependencies - let them resolve from the consuming app
+peer = false
+

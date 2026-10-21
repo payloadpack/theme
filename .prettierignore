@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.next/
+bun.lock
+*.tsbuildinfo
+importMap.js
+payload-types.ts
+next-env.d.ts
+CHANGELOG.md
+.auth/
+packages/theme/src/lucide.css

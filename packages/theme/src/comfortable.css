@@ -1,0 +1,262 @@
+@layer payload {
+  html[data-density='comfortable'] {
+    /* 1. Scale */
+    --text-body-small-font-size: 0.75rem;
+    --text-body-small-line-height: 1rem;
+    --text-body-medium-font-size: 0.875rem;
+    --text-body-medium-line-height: 1.25rem;
+    --text-body-large-font-size: 1rem;
+    --text-body-large-line-height: 1.5rem;
+    --text-body-xl-font-size: 1.125rem;
+    --text-body-xl-line-height: 1.625rem;
+
+    --text-body-small-bold-font-size: var(--text-body-small-font-size);
+    --text-body-small-bold-line-height: var(--text-body-small-line-height);
+    --text-body-medium-bold-font-size: var(--text-body-medium-font-size);
+    --text-body-medium-bold-line-height: var(--text-body-medium-line-height);
+    --text-body-large-bold-font-size: var(--text-body-large-font-size);
+    --text-body-large-bold-line-height: var(--text-body-large-line-height);
+
+    --text-heading-small-font-size: 1rem;
+    --text-heading-small-line-height: 1.5rem;
+    --text-heading-medium-font-size: 1.125rem;
+    --text-heading-medium-line-height: 1.625rem;
+
+    --field-min-height-large: var(--spacer-6);
+    --field-min-height-medium: var(--spacer-5);
+    --field-padding-inline: var(--spacer-2-5);
+    --button-height: var(--spacer-5);
+    --payloadpack-button-height-large: var(--field-min-height-large);
+    --control-height: var(--spacer-5);
+
+    --payloadpack-doc-header-button-height: var(--button-height);
+    --payloadpack-doc-controls-button-height: var(--button-height);
+    --payloadpack-list-header-button-height: var(--button-height);
+    --payloadpack-list-controls-button-height: var(--button-height);
+    --payloadpack-row-button-height: var(--button-height);
+    --payloadpack-menu-item-height: var(--button-height);
+
+    /* 2. Areas */
+    .doc-header {
+      --button-height: var(--payloadpack-doc-header-button-height);
+    }
+
+    .doc-controls {
+      --button-height: var(--payloadpack-doc-controls-button-height);
+    }
+
+    .list-header {
+      --button-height: var(--payloadpack-list-header-button-height);
+    }
+
+    .list-controls {
+      --button-height: var(--payloadpack-list-controls-button-height);
+    }
+
+    .collapsible__toggle-wrap {
+      --button-height: var(--payloadpack-row-button-height);
+    }
+
+    .popup-button-list {
+      --button-height: var(--payloadpack-menu-item-height);
+    }
+
+    /* 3. Fields */
+    .password__toggle-button,
+    .confirm-password__toggle-button {
+      right: calc(var(--field-padding-inline) - 5px);
+    }
+
+    .auth-fields .field-type.api-key input,
+    .api-key-input__control {
+      min-height: var(--field-min-height-large);
+      padding-inline: var(--field-padding-inline);
+    }
+
+    .auth-fields .field-type.api-key .api-key__input-wrap--has-regenerate input {
+      padding-right: calc(var(--field-min-height-large) * 2);
+    }
+
+    .api-key__visibility-button.btn,
+    .api-key__regenerate-button.btn,
+    .api-key-input .copy-to-clipboard {
+      width: var(--field-min-height-large);
+      min-height: var(--field-min-height-large);
+    }
+
+    .slug-field-component__input {
+      padding-inline-end: calc(var(--button-height) + var(--spacer-1) + var(--spacer-2));
+    }
+
+    .slug-field-component:not(.slug-field-component--locked) .slug-field-component__input {
+      padding-inline-end: calc(2 * var(--button-height) + 2 * var(--spacer-1) + var(--spacer-2));
+    }
+
+    .checkbox-input__input {
+      margin-block: calc(var(--spacer-1) + (var(--text-body-medium-line-height) - var(--spacer-3)) / 2);
+    }
+
+    .multi-value.rs__multi-value,
+    .selected-hierarchies__pill.chip--size-medium {
+      height: calc(var(--text-body-medium-line-height) + var(--spacer-1));
+    }
+
+    .error-pill {
+      height: var(--text-body-medium-line-height);
+    }
+
+    .error-pill--fixed-width {
+      width: var(--text-body-medium-line-height);
+    }
+
+    .file-field__side-panel__info-label {
+      height: auto;
+    }
+
+    .column-selector__search-bar,
+    .item-search__input,
+    .group-by-control__label,
+    .react-datepicker__month-select,
+    .react-datepicker__year-select {
+      height: var(--control-height);
+    }
+
+    .react-datepicker__header__dropdown {
+      padding-inline: 0;
+    }
+
+    .group-by-control__select-trigger,
+    .condition__join .rs__control {
+      min-height: var(--control-height);
+    }
+
+    .date-time-picker .icon--calendar {
+      top: 50%;
+      right: calc(var(--field-padding-inline) - 5px);
+    }
+
+    .relationship-add-new .relationship-add-new__add-button {
+      width: var(--field-min-height-large);
+      justify-content: center;
+    }
+
+    .collapsible__toggle-wrap {
+      height: calc(var(--button-height) + 2 * var(--spacer-2));
+      padding-inline-end: var(--spacer-2);
+    }
+
+    /* 4. Buttons */
+    .btn--size-large {
+      height: var(--payloadpack-button-height-large);
+    }
+
+    .btn--round.btn--size-medium {
+      width: var(--button-height);
+    }
+
+    .btn--round.btn--size-large {
+      width: var(--payloadpack-button-height-large);
+    }
+
+    .btn--withPopup:has(.btn--size-medium) .popup-button {
+      height: var(--button-height);
+    }
+
+    .btn--withPopup:has(.btn--size-large) .popup-button {
+      height: var(--payloadpack-button-height-large);
+    }
+
+    .collapsible__indicator {
+      min-width: var(--button-height);
+      min-height: var(--button-height);
+    }
+
+    .recents-widget__select-documents {
+      height: var(--payloadpack-button-height-large);
+      padding-inline: var(--spacer-3);
+    }
+
+    .segmented-control__icon,
+    .popup-button:has(> :is(.dots, .icon):only-child) {
+      width: var(--button-height);
+      height: var(--button-height);
+    }
+
+    .popup-button:has(> :is(.dots, .icon):only-child) {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .dots:not(.dots--no-background) {
+      width: var(--button-height);
+      height: var(--button-height);
+    }
+
+    .list-header__content {
+      min-height: var(--button-height);
+    }
+
+    .doc-tab__label {
+      line-height: var(--text-body-medium-line-height);
+    }
+
+    .pill-version-count {
+      font-size: var(--text-body-small-font-size);
+      line-height: var(--text-body-small-line-height);
+    }
+
+    /* 5. Menus */
+    .popup-button-list__button {
+      min-height: var(--button-height);
+    }
+
+    .popup-button-list__submenu-trigger {
+      padding-inline-start: calc(var(--spacer-1) - var(--stroke-width-small));
+    }
+
+    .popup__scroll-container {
+      max-height: calc(100vh - var(--spacer-3));
+    }
+
+    .popup-button-list--with-icons .popup-button-list__icon {
+      min-width: calc(var(--spacer-3) + var(--spacer-1));
+    }
+
+    .group-by-control__header {
+      height: calc(var(--button-height) + 2 * var(--spacer-2) + var(--stroke-width-small));
+    }
+
+    .column-selector__search {
+      height: calc(var(--control-height) + 2 * var(--spacer-2) + var(--stroke-width-small));
+    }
+
+    /* 6. Navigation */
+    .nav__link::before {
+      inset-block: 2px;
+    }
+
+    /* 7. Rich text */
+    .LexicalEditorTheme {
+      --lexical-h4-font-size: 1.125rem;
+      --lexical-h5-font-size: 0.9375rem;
+      --lexical-h6-font-size: 0.8125rem;
+    }
+
+    .LexicalEditorTheme__quote {
+      font-size: var(--text-body-xl-font-size);
+    }
+
+    .fixed-toolbar + .editor-container > .editor-scroller > .editor {
+      --content-editable-padding-block-start: var(--spacer-4);
+
+      > .ContentEditable__root {
+        padding-top: var(--content-editable-padding-block-start);
+      }
+    }
+
+    .table-grid-popup__input-group {
+      height: var(--control-height);
+    }
+  }
+}

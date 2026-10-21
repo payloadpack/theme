@@ -1,0 +1,51 @@
+name: Build
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+env:
+  NODE_VERSION: '24.15.0'
+  BUN_VERSION: '1.4.2'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Install dependencies (frozen lockfile)
+        run: bun install --frozen-lockfile
+
+      - name: Build package
+        run: bun run build
+        working-directory: packages/theme
+
+      - name: Contract tests
+        run: bun run test
+        working-directory: packages/theme
+
+      - name: Install Playwright browser
+        run: bunx playwright install --with-deps chromium
+        working-directory: apps/demo
+
+      - name: End-to-end tests
+        run: bun run test:e2e
+        working-directory: apps/demo
+        env:
+          CI: 'true'
+          DATABASE_URI: file:./demo.db
+          PAYLOAD_SECRET: ci-only-secret

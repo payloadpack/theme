@@ -1,0 +1,23 @@
+{
+  "name": "payloadpack-theme-monorepo",
+  "private": true,
+  "packageManager": "bun@1.4.2",
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev --filter=@apps/demo",
+    "generate": "turbo generate:importmap generate:types --filter=@apps/demo",
+    "test": "turbo test",
+    "test:e2e": "turbo test:e2e --filter=@apps/demo",
+    "check:duplicates": "./scripts/check-duplicates.sh",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "prettier": "^3.7.4",
+    "turbo": "^2.6.3"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ]
+}

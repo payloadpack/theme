@@ -1,0 +1,65 @@
+@layer payload {
+  html[data-admin-theme='neutral'] {
+    /* 1. Focus */
+    &,
+    [data-theme] {
+      --accessibility-focus-color: var(--color-text);
+      --accessibility-outline: var(--stroke-width-medium) solid var(--accessibility-focus-color);
+    }
+
+    .sidebar-tabs__tab:focus-visible,
+    .doc-controls__meta .btn:focus-visible {
+      outline-offset: calc(-1 * var(--stroke-width-medium));
+    }
+
+    /* 2. Dark palette */
+    &[data-theme='dark'],
+    [data-theme='dark'] {
+      --ramp-grey-500: #72716b;
+      --ramp-grey-600: #2a2a27;
+      --ramp-grey-700: #20201e;
+      --ramp-grey-800: #0f0f0e;
+      --ramp-grey-900: #0a0a09;
+      --color-bg-elevated: #181817;
+      --color-bg-menu: var(--color-bg-elevated);
+      --color-bg-tooltip: var(--color-bg-elevated);
+      --color-text: #f3f2ed;
+      --color-text-secondary: #a3a29b;
+      --color-icon-secondary: #a3a29b;
+      --field-color-bg: var(--color-bg-elevated);
+      --field-color-border: var(--color-border);
+      --color-bg-selected: var(--color-bg-tertiary);
+      --color-bg-selected-hover: var(--color-bg-tertiary);
+      --color-bg-selected-pressed: var(--color-bg-tertiary);
+      --color-bg-selected-strong: var(--color-bg-tertiary);
+      --color-text-onselected-strong: var(--color-text);
+      --color-bg-disabled: var(--color-bg-tertiary);
+      --color-text-ondisabled: var(--color-text-disabled);
+      --elevation-400-menu-panel:
+        0 0 0 1px var(--special-border-translucent-strong), 0 10px 24px rgb(0 0 0 / 0.5), 0 2px 6px rgb(0 0 0 / 0.4);
+    }
+
+    &[data-theme='dark'] :is(.nav, .nav__header) {
+      background-color: var(--ramp-grey-900);
+    }
+
+    /* 3. Shape */
+    & {
+      --popup-radius: calc(var(--radius-medium) + var(--spacer-1));
+    }
+
+    /* 4. Date picker */
+    .react-datepicker {
+      background-color: var(--color-bg-elevated);
+      box-shadow: var(--elevation-400-menu-panel);
+    }
+
+    .react-datepicker__day--selected,
+    .react-datepicker__month-text--selected,
+    .react-datepicker__quarter-text--selected,
+    .react-datepicker__year-text--selected {
+      background-color: var(--color-bg-inverse);
+      color: var(--color-text-oninverse);
+    }
+  }
+}

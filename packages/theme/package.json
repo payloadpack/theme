@@ -1,0 +1,80 @@
+{
+  "name": "@payloadpack/theme",
+  "version": "0.1.0",
+  "description": "Admin theme for Payload 4: a warm dark palette, a comfortable density and Lucide icons, switchable from the user menu.",
+  "license": "MIT",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/payloadpack/theme.git",
+    "directory": "packages/theme"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./client": {
+      "import": "./dist/client.js",
+      "types": "./dist/client.d.ts",
+      "default": "./dist/client.js"
+    },
+    "./rsc": {
+      "import": "./dist/rsc.js",
+      "types": "./dist/rsc.d.ts",
+      "default": "./dist/rsc.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "sideEffects": [
+    "*.css"
+  ],
+  "scripts": {
+    "build": "bun run clean && bun run copyfiles && bun run build:types && bun run build:swc && bun run build:icons",
+    "build:icons": "node scripts/inline-icons.mjs",
+    "build:swc": "swc ./src -d ./dist --config-file .swcrc --strip-leading-paths --ignore \"**/*.d.ts\"",
+    "build:types": "tsc -p tsconfig.json",
+    "clean": "rimraf {dist,*.tsbuildinfo}",
+    "copyfiles": "copyfiles -u 1 \"src/**/*.css\" dist/",
+    "prepublishOnly": "bun run build",
+    "test": "vitest run"
+  },
+  "peerDependencies": {
+    "@payloadcms/ui": "^4.0.0-beta.3",
+    "payload": "^4.0.0-beta.3",
+    "react": "^19",
+    "react-dom": "^19"
+  },
+  "devDependencies": {
+    "@payloadcms/richtext-lexical": "4.0.0-beta.3",
+    "@payloadcms/ui": "4.0.0-beta.3",
+    "@swc/cli": "0.7.9",
+    "@swc/core": "^1.10.0",
+    "@types/node": "^24.0.0",
+    "@types/react": "19.3.0",
+    "copyfiles": "2.4.1",
+    "lucide-static": "1.61.0",
+    "payload": "4.0.0-beta.3",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "rimraf": "6.1.2",
+    "typescript": "6.0.3",
+    "vite": "7.3.7",
+    "vitest": "5.0.1"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}
