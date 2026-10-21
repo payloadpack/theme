@@ -166,6 +166,36 @@ test.describe('Theme values', () => {
     await expect(visuals).toHaveCSS('background-color', 'rgb(243, 242, 237)')
   })
 
+  test('radios share the checkbox look and focus ring', async ({ page }) => {
+    await openShowcase(page)
+    const featured = page.locator('.field-type.checkbox').filter({ hasText: 'Featured' })
+    const checkbox = featured.locator('.checkbox-input__visuals')
+    const sizes = page.locator('.radio-group').filter({ hasText: 'Size' })
+    const radio = (label: string) =>
+      sizes
+        .locator('.radio-input')
+        .filter({ hasText: new RegExp(`^${label}$`) })
+        .locator('.radio-input__styled-radio')
+    await expect(featured.getByRole('checkbox')).toBeEnabled()
+
+    for (const property of ['background-color', 'border-top-color']) {
+      const expected = await checkbox.evaluate((element, name) => getComputedStyle(element).getPropertyValue(name), property)
+      await expect(radio('xs')).toHaveCSS(property, expected)
+    }
+
+    await radio('m').click()
+    await expect(radio('m')).toHaveCSS('background-color', 'rgb(243, 242, 237)')
+    expect(await radio('m').evaluate((element) => getComputedStyle(element, '::before').backgroundColor)).toBe(
+      'rgba(0, 0, 0, 0.9)'
+    )
+    expect(await radio('m').boundingBox()).toMatchObject({ height: 18, width: 18 })
+
+    await page.keyboard.press('ArrowRight')
+    await expect(radio('l')).toHaveCSS('box-shadow', /0px 0px 0px 3px/)
+    await page.keyboard.press('Shift+Tab')
+    await expect(checkbox).toHaveCSS('box-shadow', /0px 0px 0px 3px/)
+  })
+
   test('Payload icons keep the Payload tick without its halo', async ({ page }) => {
     await page.context().addCookies([cookie('icons', 'payload')])
     await openShowcase(page)

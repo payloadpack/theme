@@ -62,16 +62,77 @@
       color: var(--color-text-oninverse);
     }
 
-    /* 5. Checkbox */
+    /* 5. Checkbox and radio */
+    &,
+    [data-theme] {
+      --payloadpack-toggle-bg: var(--color-bg-secondary);
+      --payloadpack-toggle-bg-hover: var(--color-bg-secondary-hover);
+      --payloadpack-toggle-border: var(--special-border-translucent-strong);
+      --payloadpack-toggle-checked-bg: var(--color-text);
+      --payloadpack-toggle-checked-border: var(--special-border-translucent);
+      --payloadpack-toggle-mark: var(--color-icon-oninverse);
+      --payloadpack-toggle-ring: color-mix(in srgb, var(--accessibility-focus-color) 35%, transparent);
+    }
+
     .checkbox-input__visuals {
-      --color-bg-brand: var(--color-text);
-      --color-bg-brand-hover: var(--color-text);
-      --color-bg-secondary-pressed: var(--color-bg-secondary-hover);
-      --color-icon-onbrand: var(--color-icon-oninverse);
+      --color-bg-secondary: var(--payloadpack-toggle-bg);
+      --color-bg-secondary-hover: var(--payloadpack-toggle-bg-hover);
+      --color-bg-secondary-pressed: var(--payloadpack-toggle-bg-hover);
+      --special-border-translucent-strong: var(--payloadpack-toggle-border);
+      --special-border-translucent: var(--payloadpack-toggle-checked-border);
+      --color-bg-brand: var(--payloadpack-toggle-checked-bg);
+      --color-bg-brand-hover: var(--payloadpack-toggle-checked-bg);
+      --color-icon-onbrand: var(--payloadpack-toggle-mark);
     }
 
     .checkbox-input__mark-halo {
       display: none;
+    }
+
+    .checkbox-input__control:focus-visible + .checkbox-input__visuals,
+    .radio-input input[type='radio']:focus-visible + .radio-input__styled-radio {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--payloadpack-toggle-ring);
+    }
+
+    .radio-input__styled-radio {
+      --field-color-toggle-border: var(--payloadpack-toggle-border);
+
+      border-width: var(--stroke-width-small);
+      background-color: var(--payloadpack-toggle-bg);
+
+      &::before {
+        background-color: var(--payloadpack-toggle-mark);
+      }
+    }
+
+    .radio-input:not(.radio-input--is-selected):hover .radio-input__styled-radio {
+      background-color: var(--payloadpack-toggle-bg-hover);
+
+      &::before {
+        opacity: 0;
+      }
+    }
+
+    .radio-input--is-selected .radio-input__styled-radio {
+      --field-color-toggle-border: var(--payloadpack-toggle-checked-border);
+
+      background-color: var(--payloadpack-toggle-checked-bg);
+      transition: background-color 100ms cubic-bezier(0.645, 0.045, 0.355, 1);
+    }
+
+    .radio-input__styled-radio--disabled,
+    .radio-group--read-only .radio-input__styled-radio {
+      background-color: transparent;
+
+      &::before {
+        background-color: var(--color-icon-ondisabled);
+      }
+    }
+
+    .radio-input--is-selected .radio-input__styled-radio--disabled,
+    .radio-group--read-only .radio-input--is-selected .radio-input__styled-radio {
+      background-color: var(--color-bg-disabled);
     }
   }
 }

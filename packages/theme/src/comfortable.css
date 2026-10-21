@@ -28,7 +28,7 @@
     --button-height: var(--spacer-5);
     --payloadpack-button-height-large: var(--field-min-height-large);
     --control-height: var(--spacer-5);
-    --payloadpack-checkbox-size: 1.125rem;
+    --payloadpack-toggle-size: 1.125rem;
 
     --payloadpack-doc-header-button-height: var(--button-height);
     --payloadpack-doc-controls-button-height: var(--button-height);
@@ -95,21 +95,23 @@
 
     .checkbox-input__input,
     .checkbox-input__check,
-    .checkbox-input__mixed {
-      width: var(--payloadpack-checkbox-size);
-      height: var(--payloadpack-checkbox-size);
+    .checkbox-input__mixed,
+    .radio-input__styled-radio,
+    .radio-input input[type='radio'] {
+      width: var(--payloadpack-toggle-size);
+      height: var(--payloadpack-toggle-size);
     }
 
     .checkbox-input__input {
-      margin-block: calc(var(--spacer-1) + (var(--text-body-medium-line-height) - var(--payloadpack-checkbox-size)) / 2);
+      margin-block: calc(var(--spacer-1) + (var(--text-body-medium-line-height) - var(--payloadpack-toggle-size)) / 2);
     }
 
     .checkbox > .field-description {
-      padding-inline-start: calc(var(--payloadpack-checkbox-size) + var(--spacer-2));
+      padding-inline-start: calc(var(--payloadpack-toggle-size) + var(--spacer-2));
     }
 
     .checkbox-input__tooltip.tooltip--caret-left .tooltip__caret {
-      left: calc(var(--payloadpack-checkbox-size) / 2);
+      left: calc(var(--payloadpack-toggle-size) / 2);
     }
 
     .multi-value.rs__multi-value,
