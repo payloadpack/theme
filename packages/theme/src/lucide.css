@@ -127,6 +127,19 @@
     .collapsible__indicator svg.icon--chevron { --payloadpack-icon-size: 1rem; }
     .sidebar-tabs__tab svg.icon--align-justified { --payloadpack-icon: url('lucide-static/icons/layers-2.svg'); }
 
+    .checkbox-input__check,
+    .checkbox-input__mixed {
+      background-color: var(--checkbox-mark-color);
+      mask: var(--payloadpack-icon) center / 87.5% no-repeat;
+
+      > * {
+        display: none;
+      }
+    }
+
+    .checkbox-input__check { --payloadpack-icon: url('lucide-static/icons/check.svg'); }
+    .checkbox-input__mixed { --payloadpack-icon: url('lucide-static/icons/minus.svg'); }
+
     /* 2. Added icons */
     .nav__link::after,
     .doc-controls__popup .popup-button-list__button::before {
