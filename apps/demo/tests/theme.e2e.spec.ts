@@ -230,6 +230,14 @@ test.describe('Theme values', () => {
     expect(await size(page, '.doc-header .doc-tab')).toMatchObject({ height: 32 })
   })
 
+  test('app CSS picks the nav icon for its own collection', async ({ page }) => {
+    await page.goto('/admin')
+    await page.addStyleTag({ content: "#nav-showcase { --payloadpack-icon: url('/icons/chef-hat.svg'); }" })
+
+    expect(await style(page, '#nav-showcase', 'mask-image', '::after')).toContain('/icons/chef-hat.svg')
+    expect((await page.request.get('/icons/chef-hat.svg')).headers()['content-type']).toContain('image/svg+xml')
+  })
+
   test('app CSS outranks the plugin', async ({ page }) => {
     await openShowcase(page)
     await page.addStyleTag({ content: 'html { --popup-radius: 2px; }' })
