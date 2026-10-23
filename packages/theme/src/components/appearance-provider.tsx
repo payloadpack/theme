@@ -1,15 +1,10 @@
 'use client'
 
-import { PopupList } from '@payloadcms/ui'
 import { createContext, type ReactNode, use, useLayoutEffect, useState, useSyncExternalStore } from 'react'
 
-import { type Appearance, type AppearanceControl, appearanceControls, getCookieName } from './appearance.js'
-import { useMonacoFontSize } from './monaco.js'
-import './neutral.css'
-import './comfortable.css'
-import './lucide.css'
-import './vertical-tabs.css'
-import './radio-cards.css'
+import { useMonacoFontSize } from '../hooks/use-monaco-font-size.js'
+import { type Appearance, type AppearanceControl, getCookieName } from '../lib/appearance.js'
+import '../styles/index.css'
 
 const ONE_YEAR_IN_SECONDS = 60 * 60 * 24 * 365
 
@@ -63,25 +58,12 @@ export function AppearanceProvider({ children, codeEditorFontSize, cookiePrefix,
   )
 }
 
-export function AppearanceOptions({ control }: { control: AppearanceControl }) {
+export function useAppearance() {
   const context = use(AppearanceContext)
 
   if (!context) {
-    throw new Error('AppearanceOptions must render inside AppearanceProvider')
+    throw new Error('useAppearance must be called inside AppearanceProvider')
   }
 
-  return (
-    <div data-popup-prevent-close>
-      <PopupList.RadioGroup>
-        {Object.entries(appearanceControls[control].options).map(([value, label]) => (
-          <PopupList.RadioGroupItem
-            active={context.appearance[control] === value}
-            key={value}
-            onClick={() => context.setControl(control, value)}>
-            {label}
-          </PopupList.RadioGroupItem>
-        ))}
-      </PopupList.RadioGroup>
-    </div>
-  )
+  return context
 }

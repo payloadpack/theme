@@ -1,7 +1,7 @@
 import type { Plugin } from 'payload'
 import { deepMergeSimple } from 'payload/shared'
 
-import { type AppearanceControl, appearanceControls } from './appearance.js'
+import { type AppearanceControl, appearanceControls } from './lib/appearance.js'
 
 const PACKAGE_NAME = '@payloadpack/theme'
 
