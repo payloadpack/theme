@@ -1,6 +1,6 @@
 # @payloadpack/theme
 
-An admin theme for Payload 4. It adds three settings to the user menu: a warm dark palette, a roomier density and Lucide icons. Each person picks their own, and the choice is rendered on the server, so pages never flash.
+An admin theme for Payload 4. It adds three appearance controls to the user menu: a warm dark palette, a roomier density and Lucide icons. Each person picks their own, and the choice is rendered on the server, so pages never flash.
 
 ## Install
 
@@ -22,11 +22,11 @@ Then regenerate the import map:
 payload generate:importmap
 ```
 
-## Settings
+## Appearance
 
-Open the user menu → **Settings**.
+Open the user menu → **Appearance**. The plugin renames Payload's Settings submenu; set `general.settings` in your own `i18n.translations` to name it something else.
 
-| Setting | Options              | Default     |
+| Control | Options              | Default     |
 | ------- | -------------------- | ----------- |
 | Style   | Stock, Neutral       | Neutral     |
 | Density | Compact, Comfortable | Comfortable |
@@ -69,7 +69,7 @@ const field = {
 }
 ```
 
-From 768px wide the tabs stack in a 270px column on the left. Narrower screens keep Payload's horizontal tabs. The layout applies whatever each person picks in Settings. Payload's tab list moves between tabs with the Left and Right arrow keys, and that doesn't change.
+From 768px wide the tabs stack in a 270px column on the left. Narrower screens keep Payload's horizontal tabs. The layout applies whatever each person picks in Appearance. Payload's tab list moves between tabs with the Left and Right arrow keys, and that doesn't change.
 
 ## Radio cards
 

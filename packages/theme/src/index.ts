@@ -1,6 +1,7 @@
 import type { Plugin } from 'payload'
+import { deepMergeSimple } from 'payload/shared'
 
-import { type Setting, settings } from './appearance.js'
+import { type AppearanceControl, appearanceControls } from './appearance.js'
 
 const PACKAGE_NAME = '@payloadpack/theme'
 
@@ -25,12 +26,16 @@ export function themePlugin({ codeEditorFontSize = 13 }: ThemePluginConfig = {})
         ],
         userMenuSettingsItems: [
           ...(config.admin?.components?.userMenuSettingsItems ?? []),
-          ...(Object.keys(settings) as Setting[]).map((setting) => ({
-            group: settings[setting].label,
-            items: [{ clientProps: { setting }, path: `${PACKAGE_NAME}/client#SettingOptions` }]
+          ...(Object.keys(appearanceControls) as AppearanceControl[]).map((control) => ({
+            group: appearanceControls[control].label,
+            items: [{ clientProps: { control }, path: `${PACKAGE_NAME}/client#AppearanceOptions` }]
           }))
         ]
       }
+    },
+    i18n: {
+      ...config.i18n,
+      translations: deepMergeSimple({ en: { general: { settings: 'Appearance' } } }, config.i18n?.translations ?? {})
     }
   })
 }

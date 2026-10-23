@@ -73,7 +73,7 @@ test.describe('Theme plugin', () => {
     await page.goto('/admin')
 
     await page.locator('.user-menu__trigger').click()
-    await page.getByRole('menuitem', { name: 'Settings' }).hover()
+    await page.getByRole('menuitem', { name: 'Appearance' }).hover()
     await page.getByRole('menuitemradio', { name: 'Stock' }).click()
     await page.getByRole('menuitemradio', { name: 'Compact' }).click()
 
@@ -357,7 +357,7 @@ test.describe('Theme values', () => {
     await expect(page.locator('.popup__content:visible').first()).toHaveCSS('border-radius', '2px')
   })
 
-  test('stock, compact and Payload icons apply none of the theme settings', async ({ page }) => {
+  test('stock, compact and Payload icons apply none of the appearance controls', async ({ page }) => {
     await page.context().addCookies([cookie('admin-theme', 'stock'), cookie('density', 'compact'), cookie('icons', 'payload')])
     await openShowcase(page)
 

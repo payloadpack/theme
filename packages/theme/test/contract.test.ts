@@ -289,6 +289,18 @@ describe('theme contract with Payload', () => {
   it('is never outranked by unlayered Payload rules on the properties it sets', () => {
     const hasClass = (selector: string, name: string) => new RegExp(`\\.${name}(?![\\w-])`).test(selector)
     const pseudoElement = (selector: string) => selector.match(/::[\w-]+$/)?.[0] ?? ''
+    const subject = (selector: string) =>
+      selector
+        .replace(/:(?:not|has)\([^()]*\)|\[[^\]]*\]/g, '')
+        .replace(/\s+&/g, '')
+        .split(',')
+        .map((part) =>
+          part
+            .trim()
+            .split(/\s*[\s>+~]\s*/)
+            .pop()
+        )
+        .join(',')
     const ours = rules(allThemeCss)
     const conflicts = payloadCssFiles.flatMap((file) =>
       topLevelBlocks(stripComments(read(file)))
@@ -299,7 +311,7 @@ describe('theme contract with Payload', () => {
             .filter((mine) => pseudoElement(mine.selector) === pseudoElement(theirs.selector))
             .flatMap((mine) =>
               matchAll(mine.selector.replace(/\[[^\]]*\]/g, ''), /\.(-?[_a-zA-Z][\w-]*)/g)
-                .filter((name) => name !== 'icon' && hasClass(theirs.selector, name))
+                .filter((name) => name !== 'icon' && hasClass(subject(theirs.selector), name))
                 .flatMap((name) =>
                   mine.properties
                     .filter((property) => theirs.properties.includes(property))

@@ -223,5 +223,9 @@
     .nav__link[id*='budget-ticket'] { --payloadpack-icon: url('lucide-static/icons/ticket.svg'); }
     .nav__link[id*='time-log'] { --payloadpack-icon: url('lucide-static/icons/clock.svg'); }
     .nav__link[id*='api-key'] { --payloadpack-icon: url('lucide-static/icons/key-round.svg'); }
+
+    /* 5. User menu */
+    .popup-button-list__submenu-trigger svg.icon--gear,
+    .popup-button-list__button--submenu-trigger svg.icon--gear { --payloadpack-icon: url('lucide-static/icons/palette.svg'); }
   }
 }
