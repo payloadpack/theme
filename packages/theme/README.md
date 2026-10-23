@@ -1,6 +1,6 @@
 # @payloadpack/theme
 
-An admin theme for Payload 4. It adds three settings to the user menu: a warm dark palette, a roomier density and Lucide icons. Each person picks their own, and the choice is rendered on the server, so pages never flash.
+An admin theme for Payload 4. It adds three appearance controls to the user menu: a warm dark palette, a roomier density and Lucide icons. Each person picks their own, and the choice is rendered on the server, so pages never flash.
 
 ## Install
 
@@ -22,15 +22,15 @@ Then regenerate the import map:
 payload generate:importmap
 ```
 
-## Settings
+## Appearance
 
-Open the user menu → **Settings**.
+Open the user menu → **Appearance**. The plugin renames Payload's Settings submenu in English only, so other languages keep Payload's translation. To rename it in another language, or pick a different name, set `general.settings` for that language in your own `i18n.translations`.
 
-| Setting     | Options              | Default     |
-| ----------- | -------------------- | ----------- |
-| Admin theme | Stock, Neutral       | Neutral     |
-| Density     | Compact, Comfortable | Comfortable |
-| Icons       | Payload, Lucide      | Lucide      |
+| Control | Options              | Default     |
+| ------- | -------------------- | ----------- |
+| Style   | Stock, Neutral       | Neutral     |
+| Density | Compact, Comfortable | Comfortable |
+| Icons   | Payload, Lucide      | Lucide      |
 
 - **Neutral** gives dark mode a warm near-black palette and swaps Payload's blue selection for neutral greys. In both modes it draws a 2px focus ring in the text color and fills checked checkboxes and selected radios with the text color instead of blue.
 - **Comfortable** sets 14px body text, 40px fields, 32px buttons and 18px checkboxes and radios, gives dialogs more room, and fixes Payload components that hard-code their sizes.
@@ -69,7 +69,7 @@ const field = {
 }
 ```
 
-From 768px wide the tabs stack in a 270px column on the left. Narrower screens keep Payload's horizontal tabs. The layout applies whatever each person picks in Settings. Payload's tab list moves between tabs with the Left and Right arrow keys, and that doesn't change.
+From 768px wide the tabs stack in a 270px column on the left. Narrower screens keep Payload's horizontal tabs. The layout applies whatever each person picks in Appearance. Payload's tab list moves between tabs with the Left and Right arrow keys, and that doesn't change.
 
 ## Radio cards
 
@@ -110,7 +110,7 @@ Any single-color SVG works. It is used as a mask, so it takes the nav's text col
 
 The theme's CSS sits in `@layer payload`, so your own `custom.css` overrides it without specificity fights.
 
-Each toolbar sizes its buttons from its own token. They all default to Payload's `--button-height`:
+Each toolbar sizes its buttons from its own token. All but the sidebar tabs default to Payload's `--button-height`:
 
 | Token                                       | Controls                                 |
 | ------------------------------------------- | ---------------------------------------- |
@@ -120,6 +120,7 @@ Each toolbar sizes its buttons from its own token. They all default to Payload's
 | `--payloadpack-list-controls-button-height` | List toolbar: Filters, Group by, Columns |
 | `--payloadpack-row-button-height`           | Array and block rows                     |
 | `--payloadpack-menu-item-height`            | Popup menu items                         |
+| `--payloadpack-sidebar-tabs-height`         | Collections and Folders tabs, 38px       |
 
 Checkboxes and radios share their size and colors:
 

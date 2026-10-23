@@ -42,6 +42,10 @@ const AMENITIES = [
 
 export default buildConfig({
   admin: {
+    components: {
+      afterNavLinks: ['/views/ToastsNavLink#ToastsNavLink'],
+      views: { toasts: { Component: '/views/Toasts#ToastsView', meta: { title: 'Toasts' }, path: '/toasts' } }
+    },
     importMap: { baseDir: path.resolve(dirname) },
     user: 'users'
   },

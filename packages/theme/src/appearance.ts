@@ -1,8 +1,8 @@
-export const settings = {
+export const appearanceControls = {
   adminTheme: {
     cookie: 'admin-theme',
     default: 'neutral',
-    label: 'Admin theme',
+    label: 'Style',
     options: { stock: 'Stock', neutral: 'Neutral' }
   },
   density: {
@@ -19,10 +19,10 @@ export const settings = {
   }
 } as const
 
-export type Setting = keyof typeof settings
+export type AppearanceControl = keyof typeof appearanceControls
 
-export type Appearance = Record<Setting, string>
+export type Appearance = Record<AppearanceControl, string>
 
-export function getCookieName(cookiePrefix: string, setting: Setting) {
-  return `${cookiePrefix}-${settings[setting].cookie}`
+export function getCookieName(cookiePrefix: string, control: AppearanceControl) {
+  return `${cookiePrefix}-${appearanceControls[control].cookie}`
 }

@@ -36,6 +36,7 @@
     --payloadpack-list-controls-button-height: var(--button-height);
     --payloadpack-row-button-height: var(--button-height);
     --payloadpack-menu-item-height: var(--button-height);
+    --payloadpack-sidebar-tabs-height: 2.375rem;
 
     /* 2. Areas */
     .doc-header {
@@ -60,6 +61,10 @@
 
     .popup-button-list {
       --button-height: var(--payloadpack-menu-item-height);
+    }
+
+    .sidebar-tabs__tabs {
+      --button-height: var(--payloadpack-sidebar-tabs-height);
     }
 
     /* 3. Fields */

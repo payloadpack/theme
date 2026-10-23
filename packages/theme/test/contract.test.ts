@@ -1,4 +1,5 @@
 import { existsSync, readdirSync, readFileSync, realpathSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
@@ -18,7 +19,9 @@ const packageRoot = (name: string) => {
 }
 
 const sourceDir = path.join(root, 'src')
-const uiDist = path.join(packageRoot('@payloadcms/ui'), 'dist')
+const uiRoot = packageRoot('@payloadcms/ui')
+const uiDist = path.join(uiRoot, 'dist')
+const sonnerCss = createRequire(path.join(uiRoot, 'package.json')).resolve('sonner/dist/styles.css')
 const lexicalDist = path.join(packageRoot('@payloadcms/richtext-lexical'), 'dist')
 const lucideIcons = path.join(packageRoot('lucide-static'), 'icons')
 
@@ -166,7 +169,7 @@ const listFiles = (dir: string, extension: string) =>
     .filter((file) => file.endsWith(extension))
     .map((file) => path.join(dir, file))
 
-const payloadCssFiles = [...listFiles(uiDist, '.css'), ...listFiles(lexicalDist, '.css')]
+const payloadCssFiles = [...listFiles(uiDist, '.css'), ...listFiles(lexicalDist, '.css'), sonnerCss]
 const payloadCss = payloadCssFiles.map(read).join('\n')
 const payloadSource = [payloadCss, ...[...listFiles(uiDist, '.js'), ...listFiles(lexicalDist, '.js')].map(read)].join('\n')
 
@@ -279,6 +282,24 @@ describe('theme contract with Payload', () => {
     expect(referencedProperties(allThemeCss).filter((token) => !known.has(token))).toEqual([])
   })
 
+  it('gives light-mode toasts back every dark token Payload pins on the toaster', () => {
+    const darkTokens = new Set(
+      payloadCssFiles
+        .flatMap((file) => rules(stripComments(read(file))))
+        .filter((rule) => /\[data-theme=['"]?dark['"]?\]$/.test(rule.selector))
+        .flatMap((rule) => rule.properties)
+    )
+    const toastCss = ['providers/ToastContainer/index.css', 'elements/Toasts/index.css']
+      .map((file) => read(path.join(uiDist, file)))
+      .join('\n')
+    const neutral = themeCss['neutral.css']
+    const handled = [
+      ...declaredProperties(ruleBody(neutral, "&[data-theme='light'] .payload-toast-container") ?? ''),
+      ...declaredProperties(ruleBody(neutral, '.toast-error') ?? '')
+    ]
+    expect(referencedProperties(toastCss).filter((token) => darkTokens.has(token) && !handled.includes(token))).toEqual([])
+  })
+
   it('targets only classes and ids that Payload still renders', () => {
     const selectorText = selectors(allThemeCss)
     const classes = matchAll(selectorText, /\.(-?[_a-zA-Z][\w-]*)/g)
@@ -289,6 +310,18 @@ describe('theme contract with Payload', () => {
   it('is never outranked by unlayered Payload rules on the properties it sets', () => {
     const hasClass = (selector: string, name: string) => new RegExp(`\\.${name}(?![\\w-])`).test(selector)
     const pseudoElement = (selector: string) => selector.match(/::[\w-]+$/)?.[0] ?? ''
+    const subject = (selector: string) =>
+      selector
+        .replace(/:(?:not|has)\([^()]*\)|\[[^\]]*\]/g, '')
+        .replace(/\s+&/g, '')
+        .split(',')
+        .map((part) =>
+          part
+            .trim()
+            .split(/\s*[\s>+~]\s*/)
+            .pop()
+        )
+        .join(',')
     const ours = rules(allThemeCss)
     const conflicts = payloadCssFiles.flatMap((file) =>
       topLevelBlocks(stripComments(read(file)))
@@ -299,7 +332,7 @@ describe('theme contract with Payload', () => {
             .filter((mine) => pseudoElement(mine.selector) === pseudoElement(theirs.selector))
             .flatMap((mine) =>
               matchAll(mine.selector.replace(/\[[^\]]*\]/g, ''), /\.(-?[_a-zA-Z][\w-]*)/g)
-                .filter((name) => name !== 'icon' && hasClass(theirs.selector, name))
+                .filter((name) => name !== 'icon' && hasClass(subject(theirs.selector), name))
                 .flatMap((name) =>
                   mine.properties
                     .filter((property) => theirs.properties.includes(property))

@@ -5,11 +5,26 @@
     [data-theme] {
       --accessibility-focus-color: var(--color-text);
       --accessibility-outline: var(--stroke-width-medium) solid var(--accessibility-focus-color);
+      --field-color-border-focus: var(--ramp-grey-500);
     }
 
     .sidebar-tabs__tab:focus-visible,
     .doc-controls__meta .btn:focus-visible {
       outline-offset: calc(-1 * var(--stroke-width-medium));
+    }
+
+    .nav__close:focus-visible .sidebar-toggle {
+      outline: var(--accessibility-outline);
+      outline-offset: calc(-1 * var(--stroke-width-medium));
+    }
+
+    .form-input:focus:not(:read-only, .form-input-group *),
+    .form-input-group:has(input:focus:not(:read-only)),
+    .rs__control--is-focused,
+    .code-editor:not(.read-only *):focus-within,
+    .search-input:has(input:focus-visible),
+    .date-time-picker .react-datepicker__input-container input:focus:not(:read-only) {
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--field-color-border-focus) 50%, transparent);
     }
 
     /* 2. Dark palette */
@@ -46,6 +61,15 @@
     /* 3. Shape */
     & {
       --popup-radius: calc(var(--radius-medium) + var(--spacer-1));
+    }
+
+    .sidebar-tabs__tabs {
+      padding: 3px;
+      border-radius: calc(var(--button-radius) + 3px);
+    }
+
+    .sidebar-tabs__tab {
+      height: calc(var(--button-height) - 6px);
     }
 
     /* 4. Date picker */
@@ -133,6 +157,88 @@
     .radio-input--is-selected .radio-input__styled-radio--disabled,
     .radio-group--read-only .radio-input--is-selected .radio-input__styled-radio {
       background-color: var(--color-bg-disabled);
+    }
+
+    /* 6. Toasts */
+    &[data-theme='light'] .payload-toast-container {
+      --color-text: inherit;
+      --color-icon: inherit;
+      --color-bg-elevated: inherit;
+      --color-bg-hover: inherit;
+      --color-bg-pressed: inherit;
+      --color-icon-warning: inherit;
+      --elevation-100-canvas: inherit;
+      --elevation-400-menu-panel: inherit;
+    }
+
+    .payload-toast-item {
+      --normal-text: var(--color-icon);
+
+      border-radius: var(--popup-radius);
+      box-shadow: var(--elevation-400-menu-panel);
+    }
+
+    .payload-toast-item [data-button] {
+      flex-shrink: 0;
+      height: var(--spacer-4);
+      padding-inline: var(--spacer-2);
+      border-radius: var(--radius-medium);
+      background: var(--color-bg-hover);
+      color: var(--color-text);
+      font-family: inherit;
+      font-size: var(--text-body-medium-bold-font-size);
+      font-weight: var(--text-body-medium-bold-font-weight);
+      cursor: pointer;
+
+      &:hover {
+        background: var(--color-bg-pressed);
+      }
+
+      &:focus-visible {
+        outline: var(--accessibility-outline);
+      }
+    }
+
+    .toast-success {
+      --payloadpack-toast-icon: oklch(0.627 0.194 149.214);
+    }
+
+    .toast-info {
+      --payloadpack-toast-icon: oklch(0.546 0.245 262.881);
+    }
+
+    .toast-warning {
+      --payloadpack-toast-icon: oklch(0.666 0.179 58.318);
+    }
+
+    .toast-error {
+      --payloadpack-toast-icon: oklch(0.577 0.245 27.325);
+      --color-bg-danger: var(--color-bg-elevated);
+      --color-bg-danger-hover: var(--color-bg-hover);
+      --color-bg-danger-pressed: var(--color-bg-pressed);
+      --color-text-ondanger: var(--color-text);
+    }
+
+    &[data-theme='dark'] {
+      .toast-success {
+        --payloadpack-toast-icon: oklch(0.792 0.209 151.711);
+      }
+
+      .toast-info {
+        --payloadpack-toast-icon: oklch(0.707 0.165 254.624);
+      }
+
+      .toast-warning {
+        --payloadpack-toast-icon: oklch(0.828 0.189 84.429);
+      }
+
+      .toast-error {
+        --payloadpack-toast-icon: oklch(0.704 0.191 22.216);
+      }
+    }
+
+    :is(.toast-success, .toast-info, .toast-warning, .toast-error) .toast-icon .icon {
+      color: var(--payloadpack-toast-icon);
     }
   }
 }
