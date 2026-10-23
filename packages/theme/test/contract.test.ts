@@ -1,4 +1,5 @@
 import { existsSync, readdirSync, readFileSync, realpathSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
@@ -18,7 +19,9 @@ const packageRoot = (name: string) => {
 }
 
 const sourceDir = path.join(root, 'src')
-const uiDist = path.join(packageRoot('@payloadcms/ui'), 'dist')
+const uiRoot = packageRoot('@payloadcms/ui')
+const uiDist = path.join(uiRoot, 'dist')
+const sonnerCss = createRequire(path.join(uiRoot, 'package.json')).resolve('sonner/dist/styles.css')
 const lexicalDist = path.join(packageRoot('@payloadcms/richtext-lexical'), 'dist')
 const lucideIcons = path.join(packageRoot('lucide-static'), 'icons')
 
@@ -166,7 +169,7 @@ const listFiles = (dir: string, extension: string) =>
     .filter((file) => file.endsWith(extension))
     .map((file) => path.join(dir, file))
 
-const payloadCssFiles = [...listFiles(uiDist, '.css'), ...listFiles(lexicalDist, '.css')]
+const payloadCssFiles = [...listFiles(uiDist, '.css'), ...listFiles(lexicalDist, '.css'), sonnerCss]
 const payloadCss = payloadCssFiles.map(read).join('\n')
 const payloadSource = [payloadCss, ...[...listFiles(uiDist, '.js'), ...listFiles(lexicalDist, '.js')].map(read)].join('\n')
 
