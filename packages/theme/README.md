@@ -24,7 +24,7 @@ payload generate:importmap
 
 ## Appearance
 
-Open the user menu → **Appearance**. The plugin renames Payload's Settings submenu; set `general.settings` in your own `i18n.translations` to name it something else.
+Open the user menu → **Appearance**. The plugin renames Payload's Settings submenu in English only, so other languages keep Payload's translation. To rename it in another language, or pick a different name, set `general.settings` for that language in your own `i18n.translations`.
 
 | Control | Options              | Default     |
 | ------- | -------------------- | ----------- |

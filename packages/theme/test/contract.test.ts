@@ -282,6 +282,24 @@ describe('theme contract with Payload', () => {
     expect(referencedProperties(allThemeCss).filter((token) => !known.has(token))).toEqual([])
   })
 
+  it('gives light-mode toasts back every dark token Payload pins on the toaster', () => {
+    const darkTokens = new Set(
+      payloadCssFiles
+        .flatMap((file) => rules(stripComments(read(file))))
+        .filter((rule) => /\[data-theme=['"]?dark['"]?\]$/.test(rule.selector))
+        .flatMap((rule) => rule.properties)
+    )
+    const toastCss = ['providers/ToastContainer/index.css', 'elements/Toasts/index.css']
+      .map((file) => read(path.join(uiDist, file)))
+      .join('\n')
+    const neutral = themeCss['neutral.css']
+    const handled = [
+      ...declaredProperties(ruleBody(neutral, "&[data-theme='light'] .payload-toast-container") ?? ''),
+      ...declaredProperties(ruleBody(neutral, '.toast-error') ?? '')
+    ]
+    expect(referencedProperties(toastCss).filter((token) => darkTokens.has(token) && !handled.includes(token))).toEqual([])
+  })
+
   it('targets only classes and ids that Payload still renders', () => {
     const selectorText = selectors(allThemeCss)
     const classes = matchAll(selectorText, /\.(-?[_a-zA-Z][\w-]*)/g)

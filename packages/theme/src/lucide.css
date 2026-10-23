@@ -225,8 +225,8 @@
     .nav__link[id*='api-key'] { --payloadpack-icon: url('lucide-static/icons/key-round.svg'); }
 
     /* 5. User menu */
-    .popup-button-list__submenu-trigger svg.icon--gear,
-    .popup-button-list__button--submenu-trigger svg.icon--gear { --payloadpack-icon: url('lucide-static/icons/palette.svg'); }
+    .user-menu .popup-button-list__submenu-trigger svg.icon--gear,
+    .user-menu .popup-button-list__button--submenu-trigger svg.icon--gear { --payloadpack-icon: url('lucide-static/icons/palette.svg'); }
 
     /* 6. Toasts */
     .toast-error .toast-icon svg.icon--warning { --payloadpack-icon: url('lucide-static/icons/octagon-x.svg'); }

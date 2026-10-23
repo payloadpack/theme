@@ -17,6 +17,16 @@ const size = async (page: Page, selector: string) => {
   return box && { height: box.height, width: box.width }
 }
 
+const computedColor = (page: Page, color: string) =>
+  page.evaluate((value) => {
+    const probe = document.createElement('div')
+    probe.style.color = value
+    document.body.append(probe)
+    const computed = getComputedStyle(probe).color
+    probe.remove()
+    return computed
+  }, color)
+
 const style = (page: Page, selector: string, property: string, pseudoElement?: string) =>
   page
     .locator(selector)
@@ -261,6 +271,9 @@ test.describe('Theme values', () => {
       'data:image/svg+xml'
     )
     expect(await style(page, '.nav__link', 'mask-image', '::after')).toContain('data:image/svg+xml')
+
+    await page.locator('.user-menu__trigger').click()
+    expect(await style(page, '.user-menu svg.icon--gear', '--payloadpack-icon')).toContain('palette')
   })
 
   test('sidebar tabs sit 3px inside their track', async ({ page }) => {
@@ -283,6 +296,50 @@ test.describe('Theme values', () => {
 
     await expect(page.locator('.nav__close .sidebar-toggle')).toHaveCSS('outline-style', 'solid')
     await expect(page.locator('.nav__close .sidebar-toggle')).toHaveCSS('outline-width', '2px')
+  })
+
+  test('focused fields get a soft grey ring', async ({ page }) => {
+    await openShowcase(page)
+    const title = page.locator('#field-title')
+    await title.click()
+
+    await expect(title).toHaveCSS('border-top-color', 'rgb(114, 113, 107)')
+    await expect(title).toHaveCSS('box-shadow', /0px 0px 0px 3px/)
+  })
+
+  test('toasts match the dropdowns and color only the icon', async ({ page }) => {
+    await page.goto('/admin/toasts')
+    await page.getByRole('button', { name: 'Error', exact: true }).click()
+    const error = page.locator('.payload-toast-item[data-type="error"]')
+
+    await expect(error).toHaveCSS('background-color', 'rgb(255, 255, 255)')
+    await expect(error).toHaveCSS('border-radius', '9px')
+    await expect(error.locator('.payload-toast-close-button')).toHaveCSS('color', 'rgba(0, 0, 0, 0.9)')
+    const lightTint = await computedColor(page, await style(page, '.toast-error', '--payloadpack-toast-icon'))
+    await expect(error.locator('.toast-icon .icon')).toHaveCSS('color', lightTint)
+    expect(await style(page, '.toast-error .toast-icon svg', '--payloadpack-icon')).toContain('octagon-x')
+
+    await page.getByRole('button', { name: 'With action' }).click()
+    await expect(page.locator('.payload-toast-item [data-button]')).toHaveCSS('height', '24px')
+
+    await page.context().addCookies([cookie('theme', 'dark')])
+    await page.reload()
+    await page.getByRole('button', { name: 'Success', exact: true }).click()
+    const success = page.locator('.payload-toast-item[data-type="success"]')
+
+    await expect(success).toHaveCSS('background-color', 'rgb(24, 24, 23)')
+    const darkTint = await computedColor(page, await style(page, '.toast-success', '--payloadpack-toast-icon'))
+    await expect(success.locator('.toast-icon .icon')).toHaveCSS('color', darkTint)
+    expect(darkTint).not.toBe(lightTint)
+  })
+
+  test('the toasts preview reuses the list heading and marks its nav link', async ({ page }) => {
+    await page.goto('/admin/collections/showcase')
+    const listTitle = await style(page, '.list-header__title', 'font-size')
+    await page.goto('/admin/toasts')
+
+    await expect(page.locator('.list-header__title')).toHaveCSS('font-size', listTitle)
+    await expect(page.getByRole('link', { name: 'Toasts' })).toHaveAttribute('aria-current', 'page')
   })
 
   test('vertical tabs from 768px wide', async ({ page }) => {
