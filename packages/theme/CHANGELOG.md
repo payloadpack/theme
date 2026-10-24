@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.2.2](https://github.com/payloadpack/theme/compare/v0.2.1...v0.2.2) (2026-10-24)
+
+
+### Bug Fixes
+
+* escape the inline appearance script ([#13](https://github.com/payloadpack/theme/issues/13)) ([51c6122](https://github.com/payloadpack/theme/commit/51c6122da7a626c103b664e45acc5584d8d2d6b0))
+* paint the theme before hydration on TanStack ([#11](https://github.com/payloadpack/theme/issues/11)) ([f0a16e3](https://github.com/payloadpack/theme/commit/f0a16e3fd9b3342bf27414adc4b698d14e99d19c))
+
+
+### Performance
+
+* memoize the appearance context value ([#15](https://github.com/payloadpack/theme/issues/15)) ([dbbd5b8](https://github.com/payloadpack/theme/commit/dbbd5b8b2021157173b528ca41469462e3da58a1))
+
 ## [0.2.1](https://github.com/payloadpack/theme/compare/v0.2.0...v0.2.1) (2026-10-24)
 
 
