@@ -257,6 +257,16 @@ describe('theme contract with Payload', () => {
     expect(unique(Object.keys(scopes))).toEqual(imported)
   })
 
+  it('imports styles/index.css in the server provider and no CSS in client modules', () => {
+    const cssImports = (file: string) => matchAll(read(file), /^import '(.+\.css)'/gm)
+    const clientModulesWithCss = [...listFiles(sourceDir, '.ts'), ...listFiles(sourceDir, '.tsx')]
+      .filter((file) => read(file).startsWith("'use client'") && cssImports(file).length > 0)
+      .map((file) => path.relative(sourceDir, file))
+
+    expect(cssImports(path.join(sourceDir, 'components/appearance-server-provider.tsx'))).toEqual(['../styles/index.css'])
+    expect(clientModulesWithCss).toEqual([])
+  })
+
   it('wraps every stylesheet in @layer payload with a single scope block', () => {
     for (const [file, scope] of Object.entries(scopes)) {
       const layer = topLevelBlocks(themeCss[file])
