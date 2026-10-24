@@ -3,7 +3,7 @@ import { createRequire } from 'node:module'
 import path from 'node:path'
 
 const iconsDir = path.join(path.dirname(createRequire(import.meta.url).resolve('lucide-static/package.json')), 'icons')
-const stylesheet = new URL('../dist/lucide.css', import.meta.url)
+const stylesheet = new URL('../dist/styles/lucide.css', import.meta.url)
 
 const toDataUri = (svg) =>
   `url("data:image/svg+xml,${encodeURIComponent(

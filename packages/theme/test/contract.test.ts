@@ -19,6 +19,7 @@ const packageRoot = (name: string) => {
 }
 
 const sourceDir = path.join(root, 'src')
+const stylesDir = path.join(sourceDir, 'styles')
 const uiRoot = packageRoot('@payloadcms/ui')
 const uiDist = path.join(uiRoot, 'dist')
 const sonnerCss = createRequire(path.join(uiRoot, 'package.json')).resolve('sonner/dist/styles.css')
@@ -29,8 +30,8 @@ const scopes: Record<string, string> = {
   'comfortable.css': "html[data-density='comfortable']",
   'lucide.css': "html[data-icons='lucide']",
   'neutral.css': "html[data-admin-theme='neutral']",
-  'radio-cards.css': `.${RADIO_CARDS}`,
-  'vertical-tabs.css': `.${VERTICAL_TABS}`
+  'fields/radio-cards.css': `.${RADIO_CARDS}`,
+  'fields/vertical-tabs.css': `.${VERTICAL_TABS}`
 }
 
 const keptPayloadIcons = ['dots', 'error', 'eye', 'minimize-maximize', 'sort', 'spinner', 'success']
@@ -173,7 +174,7 @@ const payloadCssFiles = [...listFiles(uiDist, '.css'), ...listFiles(lexicalDist,
 const payloadCss = payloadCssFiles.map(read).join('\n')
 const payloadSource = [payloadCss, ...[...listFiles(uiDist, '.js'), ...listFiles(lexicalDist, '.js')].map(read)].join('\n')
 
-const themeCss = Object.fromEntries(Object.keys(scopes).map((file) => [file, stripComments(read(path.join(sourceDir, file)))]))
+const themeCss = Object.fromEntries(Object.keys(scopes).map((file) => [file, stripComments(read(path.join(stylesDir, file)))]))
 const allThemeCss = Object.values(themeCss).join('\n')
 
 const unique = (values: string[]) => [...new Set(values)].sort()
@@ -249,6 +250,13 @@ const existsInPayload = (name: string) => {
 }
 
 describe('theme contract with Payload', () => {
+  it('loads every stylesheet through styles/index.css', () => {
+    const stylesheets = listFiles(stylesDir, '.css').map((file) => path.relative(stylesDir, file))
+    const imported = matchAll(read(path.join(stylesDir, 'index.css')), /@import '\.\/(.+?)'/g)
+    expect(imported).toEqual(unique(stylesheets.filter((file) => file !== 'index.css')))
+    expect(unique(Object.keys(scopes))).toEqual(imported)
+  })
+
   it('wraps every stylesheet in @layer payload with a single scope block', () => {
     for (const [file, scope] of Object.entries(scopes)) {
       const layer = topLevelBlocks(themeCss[file])
@@ -375,7 +383,7 @@ describe('theme contract with Payload', () => {
 
   it('Payload still defaults Monaco to the font size the plugin replaces', () => {
     const constants = read(path.join(uiDist, 'elements/CodeEditor/constants.js'))
-    const pluginDefault = read(path.join(sourceDir, 'monaco.ts')).match(/PAYLOAD_FONT_SIZE = (\d+)/)?.[1]
+    const pluginDefault = read(path.join(sourceDir, 'hooks/use-monaco-font-size.ts')).match(/PAYLOAD_FONT_SIZE = (\d+)/)?.[1]
     expect(constants).toContain(`fontSize: ${pluginDefault},`)
     expect(constants).toContain('lineHeight: 16,')
   })

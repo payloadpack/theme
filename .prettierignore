@@ -8,4 +8,4 @@ payload-types.ts
 next-env.d.ts
 CHANGELOG.md
 .auth/
-packages/theme/src/lucide.css
+packages/theme/src/styles/lucide.css
