@@ -48,7 +48,7 @@ export function AppearanceProvider({ children, codeEditorFontSize, cookiePrefix,
       {isServerHtml && (
         <script
           dangerouslySetInnerHTML={{
-            __html: `Object.assign(document.documentElement.dataset,${JSON.stringify(initialAppearance)})`
+            __html: `Object.assign(document.documentElement.dataset,${JSON.stringify(initialAppearance).replace(/</g, '\\u003c')})`
           }}
         />
       )}
