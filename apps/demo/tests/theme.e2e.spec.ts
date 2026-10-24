@@ -36,6 +36,9 @@ const style = (page: Page, selector: string, property: string, pseudoElement?: s
       pseudoElement
     ] as const)
 
+const backgrounds = (page: Page) =>
+  page.evaluate(() => [document.documentElement, document.body].map((element) => getComputedStyle(element).backgroundColor))
+
 test.describe('Logged out', () => {
   test.use({ storageState: { cookies: [], origins: [] } })
 
@@ -100,6 +103,20 @@ test.describe('Theme plugin', () => {
 
     await expect(page.locator('html')).toHaveAttribute('data-admin-theme', 'stock')
     await expect(page.locator('html')).toHaveAttribute('data-density', 'compact')
+  })
+
+  test('paints the dashboard in the theme before hydration', async ({ page }) => {
+    const nextScripts = '**/_next/static/**/*.js'
+    await page.context().addCookies([cookie('theme', 'dark')])
+
+    await page.route(nextScripts, (route) => route.abort())
+    await page.goto('/admin')
+    const beforeHydration = await backgrounds(page)
+
+    await page.unroute(nextScripts)
+    await page.goto('/admin', { waitUntil: 'networkidle' })
+
+    expect(beforeHydration).toEqual(await backgrounds(page))
   })
 })
 
