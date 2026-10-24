@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.1](https://github.com/payloadpack/theme/compare/v0.2.0...v0.2.1) (2026-10-24)
+
+
+### Bug Fixes
+
+* sidebar tabs, focus rings, toasts and Appearance ([#8](https://github.com/payloadpack/theme/issues/8)) ([d167db8](https://github.com/payloadpack/theme/commit/d167db8e1d9169aa0153cacb7b472e626c6104d7))
+
+
+### Refactor
+
+* organize theme source into folders ([#10](https://github.com/payloadpack/theme/issues/10)) ([c17a0be](https://github.com/payloadpack/theme/commit/c17a0be9ffc46bf2bfdd71b2a065977b44a50f43))
+
 ## [0.2.0](https://github.com/payloadpack/theme/compare/v0.1.0...v0.2.0) (2026-10-21)
 
 
