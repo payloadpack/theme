@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, type ReactNode, use, useLayoutEffect, useState, useSyncExternalStore } from 'react'
+import { createContext, type ReactNode, use, useCallback, useLayoutEffect, useMemo, useState, useSyncExternalStore } from 'react'
 
 import { useMonacoFontSize } from '../hooks/use-monaco-font-size.js'
 import { type Appearance, type AppearanceControl, getCookieName } from '../lib/appearance.js'
@@ -37,13 +37,18 @@ export function AppearanceProvider({ children, codeEditorFontSize, cookiePrefix,
     Object.assign(document.documentElement.dataset, appearance)
   }, [appearance])
 
-  const setControl = (control: AppearanceControl, value: string) => {
-    document.cookie = `${getCookieName(cookiePrefix, control)}=${value}; path=/; max-age=${ONE_YEAR_IN_SECONDS}; SameSite=Lax`
-    setAppearance((current) => ({ ...current, [control]: value }))
-  }
+  const setControl = useCallback(
+    (control: AppearanceControl, value: string) => {
+      document.cookie = `${getCookieName(cookiePrefix, control)}=${value}; path=/; max-age=${ONE_YEAR_IN_SECONDS}; SameSite=Lax`
+      setAppearance((current) => ({ ...current, [control]: value }))
+    },
+    [cookiePrefix]
+  )
+
+  const context = useMemo(() => ({ appearance, setControl }), [appearance, setControl])
 
   return (
-    <AppearanceContext value={{ appearance, setControl }}>
+    <AppearanceContext value={context}>
       {/* React never runs a client-created script and logs an error for it, so render it only into server HTML */}
       {isServerHtml && (
         <script
