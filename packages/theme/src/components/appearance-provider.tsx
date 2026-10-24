@@ -4,7 +4,6 @@ import { createContext, type ReactNode, use, useLayoutEffect, useState, useSyncE
 
 import { useMonacoFontSize } from '../hooks/use-monaco-font-size.js'
 import { type Appearance, type AppearanceControl, getCookieName } from '../lib/appearance.js'
-import '../styles/index.css'
 
 const ONE_YEAR_IN_SECONDS = 60 * 60 * 24 * 365
 
