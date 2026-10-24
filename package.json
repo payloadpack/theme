@@ -9,11 +9,13 @@
     "test": "turbo test",
     "test:e2e": "turbo test:e2e --filter=@apps/demo",
     "check:duplicates": "./scripts/check-duplicates.sh",
+    "doctor": "react-doctor -y",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
   "devDependencies": {
     "prettier": "^3.7.4",
+    "react-doctor": "^0.9.18",
     "turbo": "^2.6.3"
   },
   "workspaces": [
