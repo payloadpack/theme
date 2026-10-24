@@ -16,7 +16,6 @@
     "@payloadcms/richtext-lexical": "4.0.0-beta.3",
     "@payloadcms/ui": "4.0.0-beta.3",
     "@payloadpack/theme": "workspace:*",
-    "graphql": "^16.8.2",
     "next": "16.4.2",
     "payload": "4.0.0-beta.3",
     "react": "19.3.1",
