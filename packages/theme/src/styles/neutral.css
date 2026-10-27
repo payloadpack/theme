@@ -252,7 +252,10 @@
       --field-color-border-disabled: color-mix(in srgb, var(--field-color-border) 50%, transparent);
       --field-color-bg-readonly: var(--field-color-bg-disabled);
       --field-color-border-readonly: var(--field-color-border-disabled);
-      --field-color-text-readonly: var(--field-color-text-disabled);
+    }
+
+    .date-time-picker .react-datepicker__input-container input:disabled {
+      color: var(--field-color-text-disabled);
     }
   }
 }
