@@ -9,11 +9,7 @@ export async function seed(payload: Payload) {
     return
   }
 
-  const user = await payload.create({
-    collection: 'users',
-    data: { ...demoUser, apiKey: randomUUID(), enableAPIKey: true },
-    overrideAccess: true
-  })
+  const user = await payload.create({ collection: 'users', data: { ...demoUser, apiKey: randomUUID() }, overrideAccess: true })
 
   await payload.create({
     collection: 'showcase',
