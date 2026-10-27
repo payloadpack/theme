@@ -314,7 +314,9 @@ test.describe('Theme values', () => {
     expect(await style(page, 'html', '--accessibility-focus-color')).toBe('#f3f2ed')
 
     await page.getByRole('button', { name: 'More options' }).first().click()
-    await expect(page.locator('.popup__content:visible').first()).toHaveCSS('border-radius', '9px')
+    const popup = page.locator('.popup__content:visible').first()
+    await expect(popup).toHaveCSS('border-radius', '9px')
+    await expect(popup).toHaveCSS('box-shadow', /^rgb\(42, 42, 39\) 0px 0px 0px 1px,/)
   })
 
   test('disabled and read-only fields fade to half the field colors', async ({ page }) => {
