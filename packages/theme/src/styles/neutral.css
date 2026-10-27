@@ -47,8 +47,7 @@
       --color-bg-selected-pressed: var(--color-bg-tertiary);
       --color-text-onselected-strong: var(--color-text);
       --color-bg-disabled: var(--color-bg-tertiary);
-      --elevation-400-menu-panel:
-        0 0 0 1px var(--special-border-translucent), 0 10px 24px rgb(0 0 0 / 0.5), 0 2px 6px rgb(0 0 0 / 0.4);
+      --elevation-400-menu-panel: 0 0 0 1px var(--color-border), 0 10px 24px rgb(0 0 0 / 0.5), 0 2px 6px rgb(0 0 0 / 0.4);
     }
 
     &:not([data-enhanced-contrast])[data-theme='dark'],
