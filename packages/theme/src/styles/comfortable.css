@@ -22,10 +22,10 @@
     --text-heading-medium-font-size: 1.125rem;
     --text-heading-medium-line-height: 1.625rem;
 
-    --field-min-height-large: var(--spacer-6);
+    --field-min-height-large: 2.25rem;
     --field-min-height-medium: var(--spacer-5);
     --field-padding-inline: var(--spacer-2-5);
-    --button-height: var(--spacer-5);
+    --button-height: var(--field-min-height-large);
     --payloadpack-button-height-large: var(--field-min-height-large);
     --control-height: var(--spacer-5);
     --payloadpack-toggle-size: 1.125rem;
@@ -35,7 +35,7 @@
     --payloadpack-list-header-button-height: var(--button-height);
     --payloadpack-list-controls-button-height: var(--button-height);
     --payloadpack-row-button-height: var(--button-height);
-    --payloadpack-menu-item-height: var(--button-height);
+    --payloadpack-menu-item-height: var(--spacer-5);
     --payloadpack-sidebar-tabs-height: 2.375rem;
 
     /* 2. Areas */
@@ -88,6 +88,10 @@
     .api-key-input .copy-to-clipboard {
       width: var(--field-min-height-large);
       min-height: var(--field-min-height-large);
+    }
+
+    .form-input-group {
+      --button-height: calc(var(--field-min-height-large) - var(--spacer-2));
     }
 
     .slug-field-component__input {
