@@ -39,19 +39,23 @@
       --color-bg-menu: var(--color-bg-elevated);
       --color-bg-tooltip: var(--color-bg-elevated);
       --color-text: #f3f2ed;
-      --color-text-secondary: #a3a29b;
       --color-icon-secondary: #a3a29b;
       --field-color-bg: var(--color-bg-elevated);
       --field-color-border: var(--color-border);
       --color-bg-selected: var(--color-bg-tertiary);
       --color-bg-selected-hover: var(--color-bg-tertiary);
       --color-bg-selected-pressed: var(--color-bg-tertiary);
-      --color-bg-selected-strong: var(--color-bg-tertiary);
       --color-text-onselected-strong: var(--color-text);
       --color-bg-disabled: var(--color-bg-tertiary);
-      --color-text-ondisabled: var(--color-text-disabled);
       --elevation-400-menu-panel:
         0 0 0 1px var(--special-border-translucent-strong), 0 10px 24px rgb(0 0 0 / 0.5), 0 2px 6px rgb(0 0 0 / 0.4);
+    }
+
+    &:not([data-enhanced-contrast])[data-theme='dark'],
+    &:not([data-enhanced-contrast]) [data-theme='dark'] {
+      --color-text-secondary: #a3a29b;
+      --color-bg-selected-strong: var(--color-bg-tertiary);
+      --color-text-ondisabled: var(--color-text-disabled);
     }
 
     &[data-theme='dark'] :is(.nav, .nav__header) {
@@ -91,7 +95,7 @@
     [data-theme] {
       --payloadpack-toggle-bg: var(--color-bg-secondary);
       --payloadpack-toggle-bg-hover: var(--color-bg-secondary-hover);
-      --payloadpack-toggle-border: var(--special-border-translucent-strong);
+      --payloadpack-toggle-border: var(--color-border-control-strong);
       --payloadpack-toggle-checked-bg: var(--color-text);
       --payloadpack-toggle-checked-border: var(--special-border-translucent);
       --payloadpack-toggle-mark: var(--color-icon-oninverse);
@@ -102,7 +106,7 @@
       --color-bg-secondary: var(--payloadpack-toggle-bg);
       --color-bg-secondary-hover: var(--payloadpack-toggle-bg-hover);
       --color-bg-secondary-pressed: var(--payloadpack-toggle-bg-hover);
-      --special-border-translucent-strong: var(--payloadpack-toggle-border);
+      --color-border-control-strong: var(--payloadpack-toggle-border);
       --special-border-translucent: var(--payloadpack-toggle-checked-border);
       --color-bg-brand: var(--payloadpack-toggle-checked-bg);
       --color-bg-brand-hover: var(--payloadpack-toggle-checked-bg);

@@ -20,7 +20,7 @@
     }
 
     .radio-input--is-selected {
-      border-color: var(--special-border-translucent-strong);
+      border-color: var(--color-border-control-strong);
       background-color: var(--color-bg-secondary);
     }
 
