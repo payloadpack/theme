@@ -65,6 +65,7 @@ export default buildConfig({
     {
       slug: 'showcase',
       admin: { useAsTitle: 'title' },
+      lockDocuments: false,
       fields: [
         { name: 'title', type: 'text', required: true },
         { name: 'reference', type: 'text', defaultValue: 'SC-001', admin: { readOnly: true } },
