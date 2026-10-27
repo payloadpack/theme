@@ -67,6 +67,7 @@ export default buildConfig({
       admin: { useAsTitle: 'title' },
       fields: [
         { name: 'title', type: 'text', required: true },
+        { name: 'reference', type: 'text', defaultValue: 'SC-001', admin: { readOnly: true } },
         { name: 'type', type: 'select', options: ['one', 'two'] },
         { name: 'featured', type: 'checkbox', admin: { description: 'Show this first on the front page' } },
         {
