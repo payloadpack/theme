@@ -100,7 +100,6 @@
 
     .api-key__regenerate-button.btn {
       border-left: 0;
-      border-radius: var(--button-radius);
     }
 
     .api-key-input .copy-to-clipboard {
@@ -111,6 +110,10 @@
     .form-input-group,
     .api-key__input-wrap {
       --button-height: calc(var(--field-min-height-large) - var(--spacer-2));
+
+      .btn {
+        border-radius: var(--button-radius);
+      }
     }
 
     .slug-field-component__input {

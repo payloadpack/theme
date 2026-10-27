@@ -133,6 +133,9 @@ test.describe('Theme values', () => {
     expect(await size(page, '.collapsible__indicator')).toEqual({ height: 36, width: 36 })
     expect(await size(page, '.collapsible__actions .popup-button')).toEqual({ height: 36, width: 36 })
     expect(await size(page, '.slug-field-component__action-btn')).toEqual({ height: 28, width: 28 })
+    expect(await style(page, '.slug-field-component__action-btn', 'border-radius')).toBe(
+      await style(page, '.doc-controls__controls .btn', 'border-radius')
+    )
     expect(await style(page, '.fixed-toolbar + .editor-container .ContentEditable__root', 'padding-top')).toBe('24px')
 
     const popupMaxHeight = await page
@@ -272,12 +275,18 @@ test.describe('Theme values', () => {
     await page.locator('.api-key__regenerate-button').click()
     await page.getByRole('button', { exact: true, name: 'Generate' }).click()
 
-    expect(await size(page, '.auth-fields .field-type.api-key input')).toMatchObject({ height: 36 })
-    expect(await size(page, '.api-key__visibility-button')).toEqual({ height: 28, width: 28 })
-    expect(await size(page, '.api-key__regenerate-button')).toEqual({ height: 28, width: 28 })
-    await expect(page.locator('.api-key__regenerate-button')).toHaveCSS('top', '4px')
-    await expect(page.locator('.api-key__regenerate-button')).toHaveCSS('right', '4px')
-    await expect(page.locator('.api-key__visibility-button')).toHaveCSS('right', '36px')
+    const [input, visibility, regenerate] = await Promise.all(
+      ['.auth-fields .field-type.api-key input', '.api-key__visibility-button', '.api-key__regenerate-button'].map((selector) =>
+        page.locator(selector).boundingBox()
+      )
+    )
+    const inset = (box: typeof input) =>
+      box &&
+      input && { height: box.height, right: input.x + input.width - box.x - box.width, top: box.y - input.y, width: box.width }
+
+    expect(input?.height).toBe(36)
+    expect(inset(regenerate)).toEqual({ height: 28, right: 4, top: 4, width: 28 })
+    expect(inset(visibility)).toEqual({ height: 28, right: 36, top: 4, width: 28 })
   })
 
   test('neutral dark palette', async ({ page }) => {
