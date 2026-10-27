@@ -54,15 +54,15 @@
     "react-dom": "^19"
   },
   "devDependencies": {
-    "@payloadcms/richtext-lexical": "4.0.0-beta.3",
-    "@payloadcms/ui": "4.0.0-beta.3",
+    "@payloadcms/richtext-lexical": "4.0.0-beta.5",
+    "@payloadcms/ui": "4.0.0-beta.5",
     "@swc/cli": "0.7.9",
     "@swc/core": "^1.10.0",
     "@types/node": "^24.0.0",
     "@types/react": "19.3.0",
     "copyfiles": "2.4.1",
     "lucide-static": "1.61.0",
-    "payload": "4.0.0-beta.3",
+    "payload": "4.0.0-beta.5",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "rimraf": "6.1.2",

@@ -258,8 +258,9 @@ test.describe('Theme values', () => {
 
   test('large buttons on the dashboard', async ({ page }) => {
     await page.goto('/admin')
+    await page.getByRole('button', { name: 'Pinned' }).click()
 
-    expect(await size(page, '.recents-widget__select-documents')).toMatchObject({ height: 40 })
+    expect(await size(page, '.activity-widget__select-documents')).toMatchObject({ height: 40 })
   })
 
   test('neutral dark palette', async ({ page }) => {

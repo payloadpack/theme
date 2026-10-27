@@ -194,7 +194,7 @@
       min-height: var(--button-height);
     }
 
-    .recents-widget__select-documents {
+    .activity-widget__select-documents {
       height: var(--payloadpack-button-height-large);
       padding-inline: var(--spacer-3);
     }
