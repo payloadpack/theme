@@ -235,6 +235,7 @@ export interface Folder {
 export interface Showcase {
   id: number;
   title: string;
+  reference?: string | null;
   type?: ('one' | 'two') | null;
   /**
    * Show this first on the front page
@@ -470,6 +471,7 @@ export interface FoldersSelect<T extends boolean = true> {
  */
 export interface ShowcaseSelect<T extends boolean = true> {
   title?: T;
+  reference?: T;
   type?: T;
   featured?: T;
   size?: T;

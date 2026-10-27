@@ -317,6 +317,23 @@ test.describe('Theme values', () => {
     await expect(page.locator('.popup__content:visible').first()).toHaveCSS('border-radius', '9px')
   })
 
+  test('disabled and read-only fields fade to half the field colors', async ({ page }) => {
+    await openShowcase(page)
+    const half = (token: string) => computedColor(page, `color-mix(in srgb, var(${token}) 50%, transparent)`)
+    const reference = page.locator('.field-type.text').filter({ hasText: 'Reference' }).locator('input')
+    await expect(page.locator('#field-title')).toBeEnabled()
+    await expect(reference).toBeDisabled()
+
+    for (const field of [reference, page.locator('.slug-field-component__input-container')]) {
+      await expect(field).toHaveCSS('background-color', await half('--field-color-bg'))
+      await expect(field).toHaveCSS('border-top-color', await half('--field-color-border'))
+    }
+    await expect(page.locator('.slug-field-component__input')).toHaveCSS(
+      'color',
+      await computedColor(page, 'var(--color-text-secondary)')
+    )
+  })
+
   test('enhanced contrast reaches radios and secondary text', async ({ page }) => {
     await page.context().addCookies([cookie('high-contrast-mode', 'true')])
     await openShowcase(page)
