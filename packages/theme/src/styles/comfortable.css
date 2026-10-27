@@ -22,11 +22,11 @@
     --text-heading-medium-font-size: 1.125rem;
     --text-heading-medium-line-height: 1.625rem;
 
-    --field-min-height-large: var(--spacer-6);
+    --field-min-height-large: 2.25rem;
     --field-min-height-medium: var(--spacer-5);
     --field-padding-inline: var(--spacer-2-5);
-    --button-height: var(--spacer-5);
-    --payloadpack-button-height-large: var(--field-min-height-large);
+    --button-height: var(--field-min-height-large);
+    --payloadpack-button-height-large: var(--spacer-6);
     --control-height: var(--spacer-5);
     --payloadpack-toggle-size: 1.125rem;
 

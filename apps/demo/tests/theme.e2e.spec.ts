@@ -126,12 +126,12 @@ test.describe('Theme values', () => {
 
     await expect(page.locator('.field-label').first()).toHaveCSS('font-size', '14px')
     await expect(page.locator('.field-type.text input').first()).toHaveCSS('font-size', '14px')
-    expect(await size(page, '.field-type.text input')).toMatchObject({ height: 40 })
-    expect(await size(page, '.doc-controls__controls .btn')).toMatchObject({ height: 32 })
+    expect(await size(page, '.field-type.text input')).toMatchObject({ height: 36 })
+    expect(await size(page, '.doc-controls__controls .btn')).toMatchObject({ height: 36 })
     expect(await size(page, '.nav__link')).toMatchObject({ height: 36 })
-    expect(await size(page, '.collapsible__toggle-wrap')).toMatchObject({ height: 48 })
-    expect(await size(page, '.collapsible__indicator')).toEqual({ height: 32, width: 32 })
-    expect(await size(page, '.collapsible__actions .popup-button')).toEqual({ height: 32, width: 32 })
+    expect(await size(page, '.collapsible__toggle-wrap')).toMatchObject({ height: 52 })
+    expect(await size(page, '.collapsible__indicator')).toEqual({ height: 36, width: 36 })
+    expect(await size(page, '.collapsible__actions .popup-button')).toEqual({ height: 36, width: 36 })
     expect(await style(page, '.fixed-toolbar + .editor-container .ContentEditable__root', 'padding-top')).toBe('24px')
 
     const popupMaxHeight = await page
@@ -149,7 +149,7 @@ test.describe('Theme values', () => {
     const table = page.locator('table')
     await table.waitFor()
 
-    expect(await size(page, '.list-controls .dots')).toEqual({ height: 32, width: 32 })
+    expect(await size(page, '.list-controls .dots')).toEqual({ height: 36, width: 36 })
 
     const before = await table.boundingBox()
     await page.locator('table tbody tr').first().locator('.checkbox-input__input').click()
@@ -412,8 +412,8 @@ test.describe('Theme values', () => {
     expect(await size(page, '.collapsible__indicator')).toEqual({ height: 40, width: 40 })
     expect(await size(page, '.collapsible__actions .popup-button')).toEqual({ height: 40, width: 40 })
     expect(await size(page, '.collapsible__toggle-wrap')).toMatchObject({ height: 56 })
-    expect(await size(page, '.doc-controls__controls .btn')).toMatchObject({ height: 32 })
-    expect(await size(page, '.doc-header .doc-tab')).toMatchObject({ height: 32 })
+    expect(await size(page, '.doc-controls__controls .btn')).toMatchObject({ height: 36 })
+    expect(await size(page, '.doc-header .doc-tab')).toMatchObject({ height: 36 })
   })
 
   test('app CSS picks the nav icon for its own collection', async ({ page }) => {
