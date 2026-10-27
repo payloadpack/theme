@@ -132,6 +132,7 @@ test.describe('Theme values', () => {
     expect(await size(page, '.collapsible__toggle-wrap')).toMatchObject({ height: 52 })
     expect(await size(page, '.collapsible__indicator')).toEqual({ height: 36, width: 36 })
     expect(await size(page, '.collapsible__actions .popup-button')).toEqual({ height: 36, width: 36 })
+    expect(await size(page, '.slug-field-component__action-btn')).toEqual({ height: 28, width: 28 })
     expect(await style(page, '.fixed-toolbar + .editor-container .ContentEditable__root', 'padding-top')).toBe('24px')
 
     const popupMaxHeight = await page
@@ -139,6 +140,9 @@ test.describe('Theme values', () => {
       .first()
       .evaluate((element) => parseFloat(getComputedStyle(element).maxHeight) === window.innerHeight - 16)
     expect(popupMaxHeight).toBe(true)
+
+    await page.locator('.doc-controls__popup-button').click()
+    expect(await size(page, '.doc-controls__popup .popup-button-list__button')).toMatchObject({ height: 32 })
 
     await page.locator('.date-time-picker input').first().click()
     await expect(page.locator('.react-datepicker__header__dropdown')).toHaveCSS('padding-left', '0px')
@@ -260,7 +264,7 @@ test.describe('Theme values', () => {
     await page.goto('/admin')
     await page.getByRole('button', { name: 'Pinned' }).click()
 
-    expect(await size(page, '.activity-widget__select-documents')).toMatchObject({ height: 40 })
+    expect(await size(page, '.activity-widget__select-documents')).toMatchObject({ height: 36 })
   })
 
   test('neutral dark palette', async ({ page }) => {

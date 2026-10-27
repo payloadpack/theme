@@ -33,7 +33,7 @@ Open the user menu → **Appearance**. The plugin renames Payload's Settings sub
 | Icons   | Payload, Lucide      | Lucide      |
 
 - **Neutral** gives dark mode a warm near-black palette and swaps Payload's blue selection for neutral greys. In both modes it draws a 2px focus ring in the text color and fills checked checkboxes and selected radios with the text color instead of blue.
-- **Comfortable** sets 14px body text, 40px fields, 32px buttons and 18px checkboxes and radios, gives dialogs more room, and fixes Payload components that hard-code their sizes.
+- **Comfortable** sets 14px body text, 36px fields and buttons, 32px menu items and 18px checkboxes and radios, gives dialogs more room, and fixes Payload components that hard-code their sizes.
 - **Lucide** replaces Payload's icons with [Lucide](https://lucide.dev) and adds icons to the nav and the document menu. The icons are bundled, so nothing loads from a CDN.
 
 Stock, Compact and Payload icons together are untouched Payload.
@@ -110,7 +110,7 @@ Any single-color SVG works. It is used as a mask, so it takes the nav's text col
 
 The theme's CSS sits in `@layer payload`, so your own `custom.css` overrides it without specificity fights.
 
-Each toolbar sizes its buttons from its own token. All but the sidebar tabs default to Payload's `--button-height`:
+Each toolbar sizes its buttons from its own token. All but the menu items and sidebar tabs default to Payload's `--button-height`:
 
 | Token                                       | Controls                                 |
 | ------------------------------------------- | ---------------------------------------- |
@@ -119,7 +119,7 @@ Each toolbar sizes its buttons from its own token. All but the sidebar tabs defa
 | `--payloadpack-list-header-button-height`   | List title bar and its selection bar     |
 | `--payloadpack-list-controls-button-height` | List toolbar: Filters, Group by, Columns |
 | `--payloadpack-row-button-height`           | Array and block rows                     |
-| `--payloadpack-menu-item-height`            | Popup menu items                         |
+| `--payloadpack-menu-item-height`            | Popup menu items, 32px                   |
 | `--payloadpack-sidebar-tabs-height`         | Collections and Folders tabs, 38px       |
 
 Checkboxes and radios share their size and colors:
