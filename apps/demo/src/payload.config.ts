@@ -53,7 +53,7 @@ export default buildConfig({
     {
       slug: 'users',
       admin: { useAsTitle: 'email' },
-      auth: true,
+      auth: { useAPIKey: true },
       fields: []
     },
     {

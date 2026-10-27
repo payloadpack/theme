@@ -133,6 +133,9 @@ test.describe('Theme values', () => {
     expect(await size(page, '.collapsible__indicator')).toEqual({ height: 36, width: 36 })
     expect(await size(page, '.collapsible__actions .popup-button')).toEqual({ height: 36, width: 36 })
     expect(await size(page, '.slug-field-component__action-btn')).toEqual({ height: 28, width: 28 })
+    expect(await style(page, '.slug-field-component__action-btn', 'border-radius')).toBe(
+      await style(page, '.doc-controls__controls .btn', 'border-radius')
+    )
     expect(await style(page, '.fixed-toolbar + .editor-container .ContentEditable__root', 'padding-top')).toBe('24px')
 
     const popupMaxHeight = await page
@@ -265,6 +268,25 @@ test.describe('Theme values', () => {
     await page.getByRole('button', { name: 'Pinned' }).click()
 
     expect(await size(page, '.activity-widget__select-documents')).toMatchObject({ height: 36 })
+  })
+
+  test('API key buttons sit inside the field like the slug buttons', async ({ page }) => {
+    await page.goto('/admin/account')
+    await page.locator('.api-key__regenerate-button').click()
+    await page.getByRole('button', { exact: true, name: 'Generate' }).click()
+
+    const [input, visibility, regenerate] = await Promise.all(
+      ['.auth-fields .field-type.api-key input', '.api-key__visibility-button', '.api-key__regenerate-button'].map((selector) =>
+        page.locator(selector).boundingBox()
+      )
+    )
+    const inset = (box: typeof input) =>
+      box &&
+      input && { height: box.height, right: input.x + input.width - box.x - box.width, top: box.y - input.y, width: box.width }
+
+    expect(input?.height).toBe(36)
+    expect(inset(regenerate)).toEqual({ height: 28, right: 4, top: 4, width: 28 })
+    expect(inset(visibility)).toEqual({ height: 28, right: 36, top: 4, width: 28 })
   })
 
   test('neutral dark palette', async ({ page }) => {

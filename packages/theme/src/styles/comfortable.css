@@ -80,18 +80,40 @@
     }
 
     .auth-fields .field-type.api-key .api-key__input-wrap--has-regenerate input {
-      padding-right: calc(var(--field-min-height-large) * 2);
+      padding-right: calc(2 * var(--button-height) + 2 * var(--spacer-1) + var(--spacer-2));
+      border-radius: var(--radius-medium);
     }
 
     .api-key__visibility-button.btn,
-    .api-key__regenerate-button.btn,
+    .api-key__regenerate-button.btn {
+      position: absolute;
+      top: var(--spacer-1);
+      right: var(--spacer-1);
+      width: var(--button-height);
+      height: var(--button-height);
+      min-height: var(--button-height);
+    }
+
+    .api-key__visibility-button--with-regenerate.btn {
+      right: calc(var(--button-height) + 2 * var(--spacer-1));
+    }
+
+    .api-key__regenerate-button.btn {
+      border-left: 0;
+    }
+
     .api-key-input .copy-to-clipboard {
       width: var(--field-min-height-large);
       min-height: var(--field-min-height-large);
     }
 
-    .form-input-group {
+    .form-input-group,
+    .api-key__input-wrap {
       --button-height: calc(var(--field-min-height-large) - var(--spacer-2));
+
+      .btn {
+        border-radius: var(--button-radius);
+      }
     }
 
     .slug-field-component__input {

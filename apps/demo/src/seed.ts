@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import type { Payload } from 'payload'
 
 export const demoUser = { email: 'demo@payloadpack.com', password: 'demo' }
@@ -8,7 +9,7 @@ export async function seed(payload: Payload) {
     return
   }
 
-  const user = await payload.create({ collection: 'users', data: demoUser, overrideAccess: true })
+  const user = await payload.create({ collection: 'users', data: { ...demoUser, apiKey: randomUUID() }, overrideAccess: true })
 
   await payload.create({
     collection: 'showcase',
