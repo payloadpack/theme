@@ -181,6 +181,16 @@ const hardCodedByPayload = [
   { file: 'icons/Dots/index.css', selector: '.dots', declaration: 'height: var(--spacer-4);' }
 ]
 
+const readByDescendants: Record<string, string[]> = {
+  '--button-height': ['.btn--size-medium', '.sidebar-tabs__tab'],
+  '--content-editable-padding-block-start': ['.LexicalEditorTheme__placeholder'],
+  '--elevation-400-menu-panel': ['.payload-toast-item'],
+  '--lexical-h4-font-size': ['.LexicalEditorTheme__h4'],
+  '--lexical-h5-font-size': ['.LexicalEditorTheme__h5'],
+  '--lexical-h6-font-size': ['.LexicalEditorTheme__h6'],
+  '--normal-text': ['[data-sonner-toast]']
+}
+
 const read = (file: string) => readFileSync(file, 'utf8')
 const stripComments = (css: string) => css.replace(/\/\*[\s\S]*?\*\//g, '')
 const squash = (text: string) => text.replace(/\s+/g, ' ')
@@ -235,12 +245,12 @@ const topLevelBlocks = (css: string) => {
   return { blocks, outside: outside.trim() }
 }
 
-const rules = (css: string, parent = ''): { properties: string[]; selector: string }[] =>
+const rules = (css: string, parent = ''): { declarations: string; properties: string[]; selector: string }[] =>
   topLevelBlocks(css).blocks.flatMap((block) => {
     const selector = `${parent} ${block.prelude}`.trim()
-    const ownDeclarations = block.body.replace(/[^{};]*\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g, '')
-    const properties = matchAll(ownDeclarations, /(?:^|;)\s*([\w-]+)\s*:/g)
-    return [{ properties, selector }, ...rules(block.body, selector)]
+    const declarations = block.body.replace(/[^{};]*\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g, '')
+    const properties = matchAll(declarations, /(?:^|;)\s*([\w-]+)\s*:/g)
+    return [{ declarations, properties, selector }, ...rules(block.body, selector)]
   })
 
 const ruleBody = (css: string, selector: string) => {
@@ -313,6 +323,29 @@ describe('theme contract with Payload', () => {
     const payloadTokens = new Set(declaredProperties(payloadCss))
     const overridden = declaredProperties(allThemeCss).filter((token) => !token.startsWith('--payloadpack-'))
     expect(overridden.filter((token) => !payloadTokens.has(token))).toEqual([])
+  })
+
+  it('remaps only tokens that the element or its listed descendants still read', () => {
+    const readers = [...payloadCssFiles.flatMap((file) => rules(stripComments(read(file)))), ...rules(allThemeCss)]
+    const reads = (fragment: string, token: string) => {
+      const pattern = new RegExp(`${fragment.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\w-])`)
+      return readers.some((rule) => pattern.test(rule.selector) && referencedProperties(rule.declarations).includes(token))
+    }
+    const unread = rules(allThemeCss).flatMap((rule) => {
+      const subject =
+        rule.selector
+          .replace(/\([^()]*\)/g, '')
+          .split(/[\s>+~,]+/)
+          .at(-1) ?? ''
+      const classes = matchAll(subject, /\.([_a-zA-Z][\w-]*)/g).filter((name) => !name.startsWith('payloadpack-'))
+      const element = unique(classes.flatMap((name) => [name, name.replace(/--.*$/, '')])).map((name) => `.${name}`)
+      return rule.properties
+        .filter((token) => classes.length > 0 && token.startsWith('--') && !token.startsWith('--payloadpack-'))
+        .filter((token) => !element.some((fragment) => reads(fragment, token)))
+        .filter((token) => !readByDescendants[token]?.every((fragment) => reads(fragment, token)))
+        .map((token) => `${element[0]} ${token}`)
+    })
+    expect(unique(unread)).toEqual([])
   })
 
   it('reads only tokens that Payload or the plugin declares', () => {
