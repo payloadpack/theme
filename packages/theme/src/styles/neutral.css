@@ -244,5 +244,15 @@
     :is(.toast-success, .toast-info, .toast-warning, .toast-error) .toast-icon .icon {
       color: var(--payloadpack-toast-icon);
     }
+
+    /* 7. Disabled fields */
+    &,
+    [data-theme] {
+      --field-color-bg-disabled: color-mix(in srgb, var(--field-color-bg) 50%, transparent);
+      --field-color-border-disabled: color-mix(in srgb, var(--field-color-border) 50%, transparent);
+      --field-color-bg-readonly: var(--field-color-bg-disabled);
+      --field-color-border-readonly: var(--field-color-border-disabled);
+      --field-color-text-readonly: var(--field-color-text-disabled);
+    }
   }
 }
