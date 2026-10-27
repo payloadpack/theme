@@ -106,7 +106,7 @@
       --color-bg-secondary: var(--payloadpack-toggle-bg);
       --color-bg-secondary-hover: var(--payloadpack-toggle-bg-hover);
       --color-bg-secondary-pressed: var(--payloadpack-toggle-bg-hover);
-      --special-border-translucent-strong: var(--payloadpack-toggle-border);
+      --color-border-control-strong: var(--payloadpack-toggle-border);
       --special-border-translucent: var(--payloadpack-toggle-checked-border);
       --color-bg-brand: var(--payloadpack-toggle-checked-bg);
       --color-bg-brand-hover: var(--payloadpack-toggle-checked-bg);

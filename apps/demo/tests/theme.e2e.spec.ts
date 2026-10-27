@@ -230,6 +230,20 @@ test.describe('Theme values', () => {
     await expect(checkbox).toHaveCSS('box-shadow', /0px 0px 0px 3px/)
   })
 
+  test('one toggle border token reaches checkboxes and radios', async ({ page }) => {
+    await openShowcase(page)
+    await page.addStyleTag({ content: 'html { --payloadpack-toggle-border: rgb(255, 0, 0); }' })
+
+    await expect(page.locator('.field-type.checkbox .checkbox-input__visuals').first()).toHaveCSS(
+      'border-top-color',
+      'rgb(255, 0, 0)'
+    )
+    await expect(page.locator('.radio-input:not(.radio-input--is-selected) .radio-input__styled-radio').first()).toHaveCSS(
+      'border-top-color',
+      'rgb(255, 0, 0)'
+    )
+  })
+
   test('radio cards stack with the radio on the right', async ({ page }) => {
     await openShowcase(page)
     const cards = page.locator(`.${RADIO_CARDS} .radio-input`)
@@ -315,6 +329,10 @@ test.describe('Theme values', () => {
       'color',
       await computedColor(page, 'var(--ramp-white-500)')
     )
+
+    const card = page.locator(`.${RADIO_CARDS} .radio-input`).first()
+    await card.click()
+    await expect(card).toHaveCSS('border-top-color', await computedColor(page, 'var(--color-border-control)'))
   })
 
   test('lucide icon sizes and mappings', async ({ page }) => {
