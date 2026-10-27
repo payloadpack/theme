@@ -38,6 +38,10 @@ jobs:
         run: bun run test
         working-directory: packages/theme
 
+      - name: Type-check demo
+        run: bun run typecheck
+        working-directory: apps/demo
+
       - name: Install Playwright browser
         run: bunx playwright install --with-deps chromium
         working-directory: apps/demo
