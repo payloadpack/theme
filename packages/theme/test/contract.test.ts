@@ -69,6 +69,26 @@ const hardCodedByPayload = [
     declaration: 'min-height: var(--spacer-5);'
   },
   {
+    file: 'views/Edit/Auth/index.css',
+    selector: '.auth-fields .field-type.api-key input',
+    declaration: 'min-height: var(--spacer-5);'
+  },
+  {
+    file: 'views/Edit/Auth/index.css',
+    selector: '.auth-fields .field-type.api-key .api-key__input-wrap--has-regenerate input',
+    declaration: 'padding-right: calc(var(--spacer-5) * 2);'
+  },
+  {
+    file: 'views/Edit/Auth/index.css',
+    selector: '.api-key__regenerate-button.btn',
+    declaration: 'width: var(--spacer-5); min-height: var(--spacer-5);'
+  },
+  {
+    file: 'views/Edit/Auth/index.css',
+    selector: '.api-key__visibility-button--with-regenerate.btn',
+    declaration: 'right: var(--spacer-5);'
+  },
+  {
     file: 'elements/DatePicker/index.css',
     selector: '.react-datepicker__header__dropdown',
     declaration: 'padding: var(--spacer-2);'

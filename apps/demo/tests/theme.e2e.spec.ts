@@ -267,6 +267,19 @@ test.describe('Theme values', () => {
     expect(await size(page, '.activity-widget__select-documents')).toMatchObject({ height: 36 })
   })
 
+  test('API key buttons sit inside the field like the slug buttons', async ({ page }) => {
+    await page.goto('/admin/account')
+    await page.locator('.api-key__regenerate-button').click()
+    await page.getByRole('button', { exact: true, name: 'Generate' }).click()
+
+    expect(await size(page, '.auth-fields .field-type.api-key input')).toMatchObject({ height: 36 })
+    expect(await size(page, '.api-key__visibility-button')).toEqual({ height: 28, width: 28 })
+    expect(await size(page, '.api-key__regenerate-button')).toEqual({ height: 28, width: 28 })
+    await expect(page.locator('.api-key__regenerate-button')).toHaveCSS('top', '4px')
+    await expect(page.locator('.api-key__regenerate-button')).toHaveCSS('right', '4px')
+    await expect(page.locator('.api-key__visibility-button')).toHaveCSS('right', '36px')
+  })
+
   test('neutral dark palette', async ({ page }) => {
     await openShowcase(page)
 
