@@ -16,7 +16,7 @@ concurrency:
 
 env:
   NODE_VERSION: '24.15.0'
-  BUN_VERSION: '1.4.2'
+  BUN_VERSION: '1.4.4'
 
 jobs:
   release:

@@ -1,0 +1,68 @@
+name: Screenshots
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/demo/**'
+      - 'packages/theme/**'
+      - 'bun.lock'
+      - '.github/workflows/screenshots.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: payloadpack-screenshots
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '24.15.0'
+  BUN_VERSION: '1.4.4'
+
+jobs:
+  screenshots:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Install dependencies (frozen lockfile)
+        run: bun install --frozen-lockfile
+
+      - name: Build package
+        run: bun run build
+        working-directory: packages/theme
+
+      - name: Install Playwright browser
+        run: bunx playwright install chromium
+        working-directory: apps/demo
+
+      - name: Take screenshots
+        run: bun run screenshots
+        working-directory: apps/demo
+        env:
+          CI: 'true'
+          DATABASE_URI: file:./demo.db
+          PAYLOAD_SECRET: ci-only-secret
+
+      - name: Open pull request
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          token: ${{ secrets.PAYLOADPACK_RELEASE_BOT_TOKEN }}
+          add-paths: .github/assets
+          branch: chore/screenshots
+          delete-branch: true
+          commit-message: 'docs: refresh README screenshots'
+          title: 'docs: refresh README screenshots'
+          body: The Screenshots workflow found visual changes in the README screenshots.

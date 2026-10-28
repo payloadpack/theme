@@ -1,7 +1,7 @@
 import { test as setup } from '@playwright/test'
 
 import { demoUser } from '../src/seed'
-import { authFile } from './auth-file'
+import { authFile } from './demo'
 
 setup('log in as the demo user', async ({ page }) => {
   await page.goto('/admin/login')
