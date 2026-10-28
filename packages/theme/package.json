@@ -1,6 +1,6 @@
 {
   "name": "@payloadpack/theme",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Admin theme for Payload 4: a warm dark palette, a comfortable density and Lucide icons, switchable from the user menu.",
   "keywords": [
     "payload",

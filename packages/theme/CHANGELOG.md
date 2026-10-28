@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.4](https://github.com/payloadpack/theme/compare/v0.2.3...v0.2.4) (2026-10-28)
+
+
+### Documentation
+
+* make the root README the package docs ([#27](https://github.com/payloadpack/theme/issues/27)) ([a9b114a](https://github.com/payloadpack/theme/commit/a9b114a94380725e2fdc1c83a15fc88431f6fe96))
+* showcase the theme with auto-updated screenshots ([#24](https://github.com/payloadpack/theme/issues/24)) ([e0fab36](https://github.com/payloadpack/theme/commit/e0fab368f1b76f08211b6ecac7730a4e5d6411b3))
+
 ## [0.2.3](https://github.com/payloadpack/theme/compare/v0.2.2...v0.2.3) (2026-10-28)
 
 
