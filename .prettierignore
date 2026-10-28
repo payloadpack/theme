@@ -8,4 +8,5 @@ payload-types.ts
 next-env.d.ts
 CHANGELOG.md
 .auth/
+.claude/settings.local.json
 packages/theme/src/styles/lucide.css

@@ -181,6 +181,18 @@ const hardCodedByPayload = [
   { file: 'icons/Dots/index.css', selector: '.dots', declaration: 'height: var(--spacer-4);' }
 ]
 
+const readByDescendants: Record<string, string[]> = {
+  '--button-height': ['.btn--size-medium', '.sidebar-tabs__tab'],
+  '--content-editable-padding-block-start': ['.LexicalEditorTheme__placeholder'],
+  '--elevation-400-menu-panel': ['.payload-toast-item'],
+  '--lexical-h4-font-size': ['.LexicalEditorTheme__h4'],
+  '--lexical-h5-font-size': ['.LexicalEditorTheme__h5'],
+  '--lexical-h6-font-size': ['.LexicalEditorTheme__h6'],
+  '--normal-text': ['[data-sonner-toast]']
+}
+
+const readByTheme = ['--elevation-400-menu-panel']
+
 const read = (file: string) => readFileSync(file, 'utf8')
 const stripComments = (css: string) => css.replace(/\/\*[\s\S]*?\*\//g, '')
 const squash = (text: string) => text.replace(/\s+/g, ' ')
@@ -235,12 +247,12 @@ const topLevelBlocks = (css: string) => {
   return { blocks, outside: outside.trim() }
 }
 
-const rules = (css: string, parent = ''): { properties: string[]; selector: string }[] =>
+const rules = (css: string, parent = ''): { declarations: string; properties: string[]; selector: string }[] =>
   topLevelBlocks(css).blocks.flatMap((block) => {
     const selector = `${parent} ${block.prelude}`.trim()
-    const ownDeclarations = block.body.replace(/[^{};]*\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g, '')
-    const properties = matchAll(ownDeclarations, /(?:^|;)\s*([\w-]+)\s*:/g)
-    return [{ properties, selector }, ...rules(block.body, selector)]
+    const declarations = block.body.replace(/[^{};]*\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g, '')
+    const properties = matchAll(declarations, /(?:^|;)\s*([\w-]+)\s*:/g)
+    return [{ declarations, properties, selector }, ...rules(block.body, selector)]
   })
 
 const ruleBody = (css: string, selector: string) => {
@@ -259,6 +271,21 @@ const ruleBody = (css: string, selector: string) => {
   }
   return squash(css.slice(open + 1, index - 1))
 }
+
+const hasClass = (selector: string, name: string) => new RegExp(`\\.${name}(?![\\w-])`).test(selector)
+
+const subject = (selector: string) =>
+  selector
+    .replace(/:(?:not|has)\([^()]*\)|\[[^\]]*\]/g, '')
+    .replace(/\s+&/g, '')
+    .split(',')
+    .map((part) =>
+      part
+        .trim()
+        .split(/\s*[\s>+~]\s*/)
+        .pop()
+    )
+    .join(',')
 
 const existsInPayload = (name: string) => {
   const runtime = builtAtRuntime[name]
@@ -315,6 +342,31 @@ describe('theme contract with Payload', () => {
     expect(overridden.filter((token) => !payloadTokens.has(token))).toEqual([])
   })
 
+  it('remaps only tokens that are still read where the theme sets them', () => {
+    const payloadRules = payloadCssFiles.flatMap((file) => rules(stripComments(read(file))))
+    const themeRules = rules(allThemeCss)
+    const readsOn = (fragment: string, token: string) => {
+      const pattern = new RegExp(`${fragment.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\w-])`)
+      const readers = readByTheme.includes(token) ? [...payloadRules, ...themeRules] : payloadRules
+      return readers.some((rule) => pattern.test(rule.selector) && referencedProperties(rule.declarations).includes(token))
+    }
+    const readAnywhere = (token: string) =>
+      [...payloadRules, ...themeRules].some((rule) => referencedProperties(rule.declarations).includes(token))
+    const unread = themeRules.flatMap((rule) => {
+      const classes = matchAll(subject(rule.selector), /\.([_a-zA-Z][\w-]*)/g).filter((name) => !name.startsWith('payloadpack-'))
+      const element = unique(classes.flatMap((name) => [name, name.replace(/--.*$/, '')])).map((name) => `.${name}`)
+      const isRead = (token: string) =>
+        element.length === 0
+          ? readAnywhere(token)
+          : element.some((fragment) => readsOn(fragment, token)) ||
+            (readByDescendants[token]?.every((fragment) => readsOn(fragment, token)) ?? false)
+      return rule.properties
+        .filter((token) => token.startsWith('--') && !token.startsWith('--payloadpack-') && !isRead(token))
+        .map((token) => `${element[0] ?? 'root'} ${token}`)
+    })
+    expect(unique(unread)).toEqual([])
+  })
+
   it('reads only tokens that Payload or the plugin declares', () => {
     const known = new Set([...declaredProperties(payloadCss), ...declaredProperties(allThemeCss)])
     expect(referencedProperties(allThemeCss).filter((token) => !known.has(token))).toEqual([])
@@ -346,20 +398,7 @@ describe('theme contract with Payload', () => {
   })
 
   it('is never outranked by unlayered Payload rules on the properties it sets', () => {
-    const hasClass = (selector: string, name: string) => new RegExp(`\\.${name}(?![\\w-])`).test(selector)
     const pseudoElement = (selector: string) => selector.match(/::[\w-]+$/)?.[0] ?? ''
-    const subject = (selector: string) =>
-      selector
-        .replace(/:(?:not|has)\([^()]*\)|\[[^\]]*\]/g, '')
-        .replace(/\s+&/g, '')
-        .split(',')
-        .map((part) =>
-          part
-            .trim()
-            .split(/\s*[\s>+~]\s*/)
-            .pop()
-        )
-        .join(',')
     const ours = rules(allThemeCss)
     const conflicts = payloadCssFiles.flatMap((file) =>
       topLevelBlocks(stripComments(read(file)))

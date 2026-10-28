@@ -8,7 +8,6 @@
     --text-body-large-font-size: 1rem;
     --text-body-large-line-height: 1.5rem;
     --text-body-xl-font-size: 1.125rem;
-    --text-body-xl-line-height: 1.625rem;
 
     --text-body-small-bold-font-size: var(--text-body-small-font-size);
     --text-body-small-bold-line-height: var(--text-body-small-line-height);
@@ -18,7 +17,6 @@
     --text-body-large-bold-line-height: var(--text-body-large-line-height);
 
     --text-heading-small-font-size: 1rem;
-    --text-heading-small-line-height: 1.5rem;
     --text-heading-medium-font-size: 1.125rem;
     --text-heading-medium-line-height: 1.625rem;
 

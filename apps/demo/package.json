@@ -8,7 +8,8 @@
     "generate:importmap": "payload generate:importmap",
     "generate:types": "payload generate:types",
     "start": "next start --port 3020",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
     "@payloadcms/db-sqlite": "4.0.0-beta.5",

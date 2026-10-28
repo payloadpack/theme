@@ -354,10 +354,6 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'folders';
         value: number | Folder;
-      } | null)
-    | ({
-        relationTo: 'showcase';
-        value: number | Showcase;
       } | null);
   globalSlug?: string | null;
   user: {
