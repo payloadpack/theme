@@ -1,6 +1,38 @@
-# payloadpack/theme
+<h1 align="center">@payloadpack/theme</h1>
 
-Source for [`@payloadpack/theme`](packages/theme), an admin theme for Payload 4.
+<p align="center">A warmer, roomier admin theme for Payload 4.</p>
+
+<p align="center">
+  <a href="https://www.npmjs.com/package/@payloadpack/theme"><img alt="npm version" src="https://img.shields.io/npm/v/@payloadpack/theme"></a>
+  <a href="https://github.com/payloadpack/theme/actions/workflows/ci.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/payloadpack/theme/ci.yml?branch=main"></a>
+  <a href="https://payloadcms.com"><img alt="Payload version" src="https://img.shields.io/npm/dependency-version/@payloadpack/theme/peer/payload"></a>
+  <a href="packages/theme/LICENSE"><img alt="MIT license" src="https://img.shields.io/npm/l/@payloadpack/theme"></a>
+</p>
+
+<table>
+  <tr>
+    <th width="50%">Stock Payload</th>
+    <th width="50%">With @payloadpack/theme</th>
+  </tr>
+  <tr>
+    <td>
+      <picture>
+        <source media="(prefers-color-scheme: light)" srcset=".github/assets/compare-stock-light.png">
+        <img alt="A stock Payload edit view" src=".github/assets/compare-stock-dark.png">
+      </picture>
+    </td>
+    <td>
+      <picture>
+        <source media="(prefers-color-scheme: light)" srcset=".github/assets/compare-themed-light.png">
+        <img alt="The same edit view with the Neutral style, Comfortable density and Lucide icons" src=".github/assets/compare-themed-dark.png">
+      </picture>
+    </td>
+  </tr>
+</table>
+
+<p align="center"><a href="packages/theme#readme"><b>Install and usage →</b></a></p>
+
+## Repository
 
 | Path             | What                                                  |
 | ---------------- | ----------------------------------------------------- |

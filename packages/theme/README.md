@@ -1,6 +1,36 @@
-# @payloadpack/theme
+<h1 align="center">@payloadpack/theme</h1>
 
-An admin theme for Payload 4. It adds three appearance controls to the user menu: a warm dark palette, a roomier density and Lucide icons. Each person picks their own, and the choice is rendered on the server, so pages never flash.
+<p align="center">A warmer, roomier admin theme for Payload 4.</p>
+
+<p align="center">
+  <a href="https://www.npmjs.com/package/@payloadpack/theme"><img alt="npm version" src="https://img.shields.io/npm/v/@payloadpack/theme"></a>
+  <a href="https://github.com/payloadpack/theme/actions/workflows/ci.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/payloadpack/theme/ci.yml?branch=main"></a>
+  <a href="https://payloadcms.com"><img alt="Payload version" src="https://img.shields.io/npm/dependency-version/@payloadpack/theme/peer/payload"></a>
+  <a href="https://github.com/payloadpack/theme/blob/main/packages/theme/LICENSE"><img alt="MIT license" src="https://img.shields.io/npm/l/@payloadpack/theme"></a>
+</p>
+
+<table>
+  <tr>
+    <th width="50%">Stock Payload</th>
+    <th width="50%">With @payloadpack/theme</th>
+  </tr>
+  <tr>
+    <td>
+      <picture>
+        <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/compare-stock-light.png">
+        <img alt="A stock Payload edit view" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/compare-stock-dark.png">
+      </picture>
+    </td>
+    <td>
+      <picture>
+        <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/compare-themed-light.png">
+        <img alt="The same edit view with the Neutral style, Comfortable density and Lucide icons" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/compare-themed-dark.png">
+      </picture>
+    </td>
+  </tr>
+</table>
+
+The theme adds three appearance controls to the user menu: a warm dark palette, a roomier density and Lucide icons. Each person picks their own, and the choice is rendered on the server, so pages never flash.
 
 ## Install
 
@@ -24,7 +54,16 @@ payload generate:importmap
 
 ## Appearance
 
-Open the user menu → **Appearance**. The plugin renames Payload's Settings submenu in English only, so other languages keep Payload's translation. To rename it in another language, or pick a different name, set `general.settings` for that language in your own `i18n.translations`.
+Open the user menu → **Appearance**:
+
+<p>
+  <picture>
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/appearance-light.png">
+    <img width="360" alt="The Appearance submenu with Style, Density and Icons groups" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/appearance-dark.png">
+  </picture>
+</p>
+
+The plugin renames Payload's Settings submenu in English only, so other languages keep Payload's translation. To rename it in another language, or pick a different name, set `general.settings` for that language in your own `i18n.translations`.
 
 | Control | Options              | Default     |
 | ------- | -------------------- | ----------- |
@@ -54,6 +93,13 @@ themePlugin({
 
 ## Vertical tabs
 
+<p>
+  <picture>
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/vertical-tabs-light.png">
+    <img width="640" alt="A tabs field with General and Advanced listed in a column beside a Meta Title field" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/vertical-tabs-dark.png">
+  </picture>
+</p>
+
 Give a tabs field the `VERTICAL_TABS` class to list its tabs in a column beside the fields:
 
 ```ts
@@ -72,6 +118,13 @@ const field = {
 From 768px wide the tabs stack in a 270px column on the left. Narrower screens keep Payload's horizontal tabs. The layout applies whatever each person picks in Appearance. Payload's tab list moves between tabs with the Left and Right arrow keys, and that doesn't change.
 
 ## Radio cards
+
+<p>
+  <picture>
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/radio-cards-light.png">
+    <img width="640" alt="A Plan radio field shown as three stacked cards with Pro selected" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/radio-cards-dark.png">
+  </picture>
+</p>
 
 Give a radio field the `RADIO_CARDS` class to show its options as stacked cards with the radio on the right:
 
@@ -94,7 +147,7 @@ A label can also be JSX. Its first element is the title and any element after it
 
 ## Nav icons
 
-With Icons set to Lucide, every collection and global in the nav gets an icon. Common names get a matching one automatically: a slug containing `page`, `post`, `media`, `user`, `categor`, `product`, `order`, `form`, `tag`, `event` or [more than 30 other words](src/styles/lucide.css) is recognized. Anything else gets a generic icon.
+With Icons set to Lucide, every collection and global in the nav gets an icon. Common names get a matching one automatically: a slug containing `page`, `post`, `media`, `user`, `categor`, `product`, `order`, `form`, `tag`, `event` or [more than 30 other words](https://github.com/payloadpack/theme/blob/main/packages/theme/src/styles/lucide.css) is recognized. Anything else gets a generic icon.
 
 To choose the icon for your own collection, set `--payloadpack-icon` on its nav link in your admin stylesheet, for example `src/app/(payload)/custom.css`. Nav links have the id `nav-<slug>` for collections and `nav-global-<slug>` for globals:
 
@@ -148,4 +201,4 @@ html {
 
 ## License
 
-MIT
+[MIT](https://github.com/payloadpack/theme/blob/main/packages/theme/LICENSE)
