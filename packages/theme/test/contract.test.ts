@@ -191,6 +191,8 @@ const readByDescendants: Record<string, string[]> = {
   '--normal-text': ['[data-sonner-toast]']
 }
 
+const readByTheme = ['--elevation-400-menu-panel']
+
 const read = (file: string) => readFileSync(file, 'utf8')
 const stripComments = (css: string) => css.replace(/\/\*[\s\S]*?\*\//g, '')
 const squash = (text: string) => text.replace(/\s+/g, ' ')
@@ -270,6 +272,21 @@ const ruleBody = (css: string, selector: string) => {
   return squash(css.slice(open + 1, index - 1))
 }
 
+const hasClass = (selector: string, name: string) => new RegExp(`\\.${name}(?![\\w-])`).test(selector)
+
+const subject = (selector: string) =>
+  selector
+    .replace(/:(?:not|has)\([^()]*\)|\[[^\]]*\]/g, '')
+    .replace(/\s+&/g, '')
+    .split(',')
+    .map((part) =>
+      part
+        .trim()
+        .split(/\s*[\s>+~]\s*/)
+        .pop()
+    )
+    .join(',')
+
 const existsInPayload = (name: string) => {
   const runtime = builtAtRuntime[name]
   if (runtime) {
@@ -325,25 +342,27 @@ describe('theme contract with Payload', () => {
     expect(overridden.filter((token) => !payloadTokens.has(token))).toEqual([])
   })
 
-  it('remaps only tokens that the element or its listed descendants still read', () => {
-    const readers = [...payloadCssFiles.flatMap((file) => rules(stripComments(read(file)))), ...rules(allThemeCss)]
-    const reads = (fragment: string, token: string) => {
+  it('remaps only tokens that are still read where the theme sets them', () => {
+    const payloadRules = payloadCssFiles.flatMap((file) => rules(stripComments(read(file))))
+    const themeRules = rules(allThemeCss)
+    const readsOn = (fragment: string, token: string) => {
       const pattern = new RegExp(`${fragment.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\w-])`)
+      const readers = readByTheme.includes(token) ? [...payloadRules, ...themeRules] : payloadRules
       return readers.some((rule) => pattern.test(rule.selector) && referencedProperties(rule.declarations).includes(token))
     }
-    const unread = rules(allThemeCss).flatMap((rule) => {
-      const subject =
-        rule.selector
-          .replace(/\([^()]*\)/g, '')
-          .split(/[\s>+~,]+/)
-          .at(-1) ?? ''
-      const classes = matchAll(subject, /\.([_a-zA-Z][\w-]*)/g).filter((name) => !name.startsWith('payloadpack-'))
+    const readAnywhere = (token: string) =>
+      [...payloadRules, ...themeRules].some((rule) => referencedProperties(rule.declarations).includes(token))
+    const unread = themeRules.flatMap((rule) => {
+      const classes = matchAll(subject(rule.selector), /\.([_a-zA-Z][\w-]*)/g).filter((name) => !name.startsWith('payloadpack-'))
       const element = unique(classes.flatMap((name) => [name, name.replace(/--.*$/, '')])).map((name) => `.${name}`)
+      const isRead = (token: string) =>
+        element.length === 0
+          ? readAnywhere(token)
+          : element.some((fragment) => readsOn(fragment, token)) ||
+            (readByDescendants[token]?.every((fragment) => readsOn(fragment, token)) ?? false)
       return rule.properties
-        .filter((token) => classes.length > 0 && token.startsWith('--') && !token.startsWith('--payloadpack-'))
-        .filter((token) => !element.some((fragment) => reads(fragment, token)))
-        .filter((token) => !readByDescendants[token]?.every((fragment) => reads(fragment, token)))
-        .map((token) => `${element[0]} ${token}`)
+        .filter((token) => token.startsWith('--') && !token.startsWith('--payloadpack-') && !isRead(token))
+        .map((token) => `${element[0] ?? 'root'} ${token}`)
     })
     expect(unique(unread)).toEqual([])
   })
@@ -379,20 +398,7 @@ describe('theme contract with Payload', () => {
   })
 
   it('is never outranked by unlayered Payload rules on the properties it sets', () => {
-    const hasClass = (selector: string, name: string) => new RegExp(`\\.${name}(?![\\w-])`).test(selector)
     const pseudoElement = (selector: string) => selector.match(/::[\w-]+$/)?.[0] ?? ''
-    const subject = (selector: string) =>
-      selector
-        .replace(/:(?:not|has)\([^()]*\)|\[[^\]]*\]/g, '')
-        .replace(/\s+&/g, '')
-        .split(',')
-        .map((part) =>
-          part
-            .trim()
-            .split(/\s*[\s>+~]\s*/)
-            .pop()
-        )
-        .join(',')
     const ours = rules(allThemeCss)
     const conflicts = payloadCssFiles.flatMap((file) =>
       topLevelBlocks(stripComments(read(file)))
