@@ -64,8 +64,16 @@ cd packages/theme && bun run build
 
 Run both after bumping Payload. A failing contract test names the token, class or hard-coded value that changed.
 
+## Screenshots
+
+The README images in `.github/assets` come from the demo. When main changes the demo, the theme or `bun.lock`, the Screenshots workflow renders them on macOS and opens a pull request for any image that looks different. The same script runs locally and rewrites every image that renders differently on your machine, so leave committing them to the workflow:
+
+```sh
+cd apps/demo && bun run screenshots
+```
+
 ## Release
 
 Merge pull requests with a [Conventional Commits](https://www.conventionalcommits.org) title. Release Please opens a release pull request; merging it publishes the package to npm with provenance.
 
-The release workflow needs the repository secret `PAYLOADPACK_RELEASE_BOT_TOKEN`. It publishes to npm through Trusted Publishing, so no npm token is stored.
+The release and screenshots workflows need the repository secret `PAYLOADPACK_RELEASE_BOT_TOKEN`. The release workflow publishes to npm through Trusted Publishing, so no npm token is stored.
