@@ -1,14 +1,11 @@
 import { RADIO_CARDS, VERTICAL_TABS } from '@payloadpack/theme'
 import { expect, type Page, test } from '@playwright/test'
 
-const baseURL = 'http://localhost:3020'
-
-const cookie = (name: string, value: string) => ({ name: `theme-demo-${name}`, url: baseURL, value })
+import { cookie, findShowcase } from './demo'
 
 const openShowcase = async (page: Page) => {
   await page.context().addCookies([cookie('theme', 'dark')])
-  const { docs } = await (await page.request.get('/api/showcase?where[slug][equals]=showcase&limit=1')).json()
-  await page.goto(`/admin/collections/showcase/${docs[0].id}`)
+  await page.goto((await findShowcase(page)).path)
   await page.locator('.collapsible__toggle-wrap').first().waitFor()
 }
 
