@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.2.3](https://github.com/payloadpack/theme/compare/v0.2.2...v0.2.3) (2026-10-28)
+
+
+### Bug Fixes
+
+* draw the popover ring in a solid color ([#22](https://github.com/payloadpack/theme/issues/22)) ([6aed639](https://github.com/payloadpack/theme/commit/6aed639203fab3b23cf81d078ba85fa9939f5b90))
+* fade disabled fields like shadcn ([#21](https://github.com/payloadpack/theme/issues/21)) ([e5b7600](https://github.com/payloadpack/theme/commit/e5b760069e32bd707b7dca66f159dac528da4fdd))
+* inset API key buttons like the slug buttons ([#19](https://github.com/payloadpack/theme/issues/19)) ([6884dfa](https://github.com/payloadpack/theme/commit/6884dfae900f5987569912c5fdf3dd1f93de7bb1))
+* match field and button heights at 36px ([#18](https://github.com/payloadpack/theme/issues/18)) ([9749f76](https://github.com/payloadpack/theme/commit/9749f761598b96b84ef068ea28e9a4ebdbde78fe))
+* respect enhanced contrast mode ([#20](https://github.com/payloadpack/theme/issues/20)) ([6548e4b](https://github.com/payloadpack/theme/commit/6548e4bad095f7adff7f878c6c9bddbeac96acd4))
+* support Payload 4.0.0-beta.5 ([#16](https://github.com/payloadpack/theme/issues/16)) ([6f5d3a3](https://github.com/payloadpack/theme/commit/6f5d3a39ac1cdcdde79c0ac53c3df6e41cf49cec))
+
+
+### Tests
+
+* guard token remaps and type-check the demo ([#23](https://github.com/payloadpack/theme/issues/23)) ([f8282ca](https://github.com/payloadpack/theme/commit/f8282ca797435f6a6a3d01657ecad70d6c64a00c))
+
 ## [0.2.2](https://github.com/payloadpack/theme/compare/v0.2.1...v0.2.2) (2026-10-24)
 
 
