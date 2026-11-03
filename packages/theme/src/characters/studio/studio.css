@@ -54,7 +54,7 @@
 
     .payloadpack-nav-logo {
       display: flex;
-      margin: var(--spacer-2) var(--spacer-2-5) 0;
+      margin: var(--spacer-2-5) var(--spacer-2-5) 0;
     }
 
     .user-menu {
