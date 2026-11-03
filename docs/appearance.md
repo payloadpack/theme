@@ -33,6 +33,8 @@ Each character declares which options it supports and their defaults. Option val
 
 `prefers-reduced-motion` always wins over `motion: 'on'`.
 
+The `font` option will gain a heading font, `sans` or `serif`, so a character can pair a serif display face with a sans body.
+
 Enhanced's defaults keep today's layout apart from motion:
 
 | Option    | Enhanced default                                                            |
@@ -47,17 +49,26 @@ Studio's defaults are still open (see Open). The canvas uses provisional ones.
 
 ## Palettes
 
-A palette is a named set of colors with a light and a dark version, plus a default accent. Palettes work with every character, Stock included. There are no presets: palettes are the named sets.
+A palette is data: four base colors for light and four for dark, plus nothing else. One shared stylesheet derives every Payload color token from them with `color-mix`: surfaces, borders, muted text, hover and selected states, the accent's shades and the text on the accent. Built-in and custom palettes are the same shape, so a new palette costs only its colors. Palettes work with every character, Stock included. There are no presets.
 
-| Palette | Light                                     | Dark                                                                       | Default accent |
-| ------- | ----------------------------------------- | -------------------------------------------------------------------------- | -------------- |
-| Payload | Payload's own Figma UI3 colors            | Payload's own Figma UI3 colors                                             | `#0d99ff`      |
-| Warm    | Payload's light colors                    | today's Enhanced near-black (`#0f0f0e`, `#f3f2ed`), neutral gray selection | `#0d99ff`      |
-| Studio  | a field tinted by the accent, white cards | still to design                                                            | `#c2410c`      |
+| Base color | What it paints                               |
+| ---------- | -------------------------------------------- |
+| background | the page, or the field behind Studio's cards |
+| surface    | cards, fields, menus                         |
+| text       | text and icons; muted text is mixed from it  |
+| accent     | primary buttons, links, selection            |
 
-- Plain Payload is the Stock character with the Payload palette. Today's look is the Enhanced character with the Warm palette, which is the zero-config default.
-- Warm also draws the focus ring and checked boxes in the text color instead of the accent.
-- The accent belongs to the palette. Editors override it with 8 swatches or a hex field, and each palette remembers its own accent. One accent serves both versions: the theme mixes the dark-mode shades itself.
+| Palette | Light                               | Dark                                               | Accent    |
+| ------- | ----------------------------------- | -------------------------------------------------- | --------- |
+| Payload | Payload's own Figma UI3 colors      | Payload's own Figma UI3 colors                     | `#0d99ff` |
+| Warm    | Payload's light colors              | today's Enhanced near-black (`#0f0f0e`, `#f3f2ed`) | `#0d99ff` |
+| Studio  | a faintly tinted field, white cards | the same idea on near-black                        | `#c2410c` |
+
+- The Payload palette applies no overrides, so plain Payload is the Stock character with the Payload palette. Today's look is Enhanced with Warm, the zero-config default.
+- Editors override a palette's accent with 8 swatches or a hex field, and each palette remembers its own accent.
+- Editors create a palette with **New palette** in the panel: it starts from the current palette and shows the four color fields for each mode. It saves into their setup, so Copy setup shares it with colleagues.
+- Developers offer palettes to everyone by pasting the same JSON into `themePlugin({ palettes: { clay: { light: {...}, dark: {...} } } })`.
+- The package ships no palette named after another company or product.
 
 ## Plugin config
 
@@ -67,14 +78,14 @@ themePlugin({
   characters: ['enhanced', 'studio'],
   options: { studio: { frame: 'flat' } },
   palette: 'studio',
-  palettes: ['payload', 'studio'],
+  palettes: { payload: true, studio: true, clay: { light: {...}, dark: {...} } },
   accent: { studio: '#1d4ed8' },
   panel: ({ user }) => user?.role === 'admin'
 })
 ```
 
 - `character` and `palette` are the defaults. Zero config is `'enhanced'` and `'warm'`.
-- `characters` and `palettes` list what editors may pick. Default: everything built in. The plugin throws at startup when a default isn't in its list.
+- `characters` lists the characters editors may pick. `palettes` lists the palettes they may pick: `true` for a built-in one, or a definition (four base colors per mode) for your own. Default: everything built in. The plugin throws at startup when a default isn't allowed.
 - `options` holds option values per character. Each key is typed with only that character's options, so `options: { enhanced: { frame: 'flat' } }` is a type error. Stock has no key.
 - `accent` holds a hex per palette.
 - `panel` is `true`, `false` or `({ user }) => boolean`. Default `true`. When it resolves to `false`, the editor gets no panel button and their saved setup is ignored.
