@@ -1,6 +1,6 @@
 'use client'
 
-import { useConfig, useTheme, useTranslation, XIcon } from '@payloadcms/ui'
+import { Button, useConfig, useTheme, useTranslation, XIcon } from '@payloadcms/ui'
 import { type ReactNode, useEffect, useId, useState } from 'react'
 
 import { characters as registry, type Option, options } from '../characters/index.js'
@@ -106,23 +106,10 @@ export function AppearancePanel() {
     <div className="payloadpack-appearance-panel">
       <button
         aria-label={t('payloadpack:appearance')}
-        className="payloadpack-appearance-panel__icon-button"
+        className="payloadpack-appearance-panel__trigger"
         popoverTarget={id}
         type="button">
-        <svg
-          aria-hidden="true"
-          fill="none"
-          stroke="currentColor"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          viewBox="0 0 24 24">
-          <path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z" />
-          <circle cx="13.5" cy="6.5" fill="currentColor" r=".5" />
-          <circle cx="17.5" cy="10.5" fill="currentColor" r=".5" />
-          <circle cx="6.5" cy="12.5" fill="currentColor" r=".5" />
-          <circle cx="8.5" cy="7.5" fill="currentColor" r=".5" />
-        </svg>
+        <span aria-hidden="true" className="payloadpack-appearance-panel__palette-icon" />
       </button>
       <dialog aria-labelledby={`${id}-title`} className="payloadpack-appearance-panel__sheet" id={id} popover="auto">
         <header className="payloadpack-appearance-panel__header">
@@ -132,7 +119,7 @@ export function AppearancePanel() {
           </div>
           <button
             aria-label={t('payloadpack:close')}
-            className="payloadpack-appearance-panel__icon-button"
+            className="payloadpack-appearance-panel__close"
             popoverTarget={id}
             popoverTargetAction="hide"
             type="button">
@@ -148,7 +135,11 @@ export function AppearancePanel() {
                     <span
                       aria-hidden="true"
                       className={`payloadpack-appearance-panel__preview payloadpack-appearance-panel__preview--${name}`}>
-                      <span />
+                      <span>
+                        <span />
+                        <span />
+                        <span />
+                      </span>
                       <span>
                         <span />
                         <span />
@@ -199,6 +190,7 @@ export function AppearancePanel() {
                           }}>
                           <span />
                           <span />
+                          <span />
                         </span>
                       ))}
                     </span>
@@ -223,14 +215,17 @@ export function AppearancePanel() {
             label={t('payloadpack:accent')}
             onChange={setAccent}
             selected={accent}>
-            <input
-              aria-label={t('payloadpack:accentHex')}
-              className="payloadpack-appearance-panel__hex"
-              onBlur={() => setHex(undefined)}
-              onChange={(event) => typeHex(event.target.value)}
-              spellCheck={false}
-              value={hex ?? accent}
-            />
+            <label className="payloadpack-appearance-panel__hex">
+              <span aria-hidden="true" />
+              {t('payloadpack:hex')}
+              <input
+                aria-label={t('payloadpack:accentHex')}
+                onBlur={() => setHex(undefined)}
+                onChange={(event) => typeHex(event.target.value)}
+                spellCheck={false}
+                value={hex ?? accent}
+              />
+            </label>
           </ChoiceGroup>
           {config.admin.theme === 'all' && (
             <ChoiceGroup
@@ -243,15 +238,15 @@ export function AppearancePanel() {
           )}
         </div>
         <footer className="payloadpack-appearance-panel__footer">
-          <button onClick={reset} type="button">
+          <Button buttonStyle="secondary" onClick={reset} size="large">
             {t('payloadpack:reset')}
-          </button>
-          <button onClick={copy} type="button">
+          </Button>
+          <Button buttonStyle="secondary" onClick={copy} size="large">
             {t(copied === json ? 'payloadpack:copied' : 'payloadpack:copySetup')}
-          </button>
-          <button onClick={pasteFromClipboard} type="button">
+          </Button>
+          <Button buttonStyle="secondary" onClick={pasteFromClipboard} size="large">
             {t(isRejected ? 'payloadpack:invalidSetup' : 'payloadpack:pasteSetup')}
-          </button>
+          </Button>
           <span className="sr-only" role="status">
             {isRejected && t('payloadpack:invalidSetup')}
           </span>

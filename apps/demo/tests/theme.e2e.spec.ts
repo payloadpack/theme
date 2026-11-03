@@ -227,6 +227,26 @@ test.describe('Appearance panel', () => {
     await elsewhere.close()
   })
 
+  test('draws the bundled Lucide palette icon on the header button', async ({ page }) => {
+    await page.goto('/admin')
+
+    expect(await style(page, '.payloadpack-appearance-panel__palette-icon', 'mask-image')).toContain('data:image/svg+xml')
+  })
+
+  test('segments sit 3px inside a bordered track', async ({ page }) => {
+    await page.goto('/admin')
+    const track = (await openAppearancePanel(page)).getByRole('group', { name: 'Density' })
+    const inset = await track.evaluate((element) => {
+      const outer = element.getBoundingClientRect()
+      const inner = element.querySelector('[aria-pressed="true"]')!.getBoundingClientRect()
+      return [inner.top - outer.top, outer.bottom - inner.bottom, outer.right - inner.right]
+    })
+
+    expect(inset).toEqual([4, 4, 4])
+    await expect(track).toHaveCSS('border-top-width', '1px')
+    await expect(track).toHaveCSS('border-radius', '8px')
+  })
+
   test('switches Payload color mode', async ({ page }) => {
     await page.goto('/admin')
     const colorMode = (await openAppearancePanel(page)).getByRole('group', { name: 'Color mode' })

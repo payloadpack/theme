@@ -17,6 +17,7 @@ const payloadpack = {
   density: 'Density',
   densityComfortable: 'Comfortable',
   densityCompact: 'Compact',
+  hex: 'Hex',
   icons: 'Icons',
   iconsLucide: 'Lucide',
   iconsPayload: 'Payload',

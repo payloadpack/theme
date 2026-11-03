@@ -503,7 +503,7 @@ describe('theme contract with Payload', () => {
     expect(constants).toContain('lineHeight: 16,')
   })
   it('references only Lucide icons that lucide-static ships', () => {
-    const icons = matchAll(themeCss['options/icons.css'], /lucide-static\/icons\/([a-z0-9-]+)\.svg/g)
+    const icons = matchAll(allThemeCss, /lucide-static\/icons\/([a-z0-9-]+)\.svg/g)
     expect(icons.length).toBeGreaterThan(0)
     expect(icons.filter((icon) => !existsSync(path.join(lucideIcons, `${icon}.svg`)))).toEqual([])
   })
