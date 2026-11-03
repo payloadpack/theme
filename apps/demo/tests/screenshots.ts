@@ -1,7 +1,7 @@
 import { RADIO_CARDS, SWITCH, VERTICAL_TABS } from '@payloadpack/theme'
 import { expect, type Page, test } from '@playwright/test'
 
-import { appearance, cookie, findShowcase } from './demo'
+import { appearance, cookie, findShowcase, openAppearancePanel } from './demo'
 
 const looks = {
   stock: [appearance({ character: 'stock' })],
@@ -54,5 +54,12 @@ for (const theme of ['dark', 'light']) {
         clip: { height: field.height + 32, width: column.width + 32, x: column.x - 16, y: field.y - 16 }
       })
     }
+
+    await openShowcase(page, looks.themed, theme)
+    await openAppearancePanel(page)
+    await page.mouse.move(0, 0)
+    await expect(page).toHaveScreenshot(`appearance-${theme}.png`, {
+      clip: await box(page, '.payloadpack-appearance-panel__sheet')
+    })
   })
 }

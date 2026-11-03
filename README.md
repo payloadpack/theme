@@ -24,13 +24,13 @@
     <td>
       <picture>
         <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/compare-themed-light.png">
-        <img alt="The same edit view with the Neutral style, Comfortable density and Lucide icons" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/compare-themed-dark.png">
+        <img alt="The same edit view with the Enhanced character, Comfortable density and Lucide icons" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/compare-themed-dark.png">
       </picture>
     </td>
   </tr>
 </table>
 
-The theme adds three appearance controls to the user menu: a warm dark palette, a roomier density and Lucide icons. Each person picks their own, and the choice is rendered on the server, so pages never flash.
+Each editor picks how their admin panel looks from the Appearance panel in the header: Enhanced, with a warm dark palette, a roomier density and Lucide icons, or Stock, which is plain Payload. Choices are rendered on the server, so pages never flash.
 
 ## Install
 
@@ -54,42 +54,65 @@ payload generate:importmap
 
 ## Appearance
 
-Open the user menu → **Appearance**:
+Click the palette button in the header to open the Appearance panel:
 
 <p>
   <picture>
     <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/appearance-light.png">
-    <img width="360" alt="The Appearance submenu with Style, Density and Icons groups" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/appearance-dark.png">
+    <img width="360" alt="The Appearance panel with Stock and Enhanced cards and Density, Icons and Color mode controls" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/appearance-dark.png">
   </picture>
 </p>
 
-The plugin renames Payload's Settings submenu in English only, so other languages keep Payload's translation. To rename it in another language, or pick a different name, set `general.settings` for that language in your own `i18n.translations`.
+The panel opens as a sheet on the right and fills the screen on phones. Every change applies at once, so there is no Save button. Escape or a click outside closes it.
 
-| Control | Options              | Default     |
-| ------- | -------------------- | ----------- |
-| Style   | Stock, Neutral       | Neutral     |
-| Density | Compact, Comfortable | Comfortable |
-| Icons   | Payload, Lucide      | Lucide      |
+- **Character** is the design language of the whole admin panel. Stock is Payload exactly as it ships and has no options. Enhanced touches up Payload's own design without changing its structure, and is the default. The section is hidden when only one character is allowed.
+- **Options** belong to a character. Enhanced has Density and Icons. Each character keeps its own values, so switching to Stock and back keeps them.
+- **Color mode** is Payload's own light and dark setting, the same one as Admin Theme on the account page. It is hidden when `admin.theme` is `'light'` or `'dark'`.
+- **Reset** returns to the defaults in your plugin config. It leaves the color mode alone.
+- **Copy config** shows in development only. It copies the plugin config that makes the current look the default, such as `themePlugin({ enhanced: { density: 'compact' } })`.
 
-- **Neutral** gives dark mode a warm near-black palette and swaps Payload's blue selection for neutral greys. In both modes it draws a 2px focus ring in the text color and fills checked checkboxes and selected radios with the text color instead of blue.
+| Option  | Values               | Enhanced default |
+| ------- | -------------------- | ---------------- |
+| Density | Compact, Comfortable | Comfortable      |
+| Icons   | Payload, Lucide      | Lucide           |
+
+- **Enhanced** gives dark mode a warm near-black palette and swaps Payload's blue selection for neutral greys. In both modes it draws a 2px focus ring in the text color and fills checked checkboxes and selected radios with the text color instead of blue.
 - **Comfortable** sets 14px body text, 36px fields and buttons, 32px menu items and 18px checkboxes and radios, gives dialogs more room, and fixes Payload components that hard-code their sizes.
 - **Lucide** replaces Payload's icons with [Lucide](https://lucide.dev) and adds icons to the nav and the document menu. The icons are bundled, so nothing loads from a CDN.
 
-Stock, Compact and Payload icons together are untouched Payload.
+Choices are stored per browser in one cookie, `<cookiePrefix>-appearance`, next to Payload's own theme cookie. The server renders them, so they apply on the login page too.
 
-Choices are stored per browser in cookies named after your `cookiePrefix`, the same way Payload stores its light/dark theme.
+The panel's labels ship in English. To translate them, or rename one, set the `payloadpack` keys from [translations.ts](https://github.com/payloadpack/theme/blob/main/packages/theme/src/translations.ts) in your own `i18n.translations`, which win over the plugin's. Character names stay as they are.
 
-## Options
+```ts
+export default buildConfig({
+  i18n: {
+    translations: {
+      de: { payloadpack: { appearance: 'Darstellung', colorMode: 'Farbmodus' } }
+    }
+  }
+})
+```
+
+## Configuration
 
 ```ts
 themePlugin({
+  character: 'enhanced',
+  characters: ['stock', 'enhanced'],
+  enhanced: { density: 'compact', icons: 'lucide' },
+  panel: ({ user }) => user?.role === 'admin',
   codeEditorFontSize: 13
 })
 ```
 
-| Option               | Default | Description                                                                                                                                                           |
-| -------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `codeEditorFontSize` | `13`    | Font size for code editors in Comfortable density. Payload's default is 11. Fields that set `admin.editorOptions.fontSize` keep their own size. `false` turns it off. |
+| Key                  | Default                                       | Description                                                                                                                                                                                                                                                  |
+| -------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `character`          | `'enhanced'`                                  | The character everyone starts with. It must be one of `characters`.                                                                                                                                                                                          |
+| `characters`         | `['stock', 'enhanced']`                       | The characters editors may pick. An editor whose character is no longer allowed gets `character`.                                                                                                                                                            |
+| `enhanced`           | `{ density: 'comfortable', icons: 'lucide' }` | Enhanced's option values, which editors start from and Reset returns to. Only Enhanced's options are allowed, so a typo is a type error. Stock has no options and no key.                                                                                    |
+| `panel`              | `true`                                        | Who gets the Appearance panel: `true`, `false` or `({ user }) => boolean`. When it resolves to `false`, the editor gets no palette button and their cookie is ignored. Signed-out views have no user, so there the cookie applies unless `panel` is `false`. |
+| `codeEditorFontSize` | `13`                                          | Font size for code editors in Comfortable density. Payload's default is 11. Fields that set `admin.editorOptions.fontSize` keep their own size. `false` turns it off.                                                                                        |
 
 ## Vertical tabs
 
