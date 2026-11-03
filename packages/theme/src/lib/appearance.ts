@@ -1,28 +1,67 @@
-export const appearanceControls = {
-  adminTheme: {
-    cookie: 'admin-theme',
-    default: 'neutral',
-    label: 'Style',
-    options: { stock: 'Stock', neutral: 'Neutral' }
-  },
-  density: {
-    cookie: 'density',
-    default: 'comfortable',
-    label: 'Density',
-    options: { compact: 'Compact', comfortable: 'Comfortable' }
-  },
-  icons: {
-    cookie: 'icons',
-    default: 'lucide',
-    label: 'Icons',
-    options: { payload: 'Payload', lucide: 'Lucide' }
+import type { User } from 'payload'
+
+import { type Character, type Option, options, type Values } from '../characters/index.js'
+
+export type Panel = boolean | ((args: { user: User }) => boolean)
+
+export const isEditable = (panel: Panel, user: undefined | User) => (typeof panel === 'function' ? !user || panel({ user }) : panel)
+
+export type Settings = {
+  character: Character
+  defaults: Partial<Record<Character, Values>>
+}
+
+export type Choices = { character?: Character } & Partial<Record<Character, Values>>
+
+const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null
+
+const isAllowed = (settings: Settings, value: unknown): value is Character =>
+  typeof value === 'string' && Object.hasOwn(settings.defaults, value)
+
+const isOptionValue = (option: string, value: unknown) =>
+  Object.hasOwn(options, option) && (options[option as Option] as readonly unknown[]).includes(value)
+
+export function normalize(settings: Settings, input: unknown): Choices {
+  const raw = isRecord(input) ? input : {}
+  const choices: Choices = {}
+
+  if (isAllowed(settings, raw.character) && raw.character !== settings.character) {
+    choices.character = raw.character
   }
-} as const
 
-export type AppearanceControl = keyof typeof appearanceControls
+  for (const [character, defaults] of Object.entries(settings.defaults)) {
+    const picked = raw[character]
+    const values = Object.fromEntries(
+      Object.entries(defaults).flatMap(([option, fallback]) => {
+        const value = isRecord(picked) ? picked[option] : undefined
+        return value !== fallback && isOptionValue(option, value) ? [[option, value]] : []
+      })
+    )
 
-export type Appearance = Record<AppearanceControl, string>
+    if (Object.keys(values).length) {
+      choices[character as Character] = values
+    }
+  }
 
-export function getCookieName(cookiePrefix: string, control: AppearanceControl) {
-  return `${cookiePrefix}-${appearanceControls[control].cookie}`
+  return choices
+}
+
+export function resolve(settings: Settings, choices: Choices) {
+  const character = choices.character ?? settings.character
+  return { character, values: { ...settings.defaults[character], ...choices[character] } }
+}
+
+export function parseChoices(settings: Settings, cookie: string | undefined): Choices {
+  if (!cookie) {
+    return {}
+  }
+
+  try {
+    return normalize(settings, JSON.parse(cookie))
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      return {}
+    }
+    throw error
+  }
 }

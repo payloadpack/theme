@@ -1,5 +1,5 @@
 @layer payload {
-  html[data-admin-theme='neutral'] {
+  html[data-character='enhanced'] {
     /* 1. Focus */
     &,
     [data-theme] {

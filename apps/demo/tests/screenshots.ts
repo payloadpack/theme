@@ -1,11 +1,11 @@
 import { RADIO_CARDS, SWITCH, VERTICAL_TABS } from '@payloadpack/theme'
 import { expect, type Page, test } from '@playwright/test'
 
-import { cookie, findShowcase } from './demo'
+import { appearance, cookie, findShowcase } from './demo'
 
 const looks = {
-  stock: [cookie('admin-theme', 'stock'), cookie('density', 'compact'), cookie('icons', 'payload')],
-  themed: [cookie('admin-theme', 'neutral'), cookie('density', 'comfortable'), cookie('icons', 'lucide')]
+  stock: [appearance({ character: 'stock' })],
+  themed: [appearance({})]
 }
 
 const fields = { 'radio-cards': RADIO_CARDS, switch: SWITCH, 'vertical-tabs': VERTICAL_TABS }
@@ -54,11 +54,5 @@ for (const theme of ['dark', 'light']) {
         clip: { height: field.height + 32, width: column.width + 32, x: column.x - 16, y: field.y - 16 }
       })
     }
-
-    await page.evaluate(() => window.scrollTo(0, 0))
-    await page.locator('.user-menu__trigger').click()
-    await page.getByRole('menuitem', { name: 'Appearance' }).hover()
-    await expect(page.getByRole('menuitemradio', { name: 'Lucide' })).toBeVisible()
-    await expect(page).toHaveScreenshot(`appearance-${theme}.png`, { clip: { height: 560, width: 440, x: 0, y: 0 } })
   })
 }

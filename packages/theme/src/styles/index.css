@@ -1,6 +1,6 @@
-@import './neutral.css';
-@import './comfortable.css';
-@import './lucide.css';
+@import '../characters/enhanced/enhanced.css';
+@import '../options/density.css';
+@import '../options/icons.css';
 @import './fields/vertical-tabs.css';
 @import './fields/radio-cards.css';
 @import './fields/switch.css';

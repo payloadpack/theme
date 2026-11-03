@@ -27,12 +27,12 @@ const lexicalDist = path.join(packageRoot('@payloadcms/richtext-lexical'), 'dist
 const lucideIcons = path.join(packageRoot('lucide-static'), 'icons')
 
 const scopes: Record<string, string> = {
-  'comfortable.css': "html[data-density='comfortable']",
-  'lucide.css': "html[data-icons='lucide']",
-  'neutral.css': "html[data-admin-theme='neutral']",
-  'fields/radio-cards.css': `.${RADIO_CARDS}`,
-  'fields/switch.css': `.${SWITCH}`,
-  'fields/vertical-tabs.css': `.${VERTICAL_TABS}`
+  'characters/enhanced/enhanced.css': "html[data-character='enhanced']",
+  'options/density.css': "html[data-density='comfortable']",
+  'options/icons.css': "html[data-icons='lucide']",
+  'styles/fields/radio-cards.css': `.${RADIO_CARDS}`,
+  'styles/fields/switch.css': `.${SWITCH}`,
+  'styles/fields/vertical-tabs.css': `.${VERTICAL_TABS}`
 }
 
 const keptPayloadIcons = ['dots', 'error', 'eye', 'minimize-maximize', 'sort', 'spinner', 'success']
@@ -207,7 +207,7 @@ const payloadCssFiles = [...listFiles(uiDist, '.css'), ...listFiles(lexicalDist,
 const payloadCss = payloadCssFiles.map(read).join('\n')
 const payloadSource = [payloadCss, ...[...listFiles(uiDist, '.js'), ...listFiles(lexicalDist, '.js')].map(read)].join('\n')
 
-const themeCss = Object.fromEntries(Object.keys(scopes).map((file) => [file, stripComments(read(path.join(stylesDir, file)))]))
+const themeCss = Object.fromEntries(Object.keys(scopes).map((file) => [file, stripComments(read(path.join(sourceDir, file)))]))
 const allThemeCss = Object.values(themeCss).join('\n')
 
 const unique = (values: string[]) => [...new Set(values)].sort()
@@ -299,10 +299,12 @@ const existsInPayload = (name: string) => {
 
 describe('theme contract with Payload', () => {
   it('loads every stylesheet through styles/index.css', () => {
-    const stylesheets = listFiles(stylesDir, '.css').map((file) => path.relative(stylesDir, file))
-    const imported = matchAll(read(path.join(stylesDir, 'index.css')), /@import '\.\/(.+?)'/g)
-    expect(imported).toEqual(unique(stylesheets.filter((file) => file !== 'index.css')))
-    expect(unique(Object.keys(scopes))).toEqual(imported)
+    const stylesheets = listFiles(sourceDir, '.css').map((file) => path.relative(sourceDir, file))
+    const imported = matchAll(read(path.join(stylesDir, 'index.css')), /@import '(.+?)'/g).map((file) =>
+      path.relative(sourceDir, path.resolve(stylesDir, file))
+    )
+    expect(unique(imported)).toEqual(unique(stylesheets.filter((file) => file !== 'styles/index.css')))
+    expect(unique(Object.keys(scopes))).toEqual(unique(imported))
   })
 
   it('imports styles/index.css in the server provider and no CSS in client modules', () => {
@@ -383,7 +385,7 @@ describe('theme contract with Payload', () => {
     const toastCss = ['providers/ToastContainer/index.css', 'elements/Toasts/index.css']
       .map((file) => read(path.join(uiDist, file)))
       .join('\n')
-    const neutral = themeCss['neutral.css']
+    const neutral = themeCss['characters/enhanced/enhanced.css']
     const handled = [
       ...declaredProperties(ruleBody(neutral, "&[data-theme='light'] .payload-toast-container") ?? ''),
       ...declaredProperties(ruleBody(neutral, '.toast-error') ?? '')
@@ -427,7 +429,7 @@ describe('theme contract with Payload', () => {
       listFiles(path.join(uiDist, 'icons'), '.js').map(read).join('\n'),
       /icon--([a-z]+(?:-[a-z]+)*(?:--[a-z]+)?)/g
     )
-    const mapped = matchAll(themeCss['lucide.css'], /svg\.icon--([a-z-]+)\s*\{\s*--payloadpack-icon:/g)
+    const mapped = matchAll(themeCss['options/icons.css'], /svg\.icon--([a-z-]+)\s*\{\s*--payloadpack-icon:/g)
 
     expect(
       payloadIcons.filter((icon) => !mapped.includes(icon) && !keptPayloadIcons.includes(icon)),
@@ -458,7 +460,7 @@ describe('theme contract with Payload', () => {
     expect(constants).toContain('lineHeight: 16,')
   })
   it('references only Lucide icons that lucide-static ships', () => {
-    const icons = matchAll(themeCss['lucide.css'], /lucide-static\/icons\/([a-z0-9-]+)\.svg/g)
+    const icons = matchAll(themeCss['options/icons.css'], /lucide-static\/icons\/([a-z0-9-]+)\.svg/g)
     expect(icons.length).toBeGreaterThan(0)
     expect(icons.filter((icon) => !existsSync(path.join(lucideIcons, `${icon}.svg`)))).toEqual([])
   })

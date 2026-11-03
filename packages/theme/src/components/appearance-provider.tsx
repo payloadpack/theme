@@ -1,15 +1,18 @@
 'use client'
 
-import { createContext, type ReactNode, use, useCallback, useLayoutEffect, useMemo, useState, useSyncExternalStore } from 'react'
+import { createContext, type ReactNode, use, useLayoutEffect, useMemo, useState, useSyncExternalStore } from 'react'
 
+import type { Character, Option, OptionValue } from '../characters/index.js'
 import { useMonacoFontSize } from '../hooks/use-monaco-font-size.js'
-import { type Appearance, type AppearanceControl, getCookieName } from '../lib/appearance.js'
+import { type Choices, normalize, resolve, type Settings } from '../lib/appearance.js'
 
 const ONE_YEAR_IN_SECONDS = 60 * 60 * 24 * 365
 
-type AppearanceContextValue = {
-  appearance: Appearance
-  setControl: (control: AppearanceControl, value: string) => void
+type AppearanceContextValue = ReturnType<typeof resolve> & {
+  characters: Character[]
+  reset: () => void
+  setCharacter: (character: Character) => void
+  setOption: <O extends Option>(option: O, value: OptionValue<O>) => void
 }
 
 const AppearanceContext = createContext<AppearanceContextValue | null>(null)
@@ -19,33 +22,53 @@ const subscribeToNothing = () => () => {}
 type AppearanceProviderProps = {
   children: ReactNode
   codeEditorFontSize: false | number
-  cookiePrefix: string
-  initialAppearance: Appearance
+  cookieName: string
+  initialChoices: Choices
+  settings: Settings
 }
 
-export function AppearanceProvider({ children, codeEditorFontSize, cookiePrefix, initialAppearance }: AppearanceProviderProps) {
-  const [appearance, setAppearance] = useState(initialAppearance)
+export function AppearanceProvider({ children, codeEditorFontSize, cookieName, initialChoices, settings }: AppearanceProviderProps) {
+  const [choices, setChoices] = useState(initialChoices)
+  const { character, values } = useMemo(() => resolve(settings, choices), [settings, choices])
   const isServerHtml = useSyncExternalStore(
     subscribeToNothing,
     () => false,
     () => true
   )
 
-  useMonacoFontSize(appearance.density === 'comfortable' && codeEditorFontSize)
+  useMonacoFontSize(values.density === 'comfortable' && codeEditorFontSize)
 
   useLayoutEffect(() => {
-    Object.assign(document.documentElement.dataset, appearance)
-  }, [appearance])
+    const { dataset } = document.documentElement
+    const attributes = { character, ...values }
+    Object.assign(dataset, attributes)
 
-  const setControl = useCallback(
-    (control: AppearanceControl, value: string) => {
-      document.cookie = `${getCookieName(cookiePrefix, control)}=${value}; path=/; max-age=${ONE_YEAR_IN_SECONDS}; SameSite=Lax`
-      setAppearance((current) => ({ ...current, [control]: value }))
-    },
-    [cookiePrefix]
-  )
+    return () => {
+      for (const key of Object.keys(attributes)) {
+        delete dataset[key]
+      }
+    }
+  }, [character, values])
 
-  const context = useMemo(() => ({ appearance, setControl }), [appearance, setControl])
+  const context = useMemo(() => {
+    const update = (next: Choices) => {
+      const normalized = normalize(settings, next)
+      document.cookie = Object.keys(normalized).length
+        ? `${cookieName}=${encodeURIComponent(JSON.stringify(normalized))}; path=/; max-age=${ONE_YEAR_IN_SECONDS}; SameSite=Lax`
+        : `${cookieName}=; path=/; max-age=0; SameSite=Lax`
+      setChoices(normalized)
+    }
+
+    return {
+      character,
+      characters: Object.keys(settings.defaults) as Character[],
+      reset: () => update({}),
+      setCharacter: (next: Character) => update({ ...choices, character: next }),
+      setOption: <O extends Option>(option: O, value: OptionValue<O>) =>
+        update({ ...choices, [character]: { ...choices[character], [option]: value } }),
+      values
+    }
+  }, [character, choices, cookieName, settings, values])
 
   return (
     <AppearanceContext value={context}>
@@ -53,7 +76,7 @@ export function AppearanceProvider({ children, codeEditorFontSize, cookiePrefix,
       {isServerHtml && (
         <script
           dangerouslySetInnerHTML={{
-            __html: `Object.assign(document.documentElement.dataset,${JSON.stringify(initialAppearance).replace(/</g, '\\u003c')})`
+            __html: `Object.assign(document.documentElement.dataset,${JSON.stringify({ character, ...values }).replace(/</g, '\\u003c')})`
           }}
         />
       )}

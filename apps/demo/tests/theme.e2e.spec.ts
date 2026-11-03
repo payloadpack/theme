@@ -1,7 +1,7 @@
 import { RADIO_CARDS, SWITCH, VERTICAL_TABS } from '@payloadpack/theme'
 import { expect, type Page, test } from '@playwright/test'
 
-import { cookie, findShowcase } from './demo'
+import { appearance, cookie, findShowcase } from './demo'
 
 const openShowcase = async (page: Page) => {
   await page.context().addCookies([cookie('theme', 'dark')])
@@ -39,19 +39,19 @@ const backgrounds = (page: Page) =>
 test.describe('Logged out', () => {
   test.use({ storageState: { cookies: [], origins: [] } })
 
-  test('defaults to neutral, comfortable and lucide', async ({ page }) => {
+  test('defaults to Enhanced with comfortable density and Lucide icons', async ({ page }) => {
     await page.goto('/admin/login')
 
-    await expect(page.locator('html')).toHaveAttribute('data-admin-theme', 'neutral')
+    await expect(page.locator('html')).toHaveAttribute('data-character', 'enhanced')
     await expect(page.locator('html')).toHaveAttribute('data-density', 'comfortable')
     await expect(page.locator('html')).toHaveAttribute('data-icons', 'lucide')
   })
 
   test('ignores unknown cookie values', async ({ page }) => {
-    await page.context().addCookies([cookie('admin-theme', 'constructor'), cookie('density', '</script>')])
+    await page.context().addCookies([appearance({ character: 'constructor', enhanced: { density: '</script>' } })])
     await page.goto('/admin/login')
 
-    await expect(page.locator('html')).toHaveAttribute('data-admin-theme', 'neutral')
+    await expect(page.locator('html')).toHaveAttribute('data-character', 'enhanced')
     await expect(page.locator('html')).toHaveAttribute('data-density', 'comfortable')
   })
 })
@@ -73,33 +73,22 @@ test.describe('Theme plugin', () => {
     })
     await expect(code).toHaveCSS('font-size', '13px')
 
-    await page.context().addCookies([cookie('density', 'compact')])
+    await page.context().addCookies([appearance({ enhanced: { density: 'compact' } })])
     await page.reload()
     await expect(code).toHaveCSS('font-size', '11px')
     await expect(smallCode).toHaveCSS('font-size', '10px')
   })
 
-  test('switches from the user menu and persists across reloads', async ({ page }) => {
-    await page.goto('/admin')
-
-    await page.locator('.user-menu__trigger').click()
-    await page.getByRole('menuitem', { name: 'Appearance' }).hover()
-    await page.getByRole('menuitemradio', { name: 'Stock' }).click()
-    await page.getByRole('menuitemradio', { name: 'Compact' }).click()
-
-    await expect(page.getByRole('menuitemradio', { name: 'Stock' })).toHaveAttribute('aria-checked', 'true')
-    await expect(page.locator('html')).toHaveAttribute('data-admin-theme', 'stock')
-    await expect(page.locator('html')).toHaveAttribute('data-density', 'compact')
+  test('renders the appearance cookie on the server, with no option attributes under Stock', async ({ page }) => {
+    await page.context().addCookies([appearance({ character: 'stock', enhanced: { density: 'compact' } })])
 
     const html = await (await page.request.get('/admin')).text()
-    expect(html).toContain(
-      '<script>Object.assign(document.documentElement.dataset,{"adminTheme":"stock","density":"compact","icons":"lucide"})</script>'
-    )
+    expect(html).toContain('<script>Object.assign(document.documentElement.dataset,{"character":"stock"})</script>')
 
-    await page.reload()
-
-    await expect(page.locator('html')).toHaveAttribute('data-admin-theme', 'stock')
-    await expect(page.locator('html')).toHaveAttribute('data-density', 'compact')
+    await page.goto('/admin')
+    await expect(page.locator('html')).toHaveAttribute('data-character', 'stock')
+    await expect(page.locator('html')).not.toHaveAttribute('data-density')
+    await expect(page.locator('html')).not.toHaveAttribute('data-icons')
   })
 
   test('paints the dashboard in the theme before hydration', async ({ page }) => {
@@ -296,7 +285,7 @@ test.describe('Theme values', () => {
   })
 
   test('Payload icons keep the Payload tick without its halo', async ({ page }) => {
-    await page.context().addCookies([cookie('icons', 'payload')])
+    await page.context().addCookies([appearance({ enhanced: { icons: 'payload' } })])
     await openShowcase(page)
     const featured = page.locator('.field-type.checkbox').filter({ hasText: 'Featured' })
     await featured.getByRole('checkbox').check()
@@ -331,7 +320,7 @@ test.describe('Theme values', () => {
     expect(inset(visibility)).toEqual({ height: 28, right: 36, top: 4, width: 28 })
   })
 
-  test('neutral dark palette', async ({ page }) => {
+  test('Enhanced dark palette', async ({ page }) => {
     await openShowcase(page)
 
     await expect(page.locator('html')).toHaveCSS('background-color', 'rgb(15, 15, 14)')
@@ -394,9 +383,6 @@ test.describe('Theme values', () => {
       'data:image/svg+xml'
     )
     expect(await style(page, '.nav__link', 'mask-image', '::after')).toContain('data:image/svg+xml')
-
-    await page.locator('.user-menu__trigger').click()
-    expect(await style(page, '.user-menu svg.icon--gear', '--payloadpack-icon')).toContain('palette')
   })
 
   test('sidebar tabs sit 3px inside their track', async ({ page }) => {
@@ -538,8 +524,8 @@ test.describe('Theme values', () => {
     await expect(page.locator('.popup__content:visible').first()).toHaveCSS('border-radius', '2px')
   })
 
-  test('stock, compact and Payload icons apply none of the appearance controls', async ({ page }) => {
-    await page.context().addCookies([cookie('admin-theme', 'stock'), cookie('density', 'compact'), cookie('icons', 'payload')])
+  test('Stock applies no character or option stylesheet', async ({ page }) => {
+    await page.context().addCookies([appearance({ character: 'stock' })])
     await openShowcase(page)
 
     const { applied, total } = await page.evaluate(() => {
