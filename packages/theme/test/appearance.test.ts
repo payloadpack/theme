@@ -6,34 +6,50 @@ import { isEditable, normalize, parseChoices, resolve, type Settings } from '../
 
 const settings: Settings = {
   character: 'enhanced',
-  defaults: { enhanced: { density: 'compact', icons: 'lucide' }, stock: {} }
+  defaults: { enhanced: { density: 'compact', icons: 'lucide' }, stock: {} },
+  palette: 'warm',
+  palettes: ['payload', 'warm']
 }
 
 it('layers the editor choices over the developer defaults', () => {
-  expect(resolve(settings, {})).toEqual({ character: 'enhanced', values: { density: 'compact', icons: 'lucide' } })
-  expect(resolve(settings, { enhanced: { icons: 'payload' } })).toEqual({
+  expect(resolve(settings, {})).toEqual({
     character: 'enhanced',
+    palette: 'warm',
+    values: { density: 'compact', icons: 'lucide' }
+  })
+  expect(resolve(settings, { enhanced: { icons: 'payload' }, palette: 'payload' })).toEqual({
+    character: 'enhanced',
+    palette: 'payload',
     values: { density: 'compact', icons: 'payload' }
   })
-  expect(resolve(settings, { character: 'stock', enhanced: { icons: 'payload' } })).toEqual({ character: 'stock', values: {} })
+  expect(resolve(settings, { character: 'stock', enhanced: { icons: 'payload' } })).toEqual({
+    character: 'stock',
+    palette: 'warm',
+    values: {}
+  })
 })
 
-it('drops characters, options and values the settings do not allow', () => {
-  const onlyEnhanced: Settings = { ...settings, defaults: { enhanced: settings.defaults.enhanced } }
+it('drops characters, palettes, options and values the settings do not allow', () => {
+  const onlyEnhanced: Settings = { ...settings, defaults: { enhanced: settings.defaults.enhanced }, palettes: ['warm'] }
 
-  expect(normalize(onlyEnhanced, { character: 'stock', enhanced: { density: 'huge', icons: 'payload', motion: 'on' } })).toEqual({
-    enhanced: { icons: 'payload' }
-  })
-  expect(normalize(settings, { character: 'constructor', stock: { density: 'comfortable' } })).toEqual({})
+  expect(
+    normalize(onlyEnhanced, {
+      character: 'stock',
+      enhanced: { density: 'huge', icons: 'payload', motion: 'on' },
+      palette: 'payload'
+    })
+  ).toEqual({ enhanced: { icons: 'payload' } })
+  expect(normalize(settings, { character: 'constructor', palette: 'neon', stock: { density: 'comfortable' } })).toEqual({})
 })
 
 it('keeps only choices that differ from the defaults, per character', () => {
   expect(
-    normalize(settings, { character: 'enhanced', enhanced: { density: 'compact', icons: 'payload' }, stock: {} })
+    normalize(settings, { character: 'enhanced', enhanced: { density: 'compact', icons: 'payload' }, palette: 'warm', stock: {} })
   ).toEqual({ enhanced: { icons: 'payload' } })
-  expect(normalize(settings, { character: 'stock', enhanced: { icons: 'payload' } })).toEqual({
+  expect(normalize(settings, { character: 'stock', enhanced: { icons: 'payload' }, palette: 'payload' })).toEqual({
     character: 'stock',
-    enhanced: { icons: 'payload' }
+    enhanced: { icons: 'payload' },
+    palette: 'payload'
   })
 })
 

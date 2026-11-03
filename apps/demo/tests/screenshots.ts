@@ -4,7 +4,7 @@ import { expect, type Page, test } from '@playwright/test'
 import { appearance, cookie, findShowcase, openAppearancePanel } from './demo'
 
 const looks = {
-  stock: [appearance({ character: 'stock' })],
+  stock: [appearance({ character: 'stock', palette: 'payload' })],
   themed: [appearance({})]
 }
 

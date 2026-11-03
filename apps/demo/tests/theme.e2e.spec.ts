@@ -39,12 +39,15 @@ const backgrounds = (page: Page) =>
 test.describe('Logged out', () => {
   test.use({ storageState: { cookies: [], origins: [] } })
 
-  test('defaults to Enhanced with comfortable density and Lucide icons', async ({ page }) => {
+  test('defaults to Enhanced and Warm with comfortable density and Lucide icons', async ({ page }) => {
+    await page.context().addCookies([cookie('theme', 'dark')])
     await page.goto('/admin/login')
 
     await expect(page.locator('html')).toHaveAttribute('data-character', 'enhanced')
     await expect(page.locator('html')).toHaveAttribute('data-density', 'comfortable')
     await expect(page.locator('html')).toHaveAttribute('data-icons', 'lucide')
+    await expect(page.locator('html')).toHaveAttribute('data-palette', 'warm')
+    await expect(page.locator('html')).toHaveCSS('background-color', 'rgb(15, 15, 14)')
   })
 
   test('ignores unknown cookie values', async ({ page }) => {
@@ -83,7 +86,9 @@ test.describe('Theme plugin', () => {
     await page.context().addCookies([appearance({ character: 'stock', enhanced: { density: 'compact' } })])
 
     const html = await (await page.request.get('/admin')).text()
-    expect(html).toContain('<script>Object.assign(document.documentElement.dataset,{"character":"stock"})</script>')
+    expect(html).toContain(
+      '<script>Object.assign(document.documentElement.dataset,{"character":"stock","palette":"warm"})</script>'
+    )
 
     await page.goto('/admin')
     await expect(page.locator('html')).toHaveAttribute('data-character', 'stock')
@@ -230,86 +235,6 @@ test.describe('Theme values', () => {
     expect((await table.boundingBox())?.y).toBe(before?.y)
   })
 
-  test('checked checkboxes fill with the text color and use the Lucide tick', async ({ page }) => {
-    await openShowcase(page)
-    const featured = page.locator('.field-type.checkbox').filter({ hasText: 'Featured' })
-    await featured.getByRole('checkbox').check()
-    await page.mouse.move(0, 0)
-
-    await expect(featured.locator('.checkbox-input__visuals')).toHaveCSS('background-color', 'rgb(243, 242, 237)')
-    await expect(featured.locator('.checkbox-input__check')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0.9)')
-    expect(await style(page, '.field-type.checkbox .checkbox-input__check', 'mask-image')).toContain('data:image/svg+xml')
-    expect(await size(page, '.field-type.checkbox .checkbox-input__input')).toEqual({ height: 18, width: 18 })
-    expect(await size(page, '.field-type.checkbox .checkbox-input__check')).toEqual({ height: 18, width: 18 })
-    await expect(featured.locator('.field-description')).toHaveCSS('padding-left', '26px')
-
-    const center = async (selector: string) => {
-      const box = await featured.locator(selector).boundingBox()
-      return box && box.y + box.height / 2
-    }
-    expect(await center('.checkbox-input__input')).toBe(await center('.field-label'))
-  })
-
-  test('a click changes the checkbox in one step', async ({ page }) => {
-    await openShowcase(page)
-    const featured = page.locator('.field-type.checkbox').filter({ hasText: 'Featured' })
-    const visuals = featured.locator('.checkbox-input__visuals')
-    await expect(featured.getByRole('checkbox')).toBeEnabled()
-    const box = await featured.locator('.checkbox-input__input').boundingBox()
-
-    await page.mouse.move((box?.x ?? 0) + 9, (box?.y ?? 0) + 9)
-    const hovered = await visuals.evaluate((element) => getComputedStyle(element).backgroundColor)
-    await page.mouse.down()
-    await expect(visuals).toHaveCSS('background-color', hovered)
-    await page.mouse.up()
-
-    await expect(visuals).toHaveCSS('background-color', 'rgb(243, 242, 237)')
-  })
-
-  test('radios share the checkbox look and focus ring', async ({ page }) => {
-    await openShowcase(page)
-    const featured = page.locator('.field-type.checkbox').filter({ hasText: 'Featured' })
-    const checkbox = featured.locator('.checkbox-input__visuals')
-    const sizes = page.locator('.radio-group').filter({ hasText: 'Size' })
-    const radio = (label: string) =>
-      sizes
-        .locator('.radio-input')
-        .filter({ hasText: new RegExp(`^${label}$`) })
-        .locator('.radio-input__styled-radio')
-    await expect(featured.getByRole('checkbox')).toBeEnabled()
-
-    for (const property of ['background-color', 'border-top-color']) {
-      const expected = await checkbox.evaluate((element, name) => getComputedStyle(element).getPropertyValue(name), property)
-      await expect(radio('xs')).toHaveCSS(property, expected)
-    }
-
-    await radio('m').click()
-    await expect(radio('m')).toHaveCSS('background-color', 'rgb(243, 242, 237)')
-    expect(await radio('m').evaluate((element) => getComputedStyle(element, '::before').backgroundColor)).toBe(
-      'rgba(0, 0, 0, 0.9)'
-    )
-    expect(await radio('m').boundingBox()).toMatchObject({ height: 18, width: 18 })
-
-    await page.keyboard.press('ArrowRight')
-    await expect(radio('l')).toHaveCSS('box-shadow', /0px 0px 0px 3px/)
-    await page.keyboard.press('Shift+Tab')
-    await expect(checkbox).toHaveCSS('box-shadow', /0px 0px 0px 3px/)
-  })
-
-  test('one toggle border token reaches checkboxes and radios', async ({ page }) => {
-    await openShowcase(page)
-    await page.addStyleTag({ content: 'html { --payloadpack-toggle-border: rgb(255, 0, 0); }' })
-
-    await expect(page.locator('.field-type.checkbox .checkbox-input__visuals').first()).toHaveCSS(
-      'border-top-color',
-      'rgb(255, 0, 0)'
-    )
-    await expect(page.locator('.radio-input:not(.radio-input--is-selected) .radio-input__styled-radio').first()).toHaveCSS(
-      'border-top-color',
-      'rgb(255, 0, 0)'
-    )
-  })
-
   test('radio cards stack with the radio on the right', async ({ page }) => {
     await openShowcase(page)
     const cards = page.locator(`.${RADIO_CARDS} .radio-input`)
@@ -400,57 +325,6 @@ test.describe('Theme values', () => {
     expect(inset(visibility)).toEqual({ height: 28, right: 36, top: 4, width: 28 })
   })
 
-  test('Enhanced dark palette', async ({ page }) => {
-    await openShowcase(page)
-
-    await expect(page.locator('html')).toHaveCSS('background-color', 'rgb(15, 15, 14)')
-    await expect(page.locator('.nav')).toHaveCSS('background-color', 'rgb(10, 10, 9)')
-    await expect(page.locator('body')).toHaveCSS('color', 'rgb(243, 242, 237)')
-    await expect(page.locator('.field-type.text input').first()).toHaveCSS('background-color', 'rgb(24, 24, 23)')
-    await expect(page.locator('.field-type.text input').first()).toHaveCSS('border-top-color', 'rgb(42, 42, 39)')
-    expect(await style(page, 'html', '--accessibility-focus-color')).toBe('#f3f2ed')
-
-    await page.getByRole('button', { name: 'More options' }).first().click()
-    const popup = page.locator('.popup__content:visible').first()
-    await expect(popup).toHaveCSS('border-radius', '9px')
-    await expect(popup).toHaveCSS('box-shadow', /^rgb\(42, 42, 39\) 0px 0px 0px 1px,/)
-  })
-
-  test('disabled and read-only fields fade to half the field colors', async ({ page }) => {
-    await openShowcase(page)
-    const half = (token: string) => computedColor(page, `color-mix(in srgb, var(${token}) 50%, transparent)`)
-    const reference = page.locator('.field-type.text').filter({ hasText: 'Reference' }).locator('input')
-    await expect(page.locator('#field-title')).toBeEnabled()
-    await expect(reference).toBeDisabled()
-
-    for (const field of [reference, page.locator('.slug-field-component__input-container')]) {
-      await expect(field).toHaveCSS('background-color', await half('--field-color-bg'))
-      await expect(field).toHaveCSS('border-top-color', await half('--field-color-border'))
-    }
-    await expect(page.locator('.slug-field-component__input')).toHaveCSS(
-      'color',
-      await computedColor(page, 'var(--color-text-secondary)')
-    )
-  })
-
-  test('enhanced contrast reaches radios and secondary text', async ({ page }) => {
-    await page.context().addCookies([cookie('high-contrast-mode', 'true')])
-    await openShowcase(page)
-
-    await expect(page.locator('.radio-input:not(.radio-input--is-selected) .radio-input__styled-radio').first()).toHaveCSS(
-      'border-top-color',
-      await computedColor(page, 'var(--color-border-control)')
-    )
-    await expect(page.locator('.field-description').first()).toHaveCSS(
-      'color',
-      await computedColor(page, 'var(--ramp-white-500)')
-    )
-
-    const card = page.locator(`.${RADIO_CARDS} .radio-input`).first()
-    await card.click()
-    await expect(card).toHaveCSS('border-top-color', await computedColor(page, 'var(--color-border-control)'))
-  })
-
   test('lucide icon sizes and mappings', async ({ page }) => {
     await openShowcase(page)
 
@@ -486,41 +360,6 @@ test.describe('Theme values', () => {
     await expect(page.locator('.nav__close .sidebar-toggle')).toHaveCSS('outline-style', 'solid')
     await expect(page.locator('.nav__close .sidebar-toggle')).toHaveCSS('outline-width', '2px')
     expect(await page.locator('.nav__close').evaluate((element) => getComputedStyle(element, '::after').content)).toBe('none')
-  })
-
-  test('focused fields get a soft grey ring', async ({ page }) => {
-    await openShowcase(page)
-    const title = page.locator('#field-title')
-    await title.click()
-
-    await expect(title).toHaveCSS('border-top-color', 'rgb(114, 113, 107)')
-    await expect(title).toHaveCSS('box-shadow', /0px 0px 0px 3px/)
-  })
-
-  test('toasts match the dropdowns and color only the icon', async ({ page }) => {
-    await page.goto('/admin/toasts')
-    await page.getByRole('button', { name: 'Error', exact: true }).click()
-    const error = page.locator('.payload-toast-item[data-type="error"]')
-
-    await expect(error).toHaveCSS('background-color', 'rgb(255, 255, 255)')
-    await expect(error).toHaveCSS('border-radius', '9px')
-    await expect(error.locator('.payload-toast-close-button')).toHaveCSS('color', 'rgba(0, 0, 0, 0.9)')
-    const lightTint = await computedColor(page, await style(page, '.toast-error', '--payloadpack-toast-icon'))
-    await expect(error.locator('.toast-icon .icon')).toHaveCSS('color', lightTint)
-    expect(await style(page, '.toast-error .toast-icon svg', '--payloadpack-icon')).toContain('octagon-x')
-
-    await page.getByRole('button', { name: 'With action' }).click()
-    await expect(page.locator('.payload-toast-item [data-button]')).toHaveCSS('height', '24px')
-
-    await page.context().addCookies([cookie('theme', 'dark')])
-    await page.reload()
-    await page.getByRole('button', { name: 'Success', exact: true }).click()
-    const success = page.locator('.payload-toast-item[data-type="success"]')
-
-    await expect(success).toHaveCSS('background-color', 'rgb(24, 24, 23)')
-    const darkTint = await computedColor(page, await style(page, '.toast-success', '--payloadpack-toast-icon'))
-    await expect(success.locator('.toast-icon .icon')).toHaveCSS('color', darkTint)
-    expect(darkTint).not.toBe(lightTint)
   })
 
   test('the toasts preview reuses the list heading and marks its nav link', async ({ page }) => {
@@ -603,9 +442,192 @@ test.describe('Theme values', () => {
     await page.getByRole('button', { name: 'More options' }).first().click()
     await expect(page.locator('.popup__content:visible').first()).toHaveCSS('border-radius', '2px')
   })
+})
 
-  test('Stock applies no character or option stylesheet', async ({ page }) => {
-    await page.context().addCookies([appearance({ character: 'stock' })])
+test.describe('Warm palette', () => {
+  test('checked checkboxes fill with the text color and use the Lucide tick', async ({ page }) => {
+    await openShowcase(page)
+    const featured = page.locator('.field-type.checkbox').filter({ hasText: 'Featured' })
+    await featured.getByRole('checkbox').check()
+    await page.mouse.move(0, 0)
+
+    await expect(featured.locator('.checkbox-input__visuals')).toHaveCSS('background-color', 'rgb(243, 242, 237)')
+    await expect(featured.locator('.checkbox-input__check')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0.9)')
+    expect(await style(page, '.field-type.checkbox .checkbox-input__check', 'mask-image')).toContain('data:image/svg+xml')
+    expect(await size(page, '.field-type.checkbox .checkbox-input__input')).toEqual({ height: 18, width: 18 })
+    expect(await size(page, '.field-type.checkbox .checkbox-input__check')).toEqual({ height: 18, width: 18 })
+    await expect(featured.locator('.field-description')).toHaveCSS('padding-left', '26px')
+
+    const center = async (selector: string) => {
+      const box = await featured.locator(selector).boundingBox()
+      return box && box.y + box.height / 2
+    }
+    expect(await center('.checkbox-input__input')).toBe(await center('.field-label'))
+  })
+
+  test('a click changes the checkbox in one step', async ({ page }) => {
+    await openShowcase(page)
+    const featured = page.locator('.field-type.checkbox').filter({ hasText: 'Featured' })
+    const visuals = featured.locator('.checkbox-input__visuals')
+    await expect(featured.getByRole('checkbox')).toBeEnabled()
+    const box = await featured.locator('.checkbox-input__input').boundingBox()
+
+    await page.mouse.move((box?.x ?? 0) + 9, (box?.y ?? 0) + 9)
+    const hovered = await visuals.evaluate((element) => getComputedStyle(element).backgroundColor)
+    await page.mouse.down()
+    await expect(visuals).toHaveCSS('background-color', hovered)
+    await page.mouse.up()
+
+    await expect(visuals).toHaveCSS('background-color', 'rgb(243, 242, 237)')
+  })
+
+  test('radios share the checkbox look and focus ring', async ({ page }) => {
+    await openShowcase(page)
+    const featured = page.locator('.field-type.checkbox').filter({ hasText: 'Featured' })
+    const checkbox = featured.locator('.checkbox-input__visuals')
+    const sizes = page.locator('.radio-group').filter({ hasText: 'Size' })
+    const radio = (label: string) =>
+      sizes
+        .locator('.radio-input')
+        .filter({ hasText: new RegExp(`^${label}$`) })
+        .locator('.radio-input__styled-radio')
+    await expect(featured.getByRole('checkbox')).toBeEnabled()
+
+    for (const property of ['background-color', 'border-top-color']) {
+      const expected = await checkbox.evaluate((element, name) => getComputedStyle(element).getPropertyValue(name), property)
+      await expect(radio('xs')).toHaveCSS(property, expected)
+    }
+
+    await radio('m').click()
+    await expect(radio('m')).toHaveCSS('background-color', 'rgb(243, 242, 237)')
+    expect(await radio('m').evaluate((element) => getComputedStyle(element, '::before').backgroundColor)).toBe(
+      'rgba(0, 0, 0, 0.9)'
+    )
+    expect(await radio('m').boundingBox()).toMatchObject({ height: 18, width: 18 })
+
+    await page.keyboard.press('ArrowRight')
+    await expect(radio('l')).toHaveCSS('box-shadow', /0px 0px 0px 3px/)
+    await page.keyboard.press('Shift+Tab')
+    await expect(checkbox).toHaveCSS('box-shadow', /0px 0px 0px 3px/)
+  })
+
+  test('one toggle border token reaches checkboxes and radios', async ({ page }) => {
+    await openShowcase(page)
+    await page.addStyleTag({ content: 'html { --payloadpack-toggle-border: rgb(255, 0, 0); }' })
+
+    await expect(page.locator('.field-type.checkbox .checkbox-input__visuals').first()).toHaveCSS(
+      'border-top-color',
+      'rgb(255, 0, 0)'
+    )
+    await expect(page.locator('.radio-input:not(.radio-input--is-selected) .radio-input__styled-radio').first()).toHaveCSS(
+      'border-top-color',
+      'rgb(255, 0, 0)'
+    )
+  })
+
+  test('near-black dark palette', async ({ page }) => {
+    await openShowcase(page)
+
+    await expect(page.locator('html')).toHaveCSS('background-color', 'rgb(15, 15, 14)')
+    await expect(page.locator('.nav')).toHaveCSS('background-color', 'rgb(10, 10, 9)')
+    await expect(page.locator('body')).toHaveCSS('color', 'rgb(243, 242, 237)')
+    await expect(page.locator('.field-type.text input').first()).toHaveCSS('background-color', 'rgb(24, 24, 23)')
+    await expect(page.locator('.field-type.text input').first()).toHaveCSS('border-top-color', 'rgb(42, 42, 39)')
+    expect(await style(page, 'html', '--accessibility-focus-color')).toBe('#f3f2ed')
+
+    await page.getByRole('button', { name: 'More options' }).first().click()
+    const popup = page.locator('.popup__content:visible').first()
+    await expect(popup).toHaveCSS('border-radius', '9px')
+    await expect(popup).toHaveCSS('box-shadow', /^rgb\(42, 42, 39\) 0px 0px 0px 1px,/)
+  })
+
+  test('disabled and read-only fields fade to half the field colors', async ({ page }) => {
+    await openShowcase(page)
+    const half = (token: string) => computedColor(page, `color-mix(in srgb, var(${token}) 50%, transparent)`)
+    const reference = page.locator('.field-type.text').filter({ hasText: 'Reference' }).locator('input')
+    await expect(page.locator('#field-title')).toBeEnabled()
+    await expect(reference).toBeDisabled()
+
+    for (const field of [reference, page.locator('.slug-field-component__input-container')]) {
+      await expect(field).toHaveCSS('background-color', await half('--field-color-bg'))
+      await expect(field).toHaveCSS('border-top-color', await half('--field-color-border'))
+    }
+    await expect(page.locator('.slug-field-component__input')).toHaveCSS(
+      'color',
+      await computedColor(page, 'var(--color-text-secondary)')
+    )
+  })
+
+  test('enhanced contrast reaches radios and secondary text', async ({ page }) => {
+    await page.context().addCookies([cookie('high-contrast-mode', 'true')])
+    await openShowcase(page)
+
+    await expect(page.locator('.radio-input:not(.radio-input--is-selected) .radio-input__styled-radio').first()).toHaveCSS(
+      'border-top-color',
+      await computedColor(page, 'var(--color-border-control)')
+    )
+    await expect(page.locator('.field-description').first()).toHaveCSS(
+      'color',
+      await computedColor(page, 'var(--ramp-white-500)')
+    )
+
+    const card = page.locator(`.${RADIO_CARDS} .radio-input`).first()
+    await card.click()
+    await expect(card).toHaveCSS('border-top-color', await computedColor(page, 'var(--color-border-control)'))
+  })
+
+  test('focused fields get a soft grey ring', async ({ page }) => {
+    await openShowcase(page)
+    const title = page.locator('#field-title')
+    await title.click()
+
+    await expect(title).toHaveCSS('border-top-color', 'rgb(114, 113, 107)')
+    await expect(title).toHaveCSS('box-shadow', /0px 0px 0px 3px/)
+  })
+
+  test('toasts match the dropdowns and color only the icon', async ({ page }) => {
+    await page.goto('/admin/toasts')
+    await page.getByRole('button', { name: 'Error', exact: true }).click()
+    const error = page.locator('.payload-toast-item[data-type="error"]')
+
+    await expect(error).toHaveCSS('background-color', 'rgb(255, 255, 255)')
+    await expect(error).toHaveCSS('border-radius', '9px')
+    await expect(error.locator('.payload-toast-close-button')).toHaveCSS('color', 'rgba(0, 0, 0, 0.9)')
+    const lightTint = await computedColor(page, await style(page, '.toast-error', '--payloadpack-toast-icon'))
+    await expect(error.locator('.toast-icon .icon')).toHaveCSS('color', lightTint)
+    expect(await style(page, '.toast-error .toast-icon svg', '--payloadpack-icon')).toContain('octagon-x')
+
+    await page.getByRole('button', { name: 'With action' }).click()
+    await expect(page.locator('.payload-toast-item [data-button]')).toHaveCSS('height', '24px')
+
+    await page.context().addCookies([cookie('theme', 'dark')])
+    await page.reload()
+    await page.getByRole('button', { name: 'Success', exact: true }).click()
+    const success = page.locator('.payload-toast-item[data-type="success"]')
+
+    await expect(success).toHaveCSS('background-color', 'rgb(24, 24, 23)')
+    const darkTint = await computedColor(page, await style(page, '.toast-success', '--payloadpack-toast-icon'))
+    await expect(success.locator('.toast-icon .icon')).toHaveCSS('color', darkTint)
+    expect(darkTint).not.toBe(lightTint)
+  })
+})
+
+test.describe('Payload palette', () => {
+  test("Stock keeps Payload's own backgrounds", async ({ page }) => {
+    await page.context().addCookies([appearance({ character: 'stock', palette: 'payload' })])
+    await openShowcase(page)
+
+    await expect(page.locator('html')).toHaveAttribute('data-palette', 'payload')
+    await expect(page.locator('html')).toHaveCSS('background-color', 'rgb(44, 44, 44)')
+    await expect(page.locator('.nav')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
+
+    await page.context().addCookies([cookie('theme', 'light')])
+    await page.reload()
+    await expect(page.locator('html')).toHaveCSS('background-color', 'rgb(255, 255, 255)')
+  })
+
+  test('Stock applies no theme stylesheet', async ({ page }) => {
+    await page.context().addCookies([appearance({ character: 'stock', palette: 'payload' })])
     await openShowcase(page)
 
     const { applied, total } = await page.evaluate(() => {

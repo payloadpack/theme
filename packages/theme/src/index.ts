@@ -9,6 +9,7 @@ import {
   type Values
 } from './characters/index.js'
 import type { Panel, Settings } from './lib/appearance.js'
+import { defaultPalette, type Palette, palettes as paletteRegistry } from './palettes/index.js'
 import { translations } from './translations.js'
 
 const PACKAGE_NAME = '@payloadpack/theme'
@@ -25,6 +26,8 @@ export type ThemePluginConfig = CharacterConfigs & {
   character?: Character
   characters?: Character[]
   codeEditorFontSize?: false | number
+  palette?: Palette
+  palettes?: Palette[]
   panel?: Panel
 }
 
@@ -33,6 +36,8 @@ export function themePlugin(pluginConfig: ThemePluginConfig = {}): Plugin {
     character = defaultCharacter,
     characters = Object.keys(registry) as Character[],
     codeEditorFontSize = 13,
+    palette = defaultPalette,
+    palettes = Object.keys(paletteRegistry) as Palette[],
     panel = true
   } = pluginConfig
   const developerValues: Partial<Record<Character, Values>> = pluginConfig
@@ -41,9 +46,15 @@ export function themePlugin(pluginConfig: ThemePluginConfig = {}): Plugin {
     throw new Error(`themePlugin: character '${character}' is not one of characters: ${characters.join(', ')}`)
   }
 
+  if (!palettes.includes(palette)) {
+    throw new Error(`themePlugin: palette '${palette}' is not one of palettes: ${palettes.join(', ')}`)
+  }
+
   const settings: Settings = {
     character,
-    defaults: Object.fromEntries(characters.map((name) => [name, { ...registry[name].defaults, ...developerValues[name] }]))
+    defaults: Object.fromEntries(characters.map((name) => [name, { ...registry[name].defaults, ...developerValues[name] }])),
+    palette,
+    palettes
   }
 
   return (config) => ({

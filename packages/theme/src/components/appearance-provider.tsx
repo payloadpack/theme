@@ -29,7 +29,8 @@ type AppearanceProviderProps = {
 
 export function AppearanceProvider({ children, codeEditorFontSize, cookieName, initialChoices, settings }: AppearanceProviderProps) {
   const [choices, setChoices] = useState(initialChoices)
-  const { character, values } = useMemo(() => resolve(settings, choices), [settings, choices])
+  const { character, palette, values } = useMemo(() => resolve(settings, choices), [settings, choices])
+  const attributes = useMemo(() => ({ character, ...values, palette }), [character, palette, values])
   const isServerHtml = useSyncExternalStore(
     subscribeToNothing,
     () => false,
@@ -40,7 +41,6 @@ export function AppearanceProvider({ children, codeEditorFontSize, cookieName, i
 
   useLayoutEffect(() => {
     const { dataset } = document.documentElement
-    const attributes = { character, ...values }
     Object.assign(dataset, attributes)
 
     return () => {
@@ -48,7 +48,7 @@ export function AppearanceProvider({ children, codeEditorFontSize, cookieName, i
         delete dataset[key]
       }
     }
-  }, [character, values])
+  }, [attributes])
 
   const context = useMemo(() => {
     const update = (next: Choices) => {
@@ -62,13 +62,14 @@ export function AppearanceProvider({ children, codeEditorFontSize, cookieName, i
     return {
       character,
       characters: Object.keys(settings.defaults) as Character[],
+      palette,
       reset: () => update({}),
       setCharacter: (next: Character) => update({ ...choices, character: next }),
       setOption: <O extends Option>(option: O, value: OptionValue<O>) =>
         update({ ...choices, [character]: { ...choices[character], [option]: value } }),
       values
     }
-  }, [character, choices, cookieName, settings, values])
+  }, [character, choices, cookieName, palette, settings, values])
 
   return (
     <AppearanceContext value={context}>
@@ -76,7 +77,7 @@ export function AppearanceProvider({ children, codeEditorFontSize, cookieName, i
       {isServerHtml && (
         <script
           dangerouslySetInnerHTML={{
-            __html: `Object.assign(document.documentElement.dataset,${JSON.stringify({ character, ...values }).replace(/</g, '\\u003c')})`
+            __html: `Object.assign(document.documentElement.dataset,${JSON.stringify(attributes).replace(/</g, '\\u003c')})`
           }}
         />
       )}

@@ -30,6 +30,7 @@ const scopes: Record<string, string> = {
   'characters/enhanced/enhanced.css': "html[data-character='enhanced']",
   'options/density.css': "html[data-density='comfortable']",
   'options/icons.css': "html[data-icons='lucide']",
+  'palettes/warm.css': "html[data-palette='warm']",
   'styles/appearance-panel.css': '.payloadpack-appearance-panel',
   'styles/fields/radio-cards.css': `.${RADIO_CARDS}`,
   'styles/fields/switch.css': `.${SWITCH}`,
@@ -386,12 +387,45 @@ describe('theme contract with Payload', () => {
     const toastCss = ['providers/ToastContainer/index.css', 'elements/Toasts/index.css']
       .map((file) => read(path.join(uiDist, file)))
       .join('\n')
-    const neutral = themeCss['characters/enhanced/enhanced.css']
+    const warm = themeCss['palettes/warm.css']
     const handled = [
-      ...declaredProperties(ruleBody(neutral, "&[data-theme='light'] .payload-toast-container") ?? ''),
-      ...declaredProperties(ruleBody(neutral, '.toast-error') ?? '')
+      ...declaredProperties(ruleBody(warm, "&[data-theme='light'] .payload-toast-container") ?? ''),
+      ...declaredProperties(ruleBody(warm, '.toast-error') ?? '')
     ]
     expect(referencedProperties(toastCss).filter((token) => darkTokens.has(token) && !handled.includes(token))).toEqual([])
+  })
+
+  it('keeps every color out of characters and options', () => {
+    const paletteTokens = new Set(
+      Object.keys(themeCss)
+        .filter((file) => file.startsWith('palettes/'))
+        .flatMap((file) => declaredProperties(themeCss[file]))
+    )
+    const colorTokens = new Set([
+      ...['css/colors.css', 'css/design-tokens.css'].flatMap((file) => declaredProperties(read(path.join(uiDist, file)))),
+      ...paletteTokens
+    ])
+    const literal = /#[\da-f]{3,8}\b|\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color|color-mix)\(|\b(?:transparent|white|black)\b/i
+    const colorProperty =
+      /^(?:color|background(?:-color)?|border(?:-[a-z]+)*-color|outline-color|fill|stroke|caret-color|accent-color)$/
+    const aliasesColor = (value: string) => colorTokens.has(value.match(/^\s*var\(\s*(--[\w-]+)\s*\)\s*$/)?.[1] ?? '')
+    const setsColor = (property: string, value: string) =>
+      literal.test(value) ||
+      colorTokens.has(property) ||
+      (colorProperty.test(property) && referencedProperties(value).some((token) => colorTokens.has(token))) ||
+      (property.startsWith('--') && aliasesColor(value)) ||
+      referencedProperties(value).some((token) => token.startsWith('--payloadpack-') && paletteTokens.has(token))
+
+    const colored = Object.keys(themeCss)
+      .filter((file) => /^(?:characters|options)\//.test(file))
+      .flatMap((file) =>
+        rules(themeCss[file]).flatMap(({ declarations }) =>
+          [...declarations.matchAll(/(?:^|;)\s*([\w-]+)\s*:([^;]*)/g)]
+            .filter(([, property, value]) => setsColor(property, value))
+            .map(([, property, value]) => `${file}: ${property}: ${value.trim()}`)
+        )
+      )
+    expect(unique(colored)).toEqual([])
   })
 
   it('targets only classes and ids that Payload still renders', () => {

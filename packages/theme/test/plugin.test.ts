@@ -20,3 +20,7 @@ it('gives every supported language the English panel labels, and lets the app ov
 it('throws when the default character is not allowed', () => {
   expect(() => themePlugin({ character: 'enhanced', characters: ['stock'] })).toThrow("character 'enhanced'")
 })
+
+it('throws when the default palette is not allowed', () => {
+  expect(() => themePlugin({ palettes: ['payload'] })).toThrow("palette 'warm'")
+})

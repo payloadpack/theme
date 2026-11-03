@@ -1,6 +1,7 @@
 import type { User } from 'payload'
 
 import { type Character, type Option, options, type Values } from '../characters/index.js'
+import type { Palette } from '../palettes/index.js'
 
 export type Panel = boolean | ((args: { user: User }) => boolean)
 
@@ -9,9 +10,11 @@ export const isEditable = (panel: Panel, user: undefined | User) => (typeof pane
 export type Settings = {
   character: Character
   defaults: Partial<Record<Character, Values>>
+  palette: Palette
+  palettes: Palette[]
 }
 
-export type Choices = { character?: Character } & Partial<Record<Character, Values>>
+export type Choices = { character?: Character; palette?: Palette } & Partial<Record<Character, Values>>
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null
 
@@ -27,6 +30,10 @@ export function normalize(settings: Settings, input: unknown): Choices {
 
   if (isAllowed(settings, raw.character) && raw.character !== settings.character) {
     choices.character = raw.character
+  }
+
+  if (settings.palettes.some((palette) => palette === raw.palette && palette !== settings.palette)) {
+    choices.palette = raw.palette as Palette
   }
 
   for (const [character, defaults] of Object.entries(settings.defaults)) {
@@ -48,7 +55,11 @@ export function normalize(settings: Settings, input: unknown): Choices {
 
 export function resolve(settings: Settings, choices: Choices) {
   const character = choices.character ?? settings.character
-  return { character, values: { ...settings.defaults[character], ...choices[character] } }
+  return {
+    character,
+    palette: choices.palette ?? settings.palette,
+    values: { ...settings.defaults[character], ...choices[character] }
+  }
 }
 
 export function parseChoices(settings: Settings, cookie: string | undefined): Choices {
