@@ -1,7 +1,7 @@
 'use client'
 
 import { useConfig, useTheme, useTranslation, XIcon } from '@payloadcms/ui'
-import { type ReactNode, useId, useState } from 'react'
+import { type ReactNode, useEffect, useId, useState } from 'react'
 
 import { characters as registry, type Option, options } from '../characters/index.js'
 import { hexPattern } from '../lib/appearance.js'
@@ -14,6 +14,8 @@ const colorModes = ['light', 'dark', 'auto'] as const
 const halves = ['light', 'dark'] as const
 
 const swatches = [payloadBlue, '#c2410c', '#b45309', '#4d7c0f', '#0f766e', '#1d4ed8', '#7c3aed', '#be185d']
+
+const FEEDBACK_MS = 2000
 
 const capitalize = (text: string) => `${text[0].toUpperCase()}${text.slice(1)}`
 
@@ -70,9 +72,10 @@ export function AppearancePanel() {
   const { config } = useConfig()
   const { t } = useTranslation<object, TranslationKey>()
   const [copied, setCopied] = useState<string>()
-  const [draft, setDraft] = useState<{ isInvalid: boolean; text: string }>()
+  const [rejectedAt, setRejectedAt] = useState<number>()
   const [hex, setHex] = useState<string>()
   const json = JSON.stringify(setup, null, 2)
+  const isRejected = rejectedAt !== undefined
   const supported = Object.keys(registry[character].defaults) as Option[]
 
   const typeHex = (text: string) => {
@@ -87,7 +90,17 @@ export function AppearancePanel() {
     setCopied(json)
   }
 
-  const apply = (text: string) => setDraft(paste(text) ? undefined : { isInvalid: true, text })
+  const pasteFromClipboard = async () => {
+    setRejectedAt(paste(await navigator.clipboard.readText()) ? undefined : Date.now())
+  }
+
+  useEffect(() => {
+    if (rejectedAt === undefined) {
+      return
+    }
+    const timeout = setTimeout(() => setRejectedAt(undefined), FEEDBACK_MS)
+    return () => clearTimeout(timeout)
+  }, [rejectedAt])
 
   return (
     <div className="payloadpack-appearance-panel">
@@ -236,27 +249,12 @@ export function AppearancePanel() {
           <button onClick={copy} type="button">
             {t(copied === json ? 'payloadpack:copied' : 'payloadpack:copySetup')}
           </button>
-          <button
-            aria-expanded={draft !== undefined}
-            onClick={() => setDraft(draft ? undefined : { isInvalid: false, text: '' })}
-            type="button">
-            {t('payloadpack:pasteSetup')}
+          <button onClick={pasteFromClipboard} type="button">
+            {t(isRejected ? 'payloadpack:invalidSetup' : 'payloadpack:pasteSetup')}
           </button>
-          {draft && (
-            <div className="payloadpack-appearance-panel__paste">
-              <textarea
-                aria-invalid={draft.isInvalid}
-                aria-label={t('payloadpack:pasteSetup')}
-                onChange={(event) => setDraft({ isInvalid: false, text: event.target.value })}
-                spellCheck={false}
-                value={draft.text}
-              />
-              {draft.isInvalid && <p role="alert">{t('payloadpack:invalidSetup')}</p>}
-              <button onClick={() => apply(draft.text)} type="button">
-                {t('payloadpack:apply')}
-              </button>
-            </div>
-          )}
+          <span className="sr-only" role="status">
+            {isRejected && t('payloadpack:invalidSetup')}
+          </span>
         </footer>
       </dialog>
     </div>

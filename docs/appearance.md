@@ -91,7 +91,7 @@ A setup is what an editor picked: a character, that character's options, a palet
 - The same setup is mirrored into a `<cookiePrefix>-appearance` cookie, which the server uses on the login page and every other signed-out view. With no saved preference yet, the cookie applies for signed-in editors too.
 - `panel` is not called on signed-out views, which have no user. The cookie applies there unless `panel` is `false`.
 - Reset clears the setup: the preference and the cookie.
-- Sharing: **Copy setup** copies the setup as JSON, with the character and palette always included, so another editor gets the same look. **Paste setup** applies a copied setup, checked like any other, and says so when the text isn't a valid setup. A developer can paste the same JSON into `themePlugin()` to make it the site default.
+- Sharing: **Copy setup** copies the setup as JSON, with the character and palette always included, so another editor gets the same look. **Paste setup** reads a copied setup from the clipboard, checks it like any other, and says so for a moment when the clipboard holds no valid setup. A developer can paste the same JSON into `themePlugin()` to make it the site default.
 - The old `admin-theme`, `density` and `icons` cookies are left to expire. There are no shims for the old attributes, cookies or the `appearanceControls` export.
 
 ## Color mode

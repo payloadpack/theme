@@ -302,31 +302,5 @@
         white-space: nowrap;
       }
     }
-
-    .payloadpack-appearance-panel__paste {
-      display: flex;
-      flex-basis: 100%;
-      flex-direction: column;
-      gap: var(--spacer-2);
-
-      textarea {
-        min-height: 6rem;
-        padding: var(--spacer-2);
-        border: var(--stroke-width-small) solid var(--field-color-border);
-        border-radius: var(--field-border-radius);
-        background-color: var(--field-color-bg);
-        color: var(--color-text);
-        font-family: var(--font-mono);
-        resize: vertical;
-      }
-
-      p {
-        color: var(--color-text-danger);
-      }
-
-      button {
-        align-self: flex-end;
-      }
-    }
   }
 }
