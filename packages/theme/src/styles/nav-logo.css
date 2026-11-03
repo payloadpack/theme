@@ -1,0 +1,8 @@
+@layer payload {
+  .payloadpack-nav-logo {
+    display: none;
+    flex-shrink: 0;
+    width: var(--spacer-5);
+    height: var(--spacer-5);
+  }
+}

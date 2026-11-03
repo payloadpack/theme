@@ -32,6 +32,16 @@ it('gives every supported language the English panel labels, and lets the app ov
   expect(translations.de.payloadpack.colorMode).toBe('Color mode')
 })
 
+it('puts the logo before the app nav components only when Studio is allowed', async () => {
+  const beforeNav = async (pluginConfig: ThemePluginConfig) => {
+    const config = await themePlugin(pluginConfig)({ admin: { components: { beforeNav: ['/nav#Banner'] } } } as Config)
+    return config.admin?.components?.beforeNav
+  }
+
+  expect(await beforeNav({})).toEqual(['@payloadpack/theme/rsc#NavLogo', '/nav#Banner'])
+  expect(await beforeNav({ characters: ['stock', 'enhanced'] })).toEqual(['/nav#Banner'])
+})
+
 it('throws when the default character is not allowed', () => {
   expect(() => themePlugin({ character: 'enhanced', characters: ['stock'] })).toThrow("character 'enhanced'")
 })

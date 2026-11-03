@@ -71,6 +71,10 @@ export function themePlugin(pluginConfig: ThemePluginConfig = {}): Plugin {
           ...(config.admin?.components?.actions ?? []),
           { path: `${PACKAGE_NAME}/rsc#AppearanceServerPanel`, serverProps: { panel } }
         ],
+        beforeNav: [
+          ...(characters.includes('studio') ? [`${PACKAGE_NAME}/rsc#NavLogo`] : []),
+          ...(config.admin?.components?.beforeNav ?? [])
+        ],
         providers: [
           ...(config.admin?.components?.providers ?? []),
           { path: `${PACKAGE_NAME}/rsc#AppearanceServerProvider`, serverProps: { codeEditorFontSize, panel, settings } }

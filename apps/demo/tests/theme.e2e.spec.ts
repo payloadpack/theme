@@ -706,7 +706,13 @@ test.describe('Payload palette', () => {
     })
 
     expect(total).toBeGreaterThan(0)
-    const ownClasses = [`.${VERTICAL_TABS}`, `.${RADIO_CARDS}`, `.${SWITCH}`, '.payloadpack-appearance-panel']
+    const ownClasses = [
+      `.${VERTICAL_TABS}`,
+      `.${RADIO_CARDS}`,
+      `.${SWITCH}`,
+      '.payloadpack-appearance-panel',
+      '.payloadpack-nav-logo'
+    ]
     for (const scope of ownClasses) {
       expect(
         applied.some((selector) => selector.startsWith(scope)),
@@ -842,6 +848,23 @@ test.describe('Studio character', () => {
     const popup = page.locator('.user-menu .popup__content')
     await expect(popup).toBeVisible()
     expect(((await popup.boundingBox())?.y ?? 0) + ((await popup.boundingBox())?.height ?? 0)).toBeLessThanOrEqual(menu?.y ?? 0)
+  })
+
+  test('shows the logo at the top of the nav under Studio only', async ({ page }) => {
+    await page.context().addCookies([studio()])
+    await openList(page)
+    const logo = page.locator('.payloadpack-nav-logo')
+
+    await expect(logo).toBeVisible()
+    await expect(logo.locator('svg.graphic-icon')).toBeVisible()
+    expect((await logo.boundingBox())?.y).toBeLessThan((await page.locator('.sidebar-tabs').boundingBox())?.y ?? 0)
+
+    for (const character of ['enhanced', 'stock']) {
+      await page.context().addCookies([appearance({ character })])
+      await page.reload()
+      await expect(page.locator('html')).toHaveAttribute('data-character', character)
+      await expect(logo).toBeHidden()
+    }
   })
 
   test('loads Geist for the body font and switches to Payload or the system font', async ({ page }) => {
