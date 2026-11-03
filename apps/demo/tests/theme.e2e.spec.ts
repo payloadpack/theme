@@ -388,6 +388,7 @@ test.describe('Theme values', () => {
 
     await expect(page.locator('.nav__close .sidebar-toggle')).toHaveCSS('outline-style', 'solid')
     await expect(page.locator('.nav__close .sidebar-toggle')).toHaveCSS('outline-width', '2px')
+    expect(await page.locator('.nav__close').evaluate((element) => getComputedStyle(element, '::after').content)).toBe('none')
   })
 
   test('focused fields get a soft grey ring', async ({ page }) => {
