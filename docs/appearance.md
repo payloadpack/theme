@@ -4,6 +4,12 @@ How characters, palettes and the Appearance panel work. Terms follow [GLOSSARY.m
 
 An editor's look is two independent choices: a **character** (how the admin is laid out and behaves) and a **palette** (its colors, in a light and a dark version). Payload's own light/dark setting picks which version of the palette shows.
 
+## Status
+
+Built: the three characters with every option below, the Payload, Warm and Studio palettes with an accent each, setups with Copy setup and Paste setup, the Appearance panel and the rail.
+
+Planned, not built: palettes defined from three base colors in CSS, custom palettes, **New palette**, **Copy as CSS** and a heading font. Today Warm and Studio set Payload's own color tokens directly, and only the accent's shades come from one shared stylesheet, `accent.css`.
+
 ## Characters
 
 Three built-in characters. Apps cannot register their own. A character owns everything except color.
@@ -20,22 +26,22 @@ Characters restyle only through CSS and Payload's own slots (providers, header a
 
 Each character declares which options it supports and their defaults. Option values belong to a character: Studio's radius and Enhanced's radius are separate values.
 
-| Option    | Values                                                                | Enhanced | Studio |
-| --------- | --------------------------------------------------------------------- | -------- | ------ |
-| `radius`  | `none` `sm` `md` `lg` `full`                                          | yes      | yes    |
-| `font`    | `payload` (Inter, which Payload already loads), `geist` or `system`   |          | yes    |
-| `frame`   | `boxed` `flat`                                                        |          | yes    |
-| `width`   | `centered` `full`                                                     |          | yes    |
-| `density` | `compact` `comfortable`                                               | yes      | yes    |
-| `icons`   | `payload` `lucide`                                                    | yes      | yes    |
-| `motion`  | `off` `on`: restores the open and close transitions Payload 4 removed | yes      | yes    |
-| `nav`     | `icons` `hidden`: what a collapsed nav becomes                        | yes      | yes    |
+| Option    | Values                                                                     | Enhanced | Studio |
+| --------- | -------------------------------------------------------------------------- | -------- | ------ |
+| `radius`  | `none` `sm` `md` `lg` `full`                                               | yes      | yes    |
+| `font`    | `payload` (Inter, which Payload already loads), `geist` or `system`        |          | yes    |
+| `frame`   | `boxed` `flat`                                                             |          | yes    |
+| `width`   | `centered` `full`                                                          |          | yes    |
+| `density` | `compact` `comfortable`                                                    | yes      | yes    |
+| `icons`   | `payload` `lucide`                                                         | yes      | yes    |
+| `motion`  | `off` `on`: restores the transitions Payload 4 removed and animates popups | yes      | yes    |
+| `nav`     | `icons` `hidden`: what a collapsed nav becomes                             | yes      | yes    |
 
 `prefers-reduced-motion` always wins over `motion: 'on'`.
 
 The `font` option will gain a heading font, `sans` or `serif`, so a character can pair a serif display face with a sans body.
 
-Enhanced's defaults keep today's layout apart from motion:
+Enhanced's defaults keep today's layout apart from motion and the rail:
 
 | Option    | Enhanced default                                                            |
 | --------- | --------------------------------------------------------------------------- |
@@ -49,15 +55,18 @@ Studio's defaults:
 
 | Option    | Studio default |
 | --------- | -------------- |
+| `radius`  | `lg`           |
 | `font`    | `geist`        |
 | `frame`   | `boxed`        |
 | `width`   | `centered`     |
 | `density` | `comfortable`  |
 | `icons`   | `lucide`       |
+| `motion`  | `on`           |
+| `nav`     | `icons`        |
 
 ## Palettes
 
-A palette is CSS, the way Tailwind v4 defines design tokens: a block scoped to `[data-palette='<name>']` that sets `--payloadpack-background`, `--payloadpack-surface` and `--payloadpack-text` with `light-dark(light, dark)`, plus one `--payloadpack-accent` for both modes. The same text works as a stylesheet block, as inline style for an editor's palette and as the Copy as CSS export. One shared stylesheet derives every Payload color token from them with `color-mix`: surfaces, borders, muted text, hover and selected states, the accent's shades and the text on the accent. Built-in and custom palettes are the same shape, so a new palette costs only its colors. Because the scope is the attribute and not only `<html>`, a preview card with `data-palette="clay"` shows the palette's real colors. Palettes work with every character, Stock included. There are no presets.
+Planned: a palette is CSS, the way Tailwind v4 defines design tokens: a block scoped to `[data-palette='<name>']` that sets `--payloadpack-background`, `--payloadpack-surface` and `--payloadpack-text` with `light-dark(light, dark)`, plus one `--payloadpack-accent` for both modes. The same text works as a stylesheet block, as inline style for an editor's palette and as the Copy as CSS export. One shared stylesheet derives every Payload color token from them with `color-mix`: surfaces, borders, muted text, hover and selected states, the accent's shades and the text on the accent. Built-in and custom palettes are the same shape, so a new palette costs only its colors. Because the scope is the attribute and not only `<html>`, a preview card with `data-palette="clay"` shows the palette's real colors. Palettes work with every character, Stock included. There are no presets.
 
 | Base color | What it paints                               |
 | ---------- | -------------------------------------------- |
@@ -74,8 +83,8 @@ A palette is CSS, the way Tailwind v4 defines design tokens: a block scoped to `
 
 - The Payload palette applies no overrides, so plain Payload is the Stock character with the Payload palette. Today's look is Enhanced with Warm, the zero-config default.
 - Editors override a palette's accent with 8 swatches or a hex field, and each palette remembers its own accent. One accent serves both versions: the theme mixes the shades itself. Selected items get a light tint and darker accent text in light mode, and a tint mixed into the palette's own background in dark mode, so even a white accent stays visible.
-- Editors create a palette with **New palette** in the panel: it starts from the current palette and shows the three color fields for each mode and the accent. It sets the same variables inline on `<html>` and saves into their setup, so Copy setup shares it with colleagues.
-- **Copy as CSS** exports an editor's palette as a CSS block. Developers paste it into their admin stylesheet (Payload's `custom.scss`) and list its name in `themePlugin({ palettes: [...] })` to offer it to everyone.
+- Planned: editors create a palette with **New palette** in the panel: it starts from the current palette and shows the three color fields for each mode and the accent. It sets the same variables inline on `<html>` and saves into their setup, so Copy setup shares it with colleagues.
+- Planned: **Copy as CSS** exports an editor's palette as a CSS block. Developers paste it into their admin stylesheet (Payload's `custom.scss`) and list its name in `themePlugin({ palettes: [...] })` to offer it to everyone.
 - The package ships no palette named after another company or product.
 
 ## Plugin config
@@ -93,7 +102,7 @@ themePlugin({
 ```
 
 - `character` and `palette` are the defaults. Zero config is `'enhanced'` and `'warm'`.
-- `characters` lists the characters editors may pick. `palettes` lists the palettes they may pick by name: built-in ones, or your own palettes defined in CSS. The config never holds colors. Default: everything built in. The plugin throws at startup when a default isn't allowed.
+- `characters` lists the characters editors may pick. `palettes` lists the palettes they may pick by name: built-in ones, and later your own palettes defined in CSS, such as `clay` above. The config never holds colors. Default: everything built in. The plugin throws at startup when a default isn't allowed.
 - `options` holds option values per character. Each key is typed with only that character's options, so `options: { enhanced: { frame: 'flat' } }` is a type error. Stock has no key.
 - `accent` holds a hex per palette.
 - `panel` is `true`, `false` or `({ user }) => boolean`. Default `true`. When it resolves to `false`, the editor gets no panel button and their saved setup is ignored.
@@ -145,6 +154,7 @@ With `nav: 'icons'`, a collapsed nav becomes a 64px rail of icons instead of dis
 - Payload closes the nav when the window shrinks past 1440px or 1024px. While the rail is on, the provider reopens it with `useNav().setNavOpen(true)`, without saving that.
 - At 768px and below the rail is off and the nav is Payload's full-screen drawer.
 - `nav: 'hidden'` leaves Payload's collapse exactly as it is.
+- Under Studio the logo sits centered at the top of the rail, with the collapse button below it, and the user menu at the bottom is hidden like the header's under Enhanced.
 
 ## Scoping and folders
 
@@ -154,19 +164,20 @@ The provider renders the active character, its option values, the palette and th
 <html
   data-character="studio"
   data-radius="lg"
+  data-font="geist"
+  data-frame="boxed"
+  data-width="centered"
   data-density="comfortable"
   data-icons="lucide"
   data-motion="on"
   data-nav="icons"
-  data-frame="boxed"
-  data-width="centered"
-  data-font="geist"
+  data-rail=""
   data-palette="studio"
   data-accent="#c2410c"
-  style="--payloadpack-accent: #c2410c"></html>
+  style="--payloadpack-accent: #c2410c; --payloadpack-font-geist: 'Geist', 'Geist Fallback'"></html>
 ```
 
-Under the Stock character, no option attribute is rendered, so no option stylesheet can apply. The palette applies under any character.
+`data-rail` is there only while the nav is collapsed to the rail. Under the Stock character, no option attribute is rendered, so no option stylesheet can apply. The palette applies under any character.
 
 ```
 src/characters/index.ts             the registry of built-in characters and the option catalog
@@ -183,20 +194,24 @@ src/options/density.css
 src/options/icons.css
 src/options/motion.css
 src/options/nav.css
+src/options/nav-icons.css           the nav's Lucide icons, shared by icons: 'lucide' and the rail
+src/styles/appearance-panel.css
+src/styles/nav-logo.css
+src/styles/rail.css                 the rail's tooltip colors
 src/styles/fields/*
 ```
 
 - Each stylesheet stays one `@layer payload` block with one scope selector: `html[data-character='studio']`, `html[data-palette='warm']`, `html[data-density='comfortable']` and so on. A palette's dark version nests under `[data-theme='dark']`.
 - The Payload palette has no stylesheet: it is Payload's own colors.
-- Every declaration that sets a color lives in a palette or `accent.css`. Characters and options set only shapes, sizes, spacing and motion.
-- Option stylesheets set Payload's own variables. `accent.css` remaps Payload's blue ramp from `--payloadpack-accent`; a palette's stylesheet builds on the same variable. Where Payload hard-codes a value, the fix goes in the option's stylesheet with a contract-test entry, as `density.css` does.
+- Characters and options set only shapes, sizes, spacing and motion, which the contract test checks. Colors live in the palettes, `accent.css` and the `src/styles` sheets for the panel, the fields and the rail's tooltips.
+- Option stylesheets set Payload's own variables. `accent.css` remaps Payload's blue ramp from `--payloadpack-accent`; a palette's stylesheet builds on the same variable. Where Payload hard-codes a value, the fix goes in the option's stylesheet with a contract-test entry, as `density.css` and `motion.css` do.
 - Characters and palettes are plain typed objects. The plugin config types are derived from the registries. There is no `defineCharacter()` helper.
 
 ## Studio
 
 The Studio character:
 
-- `frame: 'boxed'` puts each view in a soft card on the field; `flat` drops the card.
+- `frame: 'boxed'` puts each view in a soft card on the field; `flat` drops the card. The card's corners are `--radius-large` plus 6px, so they follow `radius`.
 - `width: 'centered'` caps the content width; `full` drops the cap.
 - The user menu moves to the bottom of the nav with CSS only: `.nav__header { display: contents }`, then `order` on the user menu. Payload's popover flips upward by itself.
 - A logo at the top of the nav comes from a small component in the `beforeNav` slot that renders `admin.components.graphics.Icon` from the config, or Payload's icon. `beforeNav` sits above the Collections and Folders tabs, so the logo stays when an editor switches tabs; `beforeNavLinks` sits inside the Collections tab. Payload 4.0.0-beta.6 renders `graphics.Icon` nowhere itself.
@@ -209,6 +224,8 @@ From Payload 4.0.0-beta.6's CSS:
 
 - `accent`: every brand and selected token (`--color-bg-brand*`, `--color-bg-selected*`, `--color-border-brand*`, `--color-border-selected*`, `--color-icon-brand`, `--color-icon-selected`, `--color-text-brand`, `--color-text-selected`, the focus ring) reads one of Payload's 11 `--ramp-blue-*` and `--ramp-pale-blue-*` steps, declared once on `:root`.
   - `accent.css` remaps those steps from `--payloadpack-accent` with `color-mix`. Payload's dark mode already picks the lighter steps, so one accent works in both versions.
+  - In light mode, brand and selected text and icons take a darker ink of the accent, and primary buttons get a faint edge when the accent is nearly white.
+  - Text and icons on the accent turn black or white by the accent's lightness.
   - Payload's blue info backgrounds and presence badges take the accent too.
   - Payload's own blue, `#0d99ff`, keeps Payload's exact ramp.
   - No component hard-codes a blue.
@@ -219,12 +236,12 @@ From Payload 4.0.0-beta.6's CSS:
   - the drawer's 200ms backdrop fade and panel slide
   - the tooltip's 0.2s fade
   - the small transitions on fields, buttons and cards
-  - Payload 3 never animated popups or modals.
+  - new in this theme: popups, select menus and the date picker fade in, sliding from their trigger when they open below or beside it. Payload 3 never animated them. Modals stay still.
 - `width`: Payload has no content-width token. Only `admin.constrainWidth` caps the edit view. `centered` caps every view below the app header at 880px.
 
 ## Open
 
-- Tests and README screenshots across characters and palettes.
+- README screenshots across characters and palettes. The compare screenshots show only Stock on Payload and Enhanced on Warm.
 
 ## Out of scope
 
