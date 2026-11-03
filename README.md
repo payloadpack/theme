@@ -59,7 +59,7 @@ Click the Appearance button in the header to open the Appearance panel:
 <p>
   <picture>
     <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/appearance-light.png">
-    <img width="360" alt="The Appearance panel with Stock, Enhanced and Studio cards, Corners, Density, Icons, Motion and Collapsed nav options, Payload, Warm and Studio palette cards and accent swatches" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/appearance-dark.png">
+    <img width="360" alt="The Appearance panel with Stock, Enhanced and Studio cards, Corners, Density, Icons, Motion and Collapsed nav options, and Payload, Warm and Studio palette cards" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/appearance-dark.png">
   </picture>
 </p>
 
