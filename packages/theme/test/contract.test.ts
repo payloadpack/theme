@@ -404,7 +404,13 @@ describe('theme contract with Payload', () => {
 
   it('reads only tokens that Payload or the plugin declares', () => {
     const setByProvider = matchAll(read(path.join(sourceDir, 'components/appearance-provider.tsx')), /'(--payloadpack-[\w-]+)'/g)
-    const known = new Set([...declaredProperties(payloadCss), ...declaredProperties(allThemeCss), ...setByProvider])
+    const setByPayloadScripts = ['--caret-left']
+    const known = new Set([
+      ...declaredProperties(payloadCss),
+      ...declaredProperties(allThemeCss),
+      ...setByProvider,
+      ...setByPayloadScripts
+    ])
     expect(referencedProperties(allThemeCss).filter((token) => !known.has(token))).toEqual([])
   })
 

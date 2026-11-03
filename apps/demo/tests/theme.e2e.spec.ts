@@ -1,7 +1,17 @@
 import { RADIO_CARDS, SWITCH, VERTICAL_TABS } from '@payloadpack/theme'
 import { expect, type Page, test } from '@playwright/test'
 
-import { appearance, authFile, baseURL, clearSetup, cookie, findShowcase, openAppearancePanel, pickAndSave } from './demo'
+import {
+  appearance,
+  authFile,
+  baseURL,
+  clearSetup,
+  cookie,
+  findShowcase,
+  openAppearancePanel,
+  pickAndSave,
+  settled
+} from './demo'
 
 test.beforeEach(async ({ page }) => {
   await clearSetup(page)
@@ -301,6 +311,7 @@ test.describe('Theme values', () => {
     expect(popupMaxHeight).toBe(true)
 
     await page.locator('.doc-controls__popup-button').click()
+    await settled(page.locator('.doc-controls__popup'))
     expect(await size(page, '.doc-controls__popup .popup-button-list__button')).toMatchObject({ height: 32 })
 
     await page.locator('.date-time-picker input').first().click()
@@ -606,12 +617,15 @@ test.describe('Motion', () => {
     await expect.poll(transitions).toEqual(['drawer__blur-bg opacity', 'drawer__content opacity', 'drawer__content translate'])
   })
 
-  test('popups fade and slide in and fade out, and select menus fade and slide in', async ({ page }) => {
+  test('popups scale in from their trigger and out, and select menus scale in', async ({ page }) => {
     const transitions = await recordTransitions(page, menus)
     await openShowcase(page)
 
     await moreOptions(page).click()
-    await expect.poll(transitions).toEqual(['popup__content opacity', 'popup__content translate'])
+    await expect.poll(transitions).toEqual(['popup__content opacity', 'popup__content scale', 'popup__content translate'])
+    const popup = page.locator('.popup__content:popover-open')
+    const caret = await popup.evaluate((element) => (element as HTMLElement).style.getPropertyValue('--caret-left'))
+    await expect(popup).toHaveCSS('transform-origin', `${caret} 0px`)
 
     await page.keyboard.press('Escape')
     await expect
@@ -620,12 +634,15 @@ test.describe('Motion', () => {
         expect.arrayContaining([
           'popup__hidden-content display',
           'popup__hidden-content opacity',
-          'popup__hidden-content overlay'
+          'popup__hidden-content overlay',
+          'popup__hidden-content scale'
         ])
       )
 
     await select(page).click()
-    await expect.poll(transitions).toEqual(expect.arrayContaining(['rs__menu opacity', 'rs__menu translate']))
+    await expect
+      .poll(transitions)
+      .toEqual(expect.arrayContaining(['rs__menu opacity', 'rs__menu scale', 'rs__menu translate']))
   })
 
   for (const [name, setup] of [

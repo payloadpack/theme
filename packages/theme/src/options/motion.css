@@ -62,39 +62,82 @@
       .popup__content:popover-open,
       .rs__menu,
       .react-datepicker-popper {
+        transform-origin: var(--caret-left, 50%) top;
         transition:
           opacity 150ms ease-out,
+          scale 150ms ease-out,
           translate 150ms ease-out;
 
         @starting-style {
           opacity: 0;
-          translate: 0 calc(-1 * var(--spacer-1));
+          scale: 0.95;
+          translate: 0 calc(-1 * var(--spacer-2));
+        }
+      }
+
+      .react-datepicker-popper {
+        transform-origin: left top;
+      }
+
+      .popup--v-top:popover-open,
+      .rs__menu--placement-top {
+        transform-origin: var(--caret-left, 50%) bottom;
+
+        @starting-style {
+          translate: 0 var(--spacer-2);
+        }
+      }
+
+      .react-datepicker-popper[data-placement^='top'] {
+        transform-origin: left bottom;
+
+        @starting-style {
+          translate: 0 var(--spacer-2);
         }
       }
 
       .popup--side-right:popover-open {
+        transform-origin: left top;
+
         @starting-style {
-          translate: calc(-1 * var(--spacer-1)) 0;
+          translate: calc(-1 * var(--spacer-2)) 0;
         }
       }
 
       .popup--side-left:popover-open {
-        @starting-style {
-          translate: var(--spacer-1) 0;
-        }
-      }
+        transform-origin: right top;
 
-      .popup--v-top:popover-open,
-      .rs__menu--placement-top,
-      .react-datepicker-popper[data-placement^='top'] {
-        transition: opacity 150ms ease-out;
+        @starting-style {
+          translate: var(--spacer-2) 0;
+        }
       }
 
       .popup__hidden-content {
         opacity: 0;
+        scale: 0.95;
         transition:
           all 150ms step-end allow-discrete,
-          opacity 150ms ease-out;
+          opacity 150ms ease-in,
+          scale 150ms ease-in;
+      }
+
+      /* 7. Appearance panel */
+      .payloadpack-appearance-panel__sheet {
+        translate: 100% 0;
+        transition:
+          translate 150ms ease-in,
+          display 150ms allow-discrete,
+          overlay 150ms allow-discrete;
+
+        &:popover-open {
+          translate: 0;
+          transition-duration: 200ms;
+          transition-timing-function: ease-out;
+
+          @starting-style {
+            translate: 100% 0;
+          }
+        }
       }
     }
   }

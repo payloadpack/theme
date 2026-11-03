@@ -18,10 +18,14 @@ export const pickAndSave = (page: Page, control: Locator) =>
     control.click()
   ])
 
+export const settled = (locator: Locator) =>
+  locator.evaluate((element) => Promise.all(element.getAnimations({ subtree: true }).map((animation) => animation.finished)))
+
 export const openAppearancePanel = async (page: Page) => {
   await page.getByRole('button', { name: 'Appearance' }).click()
   const sheet = page.getByRole('dialog', { name: 'Appearance' })
   await sheet.waitFor()
+  await settled(sheet)
   return sheet
 }
 
