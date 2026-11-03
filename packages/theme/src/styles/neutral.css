@@ -18,6 +18,10 @@
       outline-offset: calc(-1 * var(--stroke-width-medium));
     }
 
+    .nav__close:focus-visible::after {
+      content: none;
+    }
+
     .form-input:focus:not(:read-only, .form-input-group *),
     .form-input-group:has(input:focus:not(:read-only)),
     .rs__control--is-focused,
