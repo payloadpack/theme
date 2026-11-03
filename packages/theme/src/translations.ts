@@ -23,6 +23,6 @@ const payloadpack = {
   stockNote: 'Stock shows Payload exactly as it ships. It has no options, so only color mode applies.'
 } satisfies Record<OptionKey, string> & Record<string, string>
 
-export const translations = { en: { payloadpack } }
+export const translations = { payloadpack }
 
 export type TranslationKey = `payloadpack:${keyof typeof payloadpack}`
