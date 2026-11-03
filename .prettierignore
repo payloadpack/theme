@@ -9,4 +9,4 @@ next-env.d.ts
 CHANGELOG.md
 .auth/
 .claude/settings.local.json
-packages/theme/src/styles/lucide.css
+packages/theme/src/options/icons.css
