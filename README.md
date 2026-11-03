@@ -196,7 +196,7 @@ html {
 
 ## Requirements
 
-- Payload `4.0.0-beta.5` or later
+- Payload `4.0.0-beta.6` or later
 - React 19
 
 ## License
