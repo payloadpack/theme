@@ -8,6 +8,13 @@ export const cookie = (name: string, value: string) => ({ name: `theme-demo-${na
 
 export const appearance = (choices: object) => cookie('appearance', encodeURIComponent(JSON.stringify(choices)))
 
+export const openAppearancePanel = async (page: Page) => {
+  await page.getByRole('button', { name: 'Appearance' }).click()
+  const sheet = page.getByRole('dialog', { name: 'Appearance' })
+  await sheet.waitFor()
+  return sheet
+}
+
 export const findShowcase = async (page: Page) => {
   const { docs } = await (await page.request.get('/api/showcase?where[slug][equals]=showcase&limit=1')).json()
   return { path: `/admin/collections/showcase/${docs[0].id}`, updatedAt: new Date(docs[0].updatedAt) }

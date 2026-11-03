@@ -30,6 +30,7 @@ const scopes: Record<string, string> = {
   'characters/enhanced/enhanced.css': "html[data-character='enhanced']",
   'options/density.css': "html[data-density='comfortable']",
   'options/icons.css': "html[data-icons='lucide']",
+  'styles/appearance-panel.css': '.payloadpack-appearance-panel',
   'styles/fields/radio-cards.css': `.${RADIO_CARDS}`,
   'styles/fields/switch.css': `.${SWITCH}`,
   'styles/fields/vertical-tabs.css': `.${VERTICAL_TABS}`

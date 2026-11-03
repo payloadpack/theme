@@ -18,4 +18,6 @@ export const characters = {
 
 export type Character = keyof typeof characters
 
+export const defaultCharacter: Character = 'enhanced'
+
 export type CharacterValues<C extends Character> = { [O in keyof (typeof characters)[C]['defaults'] & Option]?: OptionValue<O> }

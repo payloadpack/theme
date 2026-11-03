@@ -1,7 +1,7 @@
 import { RADIO_CARDS, SWITCH, VERTICAL_TABS } from '@payloadpack/theme'
 import { expect, type Page, test } from '@playwright/test'
 
-import { appearance, cookie, findShowcase } from './demo'
+import { appearance, cookie, findShowcase, openAppearancePanel } from './demo'
 
 const openShowcase = async (page: Page) => {
   await page.context().addCookies([cookie('theme', 'dark')])
@@ -103,6 +103,86 @@ test.describe('Theme plugin', () => {
     await page.goto('/admin', { waitUntil: 'networkidle' })
 
     expect(beforeHydration).toEqual(await backgrounds(page))
+  })
+})
+
+test.describe('Appearance panel', () => {
+  test('opens from the header as a full-height sheet on the right and closes with Escape', async ({ page }) => {
+    await page.goto('/admin')
+    const sheet = await openAppearancePanel(page)
+
+    expect(await sheet.boundingBox()).toEqual({ height: 900, width: 360, x: 1080, y: 0 })
+
+    await page.keyboard.press('Escape')
+    await expect(sheet).toBeHidden()
+
+    await page.setViewportSize({ height: 800, width: 375 })
+    await openAppearancePanel(page)
+
+    expect(await sheet.boundingBox()).toEqual({ height: 800, width: 375, x: 0, y: 0 })
+
+    await sheet.getByRole('button', { name: 'Close' }).click()
+    await expect(sheet).toBeHidden()
+  })
+
+  test('picks Stock with no option attributes and keeps it after a reload', async ({ page }) => {
+    await page.goto('/admin')
+    const sheet = await openAppearancePanel(page)
+
+    await sheet.getByRole('button', { name: 'Stock' }).click()
+
+    await expect(sheet.getByRole('button', { name: 'Stock' })).toHaveAttribute('aria-pressed', 'true')
+    await expect(sheet.getByText('It has no options, so only color mode applies')).toBeVisible()
+    await expect(sheet.getByRole('group', { name: 'Density' })).toHaveCount(0)
+    await expect(page.locator('html')).toHaveAttribute('data-character', 'stock')
+    await expect(page.locator('html')).not.toHaveAttribute('data-density')
+
+    await page.reload()
+
+    await expect(page.locator('html')).toHaveAttribute('data-character', 'stock')
+    await expect(page.locator('html')).not.toHaveAttribute('data-density')
+  })
+
+  test('switches density, keeps it across characters and resets to the defaults', async ({ page }) => {
+    await page.goto('/admin')
+    const sheet = await openAppearancePanel(page)
+    const compact = sheet.getByRole('group', { name: 'Density' }).getByRole('button', { name: 'Compact' })
+
+    await compact.click()
+
+    await expect(compact).toHaveAttribute('aria-pressed', 'true')
+    await expect(page.locator('html')).toHaveAttribute('data-density', 'compact')
+
+    await sheet.getByRole('button', { name: 'Stock' }).click()
+    await sheet.getByRole('button', { name: 'Enhanced' }).click()
+
+    await expect(page.locator('html')).toHaveAttribute('data-density', 'compact')
+
+    await sheet.getByRole('button', { name: 'Stock' }).click()
+    await sheet.getByRole('button', { name: 'Reset' }).click()
+
+    await expect(page.locator('html')).toHaveAttribute('data-character', 'enhanced')
+    await expect(page.locator('html')).toHaveAttribute('data-density', 'comfortable')
+    expect((await page.context().cookies()).map(({ name }) => name)).not.toContain('theme-demo-appearance')
+  })
+
+  test('switches Payload color mode', async ({ page }) => {
+    await page.goto('/admin')
+    const colorMode = (await openAppearancePanel(page)).getByRole('group', { name: 'Color mode' })
+    const themeCookie = async () => (await page.context().cookies()).find(({ name }) => name === 'theme-demo-theme')?.value
+
+    await expect(colorMode.getByRole('button', { name: 'Auto' })).toHaveAttribute('aria-pressed', 'true')
+
+    await colorMode.getByRole('button', { name: 'Dark' }).click()
+
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+    await expect(colorMode.getByRole('button', { name: 'Dark' })).toHaveAttribute('aria-pressed', 'true')
+    expect(await themeCookie()).toBe('dark')
+
+    await colorMode.getByRole('button', { name: 'Auto' }).click()
+
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
+    expect(await themeCookie()).toBeUndefined()
   })
 })
 
@@ -547,13 +627,13 @@ test.describe('Theme values', () => {
     })
 
     expect(total).toBeGreaterThan(0)
-    const fieldLayouts = [`.${VERTICAL_TABS}`, `.${RADIO_CARDS}`, `.${SWITCH}`]
-    for (const layout of fieldLayouts) {
+    const ownClasses = [`.${VERTICAL_TABS}`, `.${RADIO_CARDS}`, `.${SWITCH}`, '.payloadpack-appearance-panel']
+    for (const scope of ownClasses) {
       expect(
-        applied.some((selector) => selector.startsWith(layout)),
-        layout
+        applied.some((selector) => selector.startsWith(scope)),
+        scope
       ).toBe(true)
     }
-    expect(applied.filter((selector) => !fieldLayouts.some((layout) => selector.startsWith(layout)))).toEqual([])
+    expect(applied.filter((selector) => !ownClasses.some((scope) => selector.startsWith(scope)))).toEqual([])
   })
 })

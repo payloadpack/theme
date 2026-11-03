@@ -1,7 +1,15 @@
 import type { Plugin } from 'payload'
+import { deepMergeSimple } from 'payload/shared'
 
-import { type Character, characters as registry, type CharacterValues, type Values } from './characters/index.js'
+import {
+  type Character,
+  characters as registry,
+  type CharacterValues,
+  defaultCharacter,
+  type Values
+} from './characters/index.js'
 import type { Panel, Settings } from './lib/appearance.js'
+import { translations } from './translations.js'
 
 const PACKAGE_NAME = '@payloadpack/theme'
 
@@ -22,7 +30,7 @@ export type ThemePluginConfig = CharacterConfigs & {
 
 export function themePlugin(pluginConfig: ThemePluginConfig = {}): Plugin {
   const {
-    character = 'enhanced',
+    character = defaultCharacter,
     characters = Object.keys(registry) as Character[],
     codeEditorFontSize = 13,
     panel = true
@@ -45,11 +53,19 @@ export function themePlugin(pluginConfig: ThemePluginConfig = {}): Plugin {
       suppressHydrationWarning: true,
       components: {
         ...config.admin?.components,
+        actions: [
+          ...(config.admin?.components?.actions ?? []),
+          { path: `${PACKAGE_NAME}/rsc#AppearanceServerPanel`, serverProps: { panel } }
+        ],
         providers: [
           ...(config.admin?.components?.providers ?? []),
           { path: `${PACKAGE_NAME}/rsc#AppearanceServerProvider`, serverProps: { codeEditorFontSize, panel, settings } }
         ]
       }
+    },
+    i18n: {
+      ...config.i18n,
+      translations: deepMergeSimple(translations, config.i18n?.translations ?? {})
     }
   })
 }
