@@ -740,11 +740,11 @@ test.describe('Accent', () => {
 
     await page.context().addCookies([appearance({ accent: { warm: '#ffffff' } })])
     await page.goto('/admin/collections/showcase')
-    await expect(primary).toHaveCSS('color', 'rgb(0, 0, 0)')
+    await expect(primary).toHaveCSS('color', 'oklch(0 0 0)')
 
     await page.context().addCookies([appearance({ accent: { warm: '#c2410c' } })])
     await page.reload()
-    await expect(primary).toHaveCSS('color', 'rgb(255, 255, 255)')
+    await expect(primary).toHaveCSS('color', 'oklch(1 0 0)')
   })
 
   test('each palette keeps its own accent, and the hex field applies only valid colors', async ({ page }) => {
