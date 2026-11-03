@@ -1,7 +1,7 @@
 'use client'
 
 import { usePreferences } from '@payloadcms/ui'
-import { createContext, type ReactNode, use, useLayoutEffect, useMemo, useState, useSyncExternalStore } from 'react'
+import { createContext, type ReactNode, use, useEffect, useLayoutEffect, useMemo, useState, useSyncExternalStore } from 'react'
 
 import type { Character, Option, OptionValue } from '../characters/index.js'
 import { useMonacoFontSize } from '../hooks/use-monaco-font-size.js'
@@ -47,8 +47,8 @@ export function AppearanceProvider({
 }: AppearanceProviderProps) {
   const [choices, setChoices] = useState(initialChoices)
   const { setPreference } = usePreferences()
-  const look = useMemo(() => resolve(settings, choices), [settings, choices])
-  const { accent, character, palette, values } = look
+  const resolved = useMemo(() => resolve(settings, choices), [settings, choices])
+  const { accent, character, palette, values } = resolved
   const attributes = useMemo(
     () => ({ character, ...values, palette, ...(accent === payloadBlue ? {} : { accent }) }),
     [accent, character, palette, values]
@@ -74,18 +74,21 @@ export function AppearanceProvider({
     }
   }, [accent, attributes])
 
+  useEffect(() => {
+    document.cookie = Object.keys(choices).length
+      ? `${cookieName}=${encodeURIComponent(JSON.stringify(choices))}; path=/; max-age=${ONE_YEAR_IN_SECONDS}; SameSite=Lax`
+      : `${cookieName}=; path=/; max-age=0; SameSite=Lax`
+  }, [choices, cookieName])
+
   const context = useMemo(() => {
     const update = (next: Choices) => {
       const normalized = normalize(settings, next)
-      document.cookie = Object.keys(normalized).length
-        ? `${cookieName}=${encodeURIComponent(JSON.stringify(normalized))}; path=/; max-age=${ONE_YEAR_IN_SECONDS}; SameSite=Lax`
-        : `${cookieName}=; path=/; max-age=0; SameSite=Lax`
       void setPreference(preferenceKey, normalized)
       setChoices(normalized)
     }
 
     return {
-      ...look,
+      ...resolved,
       characters: Object.keys(settings.options) as Character[],
       palettes: Object.keys(settings.accents) as Palette[],
       paste: (text: string) => {
@@ -104,9 +107,9 @@ export function AppearanceProvider({
           options: { ...choices.options, [character]: { ...choices.options?.[character], [option]: value } }
         }),
       setPalette: (next: Palette) => update({ ...choices, palette: next }),
-      setup: setupOf(look)
+      setup: setupOf(resolved)
     }
-  }, [character, choices, cookieName, look, palette, setPreference, settings])
+  }, [character, choices, cookieName, resolved, palette, setPreference, settings])
 
   return (
     <AppearanceContext value={context}>

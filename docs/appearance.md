@@ -1,6 +1,6 @@
 # Appearance
 
-How characters, palettes and the Appearance panel work. Terms follow [GLOSSARY.md](../GLOSSARY.md). The design canvas holds the clickable panel and each character's list view: https://claude.ai/artifact/ECWQAGtRxBwNBXa4eotKhR
+How characters, palettes and the Appearance panel work. Terms follow [GLOSSARY.md](../GLOSSARY.md).
 
 An editor's look is two independent choices: a **character** (how the admin is laid out and behaves) and a **palette** (its colors, in a light and a dark version). Payload's own light/dark setting picks which version of the palette shows.
 
@@ -106,7 +106,7 @@ Color mode is Payload's own light/dark preference: the panel calls `useTheme().s
 - Every change applies at once. There is no Save button.
 - Sections, top to bottom:
   1. Character: one card per allowed character, each a small preview. Hidden when only one character is allowed.
-  2. The active character's options, as segmented controls. Under Stock, a note says Stock has no options.
+  2. The active character's options, as segmented buttons. Under Stock, a note says Stock has no options.
   3. Palette: one card per allowed palette, showing its light and dark halves side by side. Hidden when only one palette is allowed.
   4. Accent: 8 swatches and a hex field.
   5. Color mode: Light, Dark, Auto.
@@ -158,7 +158,7 @@ src/characters/studio/studio.css
 src/palettes/index.ts               the registry of built-in palettes and their default accents
 src/palettes/warm.css
 src/palettes/studio.css
-src/options/accent.css
+src/palettes/accent.css
 src/options/radius.css
 src/options/density.css
 src/options/icons.css
@@ -184,7 +184,7 @@ The Studio character:
 
 The Studio palette mixes its field, nav and card surfaces from the accent into Payload's light and dark surfaces with `color-mix`, so any hex gets matching surfaces. The tint is faint: Copper gives a field of about `#f0ebe6`.
 
-## What each option drives
+## What each setting drives
 
 From Payload 4.0.0-beta.6's CSS:
 
@@ -202,13 +202,6 @@ From Payload 4.0.0-beta.6's CSS:
   - the small transitions on fields, buttons and cards
   - Payload 3 never animated popups or modals.
 - `width`: Payload has no content-width token. Only `admin.constrainWidth` caps the edit view.
-
-## Decided while the owner was away
-
-Recorded on 2026-11-03 so they can be overruled:
-
-- Setups replace Copy config. Copy setup and Paste setup show for every editor, not only in development, and the JSON doubles as plugin config.
-- Signed-in setups live in Payload's preferences, with the cookie as a mirror for signed-out views and first paint. Per-account storage moved out of "Out of scope".
 
 ## Open
 

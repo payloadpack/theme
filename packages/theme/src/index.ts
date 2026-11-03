@@ -8,7 +8,7 @@ import {
   defaultCharacter,
   type Values
 } from './characters/index.js'
-import type { Panel, Settings } from './lib/appearance.js'
+import { hexPattern, type Panel, type Settings } from './lib/appearance.js'
 import { defaultPalette, type Palette, palettes as paletteRegistry } from './palettes/index.js'
 import { translations } from './translations.js'
 
@@ -53,8 +53,14 @@ export function themePlugin(pluginConfig: ThemePluginConfig = {}): Plugin {
     throw new Error(`themePlugin: palette '${palette}' is not one of palettes: ${palettes.join(', ')}`)
   }
 
+  for (const [name, hex] of Object.entries(accent)) {
+    if (!hexPattern.test(hex.toLowerCase())) {
+      throw new Error(`themePlugin: accent '${hex}' for '${name}' is not a #rrggbb color`)
+    }
+  }
+
   const settings: Settings = {
-    accents: Object.fromEntries(palettes.map((name) => [name, accent[name] ?? paletteRegistry[name].accent])),
+    accents: Object.fromEntries(palettes.map((name) => [name, accent[name]?.toLowerCase() ?? paletteRegistry[name].accent])),
     character,
     options: Object.fromEntries(characters.map((name) => [name, { ...registry[name].defaults, ...options[name] }])),
     palette

@@ -5,7 +5,7 @@ import { type ReactNode, useId, useState } from 'react'
 
 import { characters as registry, type Option, options } from '../characters/index.js'
 import { hexPattern } from '../lib/appearance.js'
-import { palettes as paletteRegistry } from '../palettes/index.js'
+import { payloadBlue, palettes as paletteRegistry } from '../palettes/index.js'
 import type { TranslationKey } from '../translations.js'
 import { useAppearance } from './appearance-provider.js'
 
@@ -13,11 +13,11 @@ const colorModes = ['light', 'dark', 'auto'] as const
 
 const halves = ['light', 'dark'] as const
 
-const swatches = ['#0d99ff', '#c2410c', '#b45309', '#4d7c0f', '#0f766e', '#1d4ed8', '#7c3aed', '#be185d']
+const swatches = [payloadBlue, '#c2410c', '#b45309', '#4d7c0f', '#0f766e', '#1d4ed8', '#7c3aed', '#be185d']
 
 const capitalize = (text: string) => `${text[0].toUpperCase()}${text.slice(1)}`
 
-type ChoicesProps<V extends string> = {
+type ChoiceGroupProps<V extends string> = {
   children?: ReactNode
   choices: { label: ReactNode; name?: string; value: V }[]
   className: string
@@ -26,7 +26,7 @@ type ChoicesProps<V extends string> = {
   selected: V | undefined
 }
 
-function Choices<V extends string>({ children, choices, className, label, onChange, selected }: ChoicesProps<V>) {
+function ChoiceGroup<V extends string>({ children, choices, className, label, onChange, selected }: ChoiceGroupProps<V>) {
   const id = useId()
 
   return (
@@ -128,7 +128,7 @@ export function AppearancePanel() {
         </header>
         <div className="payloadpack-appearance-panel__body">
           {characters.length > 1 && (
-            <Choices
+            <ChoiceGroup
               choices={characters.map((name) => ({
                 label: (
                   <>
@@ -156,7 +156,7 @@ export function AppearancePanel() {
           )}
           {supported.length ? (
             supported.map((option) => (
-              <Choices
+              <ChoiceGroup
                 choices={options[option].map((value) => ({
                   label: t(`payloadpack:${option}${capitalize(value)}` as TranslationKey),
                   value
@@ -172,7 +172,7 @@ export function AppearancePanel() {
             <p className="payloadpack-appearance-panel__note">{t('payloadpack:stockNote')}</p>
           )}
           {palettes.length > 1 && (
-            <Choices
+            <ChoiceGroup
               choices={palettes.map((name) => ({
                 label: (
                   <>
@@ -200,7 +200,7 @@ export function AppearancePanel() {
               selected={palette}
             />
           )}
-          <Choices
+          <ChoiceGroup
             choices={swatches.map((swatch) => ({
               label: <span style={{ backgroundColor: swatch }} />,
               name: swatch,
@@ -218,9 +218,9 @@ export function AppearancePanel() {
               spellCheck={false}
               value={hex ?? accent}
             />
-          </Choices>
+          </ChoiceGroup>
           {config.admin.theme === 'all' && (
-            <Choices
+            <ChoiceGroup
               choices={colorModes.map((mode) => ({ label: t(`payloadpack:${mode}`), value: mode }))}
               className="payloadpack-appearance-panel__segments"
               label={t('payloadpack:colorMode')}

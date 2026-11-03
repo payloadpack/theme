@@ -54,12 +54,12 @@ payload generate:importmap
 
 ## Appearance
 
-Click the palette button in the header to open the Appearance panel:
+Click the Appearance button in the header to open the Appearance panel:
 
 <p>
   <picture>
     <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/appearance-light.png">
-    <img width="360" alt="The Appearance panel with Stock and Enhanced cards, Density and Icons controls, Payload and Warm palette cards and accent swatches" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/appearance-dark.png">
+    <img width="360" alt="The Appearance panel with Stock and Enhanced cards, Density and Icons options, Payload and Warm palette cards and accent swatches" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/appearance-dark.png">
   </picture>
 </p>
 
@@ -112,16 +112,16 @@ themePlugin({
 })
 ```
 
-| Key                  | Default                                                     | Description                                                                                                                                                                                                                                                       |
-| -------------------- | ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `character`          | `'enhanced'`                                                | The character everyone starts with. It must be one of `characters`.                                                                                                                                                                                               |
-| `characters`         | `['stock', 'enhanced']`                                     | The characters editors may pick. An editor whose character is no longer allowed gets `character`.                                                                                                                                                                 |
-| `options`            | `{ enhanced: { density: 'comfortable', icons: 'lucide' } }` | Option values per character, which editors start from and Reset returns to. Each character takes only its own options, so a typo is a type error. Stock has no options and no key.                                                                                |
-| `palette`            | `'warm'`                                                    | The palette everyone starts with. It must be one of `palettes`.                                                                                                                                                                                                   |
-| `palettes`           | `['payload', 'warm']`                                       | The palettes editors may pick. An editor whose palette is no longer allowed gets `palette`.                                                                                                                                                                       |
-| `accent`             | `{ payload: '#0d99ff', warm: '#0d99ff' }`                   | The accent per palette, as `#rrggbb`, which editors start from and Reset returns to.                                                                                                                                                                              |
-| `panel`              | `true`                                                      | Who gets the Appearance panel: `true`, `false` or `({ user }) => boolean`. When it resolves to `false`, the editor gets no palette button and their saved setup is ignored. Signed-out views have no user, so there the cookie applies unless `panel` is `false`. |
-| `codeEditorFontSize` | `13`                                                        | Font size for code editors in Comfortable density. Payload's default is 11. Fields that set `admin.editorOptions.fontSize` keep their own size. `false` turns it off.                                                                                             |
+| Key                  | Default                                                     | Description                                                                                                                                                                                                                                                          |
+| -------------------- | ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `character`          | `'enhanced'`                                                | The character everyone starts with. It must be one of `characters`.                                                                                                                                                                                                  |
+| `characters`         | `['stock', 'enhanced']`                                     | The characters editors may pick. An editor whose character is no longer allowed gets `character`.                                                                                                                                                                    |
+| `options`            | `{ enhanced: { density: 'comfortable', icons: 'lucide' } }` | Option values per character, which editors start from and Reset returns to. Each character takes only its own options, so a typo is a type error. Stock has no options and no key.                                                                                   |
+| `palette`            | `'warm'`                                                    | The palette everyone starts with. It must be one of `palettes`.                                                                                                                                                                                                      |
+| `palettes`           | `['payload', 'warm']`                                       | The palettes editors may pick. An editor whose palette is no longer allowed gets `palette`.                                                                                                                                                                          |
+| `accent`             | `{ payload: '#0d99ff', warm: '#0d99ff' }`                   | The accent per palette, as `#rrggbb`, which editors start from and Reset returns to.                                                                                                                                                                                 |
+| `panel`              | `true`                                                      | Who gets the Appearance panel: `true`, `false` or `({ user }) => boolean`. When it resolves to `false`, the editor gets no Appearance button and their saved setup is ignored. Signed-out views have no user, so there the cookie applies unless `panel` is `false`. |
+| `codeEditorFontSize` | `13`                                                        | Font size for code editors in Comfortable density. Payload's default is 11. Fields that set `admin.editorOptions.fontSize` keep their own size. `false` turns it off.                                                                                                |
 
 A setup from Copy setup has the same shape, so pasting it into `themePlugin()` makes it everyone's default:
 

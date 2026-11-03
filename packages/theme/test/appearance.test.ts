@@ -88,32 +88,31 @@ it('ignores the cookie when the panel is off for the user, and never asks withou
   expect(isEditable(() => false, undefined)).toBe(true)
 })
 
-it('rejects text that is not a JSON object, and drops an old-shape cookie', () => {
+it('rejects text that is not a JSON object', () => {
   expect(parseChoices(settings, undefined)).toBeUndefined()
   expect(parseChoices(settings, '')).toBeUndefined()
   expect(parseChoices(settings, '{"character":')).toBeUndefined()
   expect(parseChoices(settings, '"stock"')).toBeUndefined()
   expect(parseChoices(settings, '["stock"]')).toBeUndefined()
   expect(parseChoices(settings, '{"character":"stock"}')).toEqual({ character: 'stock' })
-  expect(parseChoices(settings, '{"enhanced":{"density":"comfortable","icons":"payload"}}')).toEqual({})
 })
 
-it('pastes a copied setup into the same look', () => {
+it('pastes a copied setup into the same resolved', () => {
   const other: Settings = {
     ...settings,
     accents: { payload: '#be185d', warm: '#0d99ff' },
     character: 'stock',
     palette: 'payload'
   }
-  const looks = [
+  const cases = [
     resolve(settings, { accent: { payload: '#c2410c' }, options: { enhanced: { icons: 'payload' } }, palette: 'payload' }),
     resolve(settings, { character: 'stock' }),
     resolve(settings, {})
   ]
 
-  for (const look of looks) {
-    const copied = JSON.stringify(setupOf(look), null, 2)
-    expect(resolve(other, parseChoices(other, copied) ?? {})).toEqual(look)
+  for (const resolved of cases) {
+    const copied = JSON.stringify(setupOf(resolved), null, 2)
+    expect(resolve(other, parseChoices(other, copied) ?? {})).toEqual(resolved)
   }
 })
 

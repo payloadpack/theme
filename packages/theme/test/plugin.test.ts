@@ -39,3 +39,8 @@ it('throws when the default character is not allowed', () => {
 it('throws when the default palette is not allowed', () => {
   expect(() => themePlugin({ palettes: ['payload'] })).toThrow("palette 'warm'")
 })
+
+it('lowercases developer accents and rejects anything but #rrggbb', () => {
+  expect(() => themePlugin({ accent: { warm: 'red' } })).toThrow("accent 'red' for 'warm'")
+  expect(() => themePlugin({ accent: { warm: '#C2410C' } })).not.toThrow()
+})

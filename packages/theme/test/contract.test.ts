@@ -28,7 +28,7 @@ const lucideIcons = path.join(packageRoot('lucide-static'), 'icons')
 
 const scopes: Record<string, string> = {
   'characters/enhanced/enhanced.css': "html[data-character='enhanced']",
-  'options/accent.css': 'html[data-accent]',
+  'palettes/accent.css': 'html[data-accent]',
   'options/density.css': "html[data-density='comfortable']",
   'options/icons.css': "html[data-icons='lucide']",
   'palettes/warm.css': "html[data-palette='warm']",
@@ -398,7 +398,7 @@ describe('theme contract with Payload', () => {
   })
 
   it('remaps every blue step Payload reads from the accent', () => {
-    expect(declaredProperties(themeCss['options/accent.css'])).toEqual(
+    expect(declaredProperties(themeCss['palettes/accent.css'])).toEqual(
       referencedProperties(payloadCss).filter((token) => /^--ramp-(?:pale-)?blue-/.test(token))
     )
   })
@@ -425,7 +425,7 @@ describe('theme contract with Payload', () => {
       referencedProperties(value).some((token) => token.startsWith('--payloadpack-') && paletteTokens.has(token))
 
     const colored = Object.keys(themeCss)
-      .filter((file) => /^(?:characters|options)\//.test(file) && file !== 'options/accent.css')
+      .filter((file) => /^(?:characters|options)\//.test(file))
       .flatMap((file) =>
         rules(themeCss[file]).flatMap(({ declarations }) =>
           [...declarations.matchAll(/(?:^|;)\s*([\w-]+)\s*:([^;]*)/g)]
@@ -486,7 +486,7 @@ describe('theme contract with Payload', () => {
 
   it.each(hardCodedByPayload)('Payload still hard-codes $selector ($declaration)', ({ declaration, file, selector }) => {
     const css = read(path.join(uiDist, file))
-    expect(ruleBody(css, selector), `${selector} changed upstream, re-check its fix in comfortable.css`).toContain(
+    expect(ruleBody(css, selector), `${selector} changed upstream, re-check its fix in options/density.css`).toContain(
       squash(declaration)
     )
   })
