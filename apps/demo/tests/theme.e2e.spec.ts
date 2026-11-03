@@ -645,6 +645,17 @@ test.describe('Motion', () => {
       .toEqual(expect.arrayContaining(['rs__menu opacity', 'rs__menu scale', 'rs__menu translate']))
   })
 
+  test('loading a Studio page below 1440px runs no layout transitions', async ({ page }) => {
+    await page.setViewportSize({ height: 900, width: 1268 })
+    const transitions = await recordTransitions(page, ['template-default', 'template-default__wrap', 'nav'])
+    await page.context().addCookies([appearance({ character: 'studio' })])
+    await page.goto('/admin/collections/showcase')
+    await page.locator('.template-default--nav-open').waitFor()
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))))
+
+    expect(await transitions()).toEqual([])
+  })
+
   test('the nav slides open and closed, and the appearance panel slides in', async ({ page }) => {
     const transitions = await recordTransitions(page, ['template-default', 'payloadpack-appearance-panel__sheet'])
     await page.route('**/api/payload-preferences/nav*', (route) =>

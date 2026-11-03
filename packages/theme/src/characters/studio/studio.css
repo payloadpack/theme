@@ -24,11 +24,12 @@
           border-radius: calc(var(--radius-large) + var(--spacer-1-5));
         }
 
+        &[data-nav='icons'] .template-default__wrap,
         .template-default--nav-open .template-default__wrap {
           margin-inline-start: 0;
         }
 
-        .template-default:not(.template-default--nav-open) .nav {
+        &:not([data-nav='icons']) .template-default:not(.template-default--nav-open) .nav {
           visibility: hidden;
         }
       }
