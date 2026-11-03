@@ -903,3 +903,40 @@ test.describe('Studio character', () => {
     }
   })
 })
+
+test.describe('Studio palette', () => {
+  test('tints the field from the accent in light and dark, with cards on top', async ({ page }) => {
+    await page.context().addCookies([appearance({ character: 'studio', palette: 'studio' }), cookie('theme', 'light')])
+    await page.goto('/admin/collections/showcase')
+    const field = page.locator('.template-default')
+    const card = page.locator('.template-default__wrap')
+
+    await expect(page.locator('html')).toHaveAttribute('data-accent', '#c2410c')
+    await expect(field).toHaveCSS('background-color', await computedColor(page, 'color-mix(in oklab, #c2410c 3%, #f1f0ec)'))
+    await expect(card).toHaveCSS('background-color', 'rgb(255, 255, 255)')
+    await expect(page.locator('.nav')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
+
+    await page.context().addCookies([appearance({ accent: { studio: '#1d4ed8' }, character: 'studio', palette: 'studio' })])
+    await page.reload()
+    await expect(field).toHaveCSS('background-color', await computedColor(page, 'color-mix(in oklab, #1d4ed8 3%, #f1f0ec)'))
+
+    await page.context().addCookies([appearance({ character: 'studio', palette: 'studio' }), cookie('theme', 'dark')])
+    await page.reload()
+    await expect(field).toHaveCSS('background-color', await computedColor(page, 'color-mix(in oklab, #c2410c 5%, #131312)'))
+    await expect(card).toHaveCSS('background-color', await computedColor(page, 'color-mix(in oklab, #c2410c 2%, #1c1c1b)'))
+    expect(await style(page, '.nav__link--selected', 'background-color', '::before')).toBe(
+      await computedColor(page, 'color-mix(in oklab, #c2410c 26%, #1c1c1b)')
+    )
+  })
+
+  test('tints the nav under Enhanced too', async ({ page }) => {
+    await page.context().addCookies([appearance({ palette: 'studio' }), cookie('theme', 'light')])
+    await page.goto('/admin/collections/showcase')
+
+    await expect(page.locator('.nav__header')).toHaveCSS(
+      'background-color',
+      await computedColor(page, 'color-mix(in oklab, #c2410c 3%, #f1f0ec)')
+    )
+    await expect(page.locator('.template-default__wrap')).toHaveCSS('background-color', 'rgb(255, 255, 255)')
+  })
+})

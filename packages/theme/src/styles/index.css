@@ -1,6 +1,7 @@
 @import '../characters/enhanced/enhanced.css';
 @import '../characters/studio/studio.css';
 @import '../palettes/warm.css';
+@import '../palettes/studio.css';
 @import '../options/accent.css';
 @import '../options/density.css';
 @import '../options/icons.css';

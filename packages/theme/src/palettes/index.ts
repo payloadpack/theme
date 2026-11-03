@@ -6,7 +6,11 @@ const payloadLight: Half = { background: '#ffffff', text: '#1a1a1a' }
 
 export const palettes = {
   payload: { accent: payloadBlue, preview: { dark: { background: '#2c2c2c', text: '#ffffff' }, light: payloadLight } },
-  warm: { accent: payloadBlue, preview: { dark: { background: '#0f0f0e', text: '#f3f2ed' }, light: payloadLight } }
+  warm: { accent: payloadBlue, preview: { dark: { background: '#0f0f0e', text: '#f3f2ed' }, light: payloadLight } },
+  studio: {
+    accent: '#c2410c',
+    preview: { dark: { background: '#1b1613', text: '#f2f1ec' }, light: { background: '#f0ebe6', text: '#1c1b18' } }
+  }
 } satisfies Record<string, { accent: string; preview: { dark: Half; light: Half } }>
 
 export type Palette = keyof typeof palettes

@@ -32,6 +32,7 @@ const scopes: Record<string, string> = {
   'options/accent.css': 'html[data-accent]',
   'options/density.css': "html[data-density='comfortable']",
   'options/icons.css': "html[data-icons='lucide']",
+  'palettes/studio.css': "html[data-palette='studio']",
   'palettes/warm.css': "html[data-palette='warm']",
   'styles/appearance-panel.css': '.payloadpack-appearance-panel',
   'styles/nav-logo.css': '.payloadpack-nav-logo',
