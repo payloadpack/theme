@@ -1,3 +1,12 @@
 export const studio = {
-  defaults: { font: 'geist', frame: 'boxed', width: 'centered', density: 'comfortable', icons: 'lucide' }
+  defaults: {
+    radius: 'lg',
+    font: 'geist',
+    frame: 'boxed',
+    width: 'centered',
+    density: 'comfortable',
+    icons: 'lucide',
+    motion: 'on',
+    nav: 'icons'
+  }
 } as const

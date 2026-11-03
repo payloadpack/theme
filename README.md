@@ -66,7 +66,7 @@ Click the Appearance button in the header to open the Appearance panel:
 The panel opens as a sheet on the right and fills the screen on phones. Every change applies at once, so there is no Save button. Escape or a click outside closes it.
 
 - **Character** is how the whole admin panel is laid out and behaves. Stock is Payload's own layout and has no options. Enhanced touches up Payload's own design without changing its structure, and is the default. Studio puts each view in a soft card on a field. The section is hidden when only one character is allowed.
-- **Options** belong to a character. Enhanced has Corners, Density, Icons, Motion and Collapsed nav. Studio has Typeface, Frame, Content width, Density and Icons. Each character keeps its own values, so switching to Stock and back keeps them.
+- **Options** belong to a character. Enhanced has Corners, Density, Icons, Motion and Collapsed nav. Studio has the same five and adds Typeface, Frame and Content width. Each character keeps its own values, so switching to Stock and back keeps them.
 - **Palette** is the colors, in a light and a dark version. Payload is Payload's own colors. Warm, the default, is Payload's light colors and a warm near-black dark mode. Studio tints the field and the nav with its accent, copper by default. Every palette works with every character. The section is hidden when only one palette is allowed.
 - **Accent** is the color of primary buttons, links and selected items: one of eight swatches or any `#rrggbb` color. Each palette keeps its own accent. Payload's blue, `#0d99ff`, keeps Payload's own shades, and any other accent gets matching shades for light and dark mode.
 - **Color mode** is Payload's own light and dark setting, the same one as Admin Theme on the account page. It is hidden when `admin.theme` is `'light'` or `'dark'`.
@@ -75,17 +75,17 @@ The panel opens as a sheet on the right and fills the screen on phones. Every ch
 
 | Option        | Values                 | Enhanced default | Studio default |
 | ------------- | ---------------------- | ---------------- | -------------- |
-| Corners       | None, S, M, L, Round   | M                |                |
+| Corners       | None, S, M, L, Round   | M                | L              |
 | Typeface      | Payload, Geist, System |                  | Geist          |
 | Frame         | Boxed, Flat            |                  | Boxed          |
 | Content width | Centered, Full         |                  | Centered       |
 | Density       | Compact, Comfortable   | Comfortable      | Comfortable    |
 | Icons         | Payload, Lucide        | Lucide           | Lucide         |
-| Motion        | Off, On                | On               |                |
-| Collapsed nav | Icons, Hidden          | Icons            |                |
+| Motion        | Off, On                | On               | On             |
+| Collapsed nav | Icons, Hidden          | Icons            | Icons          |
 
 - **Enhanced** draws a 2px focus ring, rounds popups and toasts a little more, lifts the date picker and toasts like menus, and insets the sidebar tabs.
-- **Studio** keeps the nav on the field and moves the user menu to the bottom of it. The top of the nav shows your `admin.components.graphics.Icon`, or Payload's icon when you have none.
+- **Studio** keeps the nav on the field and moves the user menu to the bottom of it. The top of the nav shows your `admin.components.graphics.Icon`, or Payload's icon when you have none. In the rail, the logo sits above the collapse button.
 - **Warm** gives dark mode a warm near-black palette and swaps Payload's blue selection for neutral greys. In both modes it draws the focus ring in the text color and fills checked checkboxes and selected radios with the text color instead of the accent.
 - **Studio**, the palette, mixes a faint share of the accent into a warm off-white field and nav, with white cards and lines tinted the same way. Dark mode mixes it into near-black. Selected items take a soft fill of the accent.
 - **Corners** scales Payload's own corner sizes. M keeps them as they are, None squares every corner, S and L make them smaller or larger, and Round is L with pill-shaped buttons.

@@ -1133,15 +1133,51 @@ test.describe('Studio character', () => {
     await openList(page)
     const html = page.locator('html')
     const card = page.locator('.template-default__wrap')
+    const defaults = {
+      radius: 'lg',
+      font: 'geist',
+      frame: 'boxed',
+      width: 'centered',
+      density: 'comfortable',
+      icons: 'lucide',
+      motion: 'on',
+      nav: 'icons'
+    }
 
-    for (const [name, value] of Object.entries({ font: 'geist', frame: 'boxed', width: 'centered', density: 'comfortable' })) {
+    for (const [name, value] of Object.entries(defaults)) {
       await expect(html).toHaveAttribute(`data-${name}`, value)
     }
     await expect(card).toHaveCSS('border-top-width', '1px')
     await expect(card).toHaveCSS('border-top-color', await computedColor(page, 'var(--color-border)'))
-    await expect(card).toHaveCSS('border-radius', '19px')
+    await expect(card).toHaveCSS('border-radius', '26px')
     await expect(card).toHaveCSS('margin', '12px 12px 12px 0px')
     await expect(page.locator('.nav')).toHaveCSS('border-right-width', '0px')
+  })
+
+  test('collapses into a rail beside the card, with the toggle under the logo', async ({ page }) => {
+    await page.context().addCookies([studio()])
+    await openList(page)
+    await page.getByRole('button', { name: 'Hide sidebar' }).click()
+    await expect(page.locator('html')).toHaveAttribute('data-rail', '')
+
+    const [nav, card, logo, toggle, tabs] = await Promise.all(
+      ['.nav', '.template-default__wrap', '.payloadpack-nav-logo', '.payloadpack-rail-toggle', '.sidebar-tabs'].map(
+        async (selector) => (await page.locator(selector).boundingBox())!
+      )
+    )
+    expect(nav.width).toBe(64)
+    expect(card.x).toBe(64)
+    expect(logo.x + logo.width / 2).toBe(32)
+    expect(toggle.x + toggle.width / 2).toBe(32)
+    expect(toggle.y).toBeGreaterThan(logo.y + logo.height)
+    expect(tabs.y).toBeGreaterThan(toggle.y + toggle.height)
+    await expect(page.locator('.nav .user-menu')).toBeHidden()
+  })
+
+  test("nav: 'hidden' hides the nav and lets the card fill the field", async ({ page }) => {
+    await page.context().addCookies([studio({ nav: 'hidden' })])
+    await openList(page)
+    const card = page.locator('.template-default__wrap')
 
     const toggleNav = (toggle: string) =>
       Promise.all([
