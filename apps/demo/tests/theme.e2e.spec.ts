@@ -735,6 +735,18 @@ test.describe('Accent', () => {
     await expect(primary).toHaveCSS('background-color', 'rgb(194, 65, 12)')
   })
 
+  test('text on the accent stays readable, dark on a light accent and white on a dark one', async ({ page }) => {
+    const primary = page.locator('.btn--style-primary:visible').first()
+
+    await page.context().addCookies([appearance({ accent: { warm: '#ffffff' } })])
+    await page.goto('/admin/collections/showcase')
+    await expect(primary).toHaveCSS('color', 'rgb(0, 0, 0)')
+
+    await page.context().addCookies([appearance({ accent: { warm: '#c2410c' } })])
+    await page.reload()
+    await expect(primary).toHaveCSS('color', 'rgb(255, 255, 255)')
+  })
+
   test('each palette keeps its own accent, and the hex field applies only valid colors', async ({ page }) => {
     await page.goto('/admin')
     const html = page.locator('html')

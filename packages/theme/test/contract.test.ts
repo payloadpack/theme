@@ -398,7 +398,7 @@ describe('theme contract with Payload', () => {
   })
 
   it('remaps every blue step Payload reads from the accent', () => {
-    expect(declaredProperties(themeCss['palettes/accent.css'])).toEqual(
+    expect(declaredProperties(themeCss['palettes/accent.css']).filter((token) => token.startsWith('--ramp-'))).toEqual(
       referencedProperties(payloadCss).filter((token) => /^--ramp-(?:pale-)?blue-/.test(token))
     )
   })

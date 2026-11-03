@@ -15,5 +15,11 @@
     --ramp-pale-blue-600: color-mix(in srgb, var(--payloadpack-accent) 20%, #5f5f5f);
     --ramp-pale-blue-700: color-mix(in srgb, var(--payloadpack-accent) 20%, #525252);
     --ramp-pale-blue-800: color-mix(in srgb, var(--payloadpack-accent) 20%, #393939);
+
+    /* 3. On accent */
+    --payloadpack-on-accent: oklch(from var(--payloadpack-accent) clamp(0, (0.72 - l) * 1000, 1) 0 0);
+    --color-text-onbrand: var(--payloadpack-on-accent);
+    --color-icon-onbrand: var(--payloadpack-on-accent);
+    --color-icon-onbrand-secondary: rgb(from var(--payloadpack-on-accent) r g b / 0.8);
   }
 }
