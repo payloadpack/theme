@@ -49,7 +49,7 @@ Studio's defaults are still open (see Open). The canvas uses provisional ones.
 
 ## Palettes
 
-A palette is data: four base colors for light and four for dark, plus nothing else. One shared stylesheet derives every Payload color token from them with `color-mix`: surfaces, borders, muted text, hover and selected states, the accent's shades and the text on the accent. Built-in and custom palettes are the same shape, so a new palette costs only its colors. Palettes work with every character, Stock included. There are no presets.
+A palette is CSS, the way Tailwind v4 defines design tokens: a block that sets four base custom properties, `--payloadpack-background`, `--payloadpack-surface`, `--payloadpack-text` and `--payloadpack-accent`, scoped to `[data-palette='<name>']`, with its dark version nested under `[data-theme='dark']`. One shared stylesheet derives every Payload color token from them with `color-mix`: surfaces, borders, muted text, hover and selected states, the accent's shades and the text on the accent. Built-in and custom palettes are the same shape, so a new palette costs only its colors. Because the scope is the attribute and not only `<html>`, a preview card with `data-palette="clay"` shows the palette's real colors. Palettes work with every character, Stock included. There are no presets.
 
 | Base color | What it paints                               |
 | ---------- | -------------------------------------------- |
@@ -66,8 +66,8 @@ A palette is data: four base colors for light and four for dark, plus nothing el
 
 - The Payload palette applies no overrides, so plain Payload is the Stock character with the Payload palette. Today's look is Enhanced with Warm, the zero-config default.
 - Editors override a palette's accent with 8 swatches or a hex field, and each palette remembers its own accent.
-- Editors create a palette with **New palette** in the panel: it starts from the current palette and shows the four color fields for each mode. It saves into their setup, so Copy setup shares it with colleagues.
-- Developers offer palettes to everyone by pasting the same JSON into `themePlugin({ palettes: { clay: { light: {...}, dark: {...} } } })`.
+- Editors create a palette with **New palette** in the panel: it starts from the current palette and shows the four color fields for each mode. It sets the same four variables inline on `<html>` and saves into their setup, so Copy setup shares it with colleagues.
+- **Copy as CSS** exports an editor's palette as a CSS block. Developers paste it into their admin stylesheet (Payload's `custom.scss`) and list its name in `themePlugin({ palettes: [...] })` to offer it to everyone.
 - The package ships no palette named after another company or product.
 
 ## Plugin config
@@ -78,14 +78,14 @@ themePlugin({
   characters: ['enhanced', 'studio'],
   options: { studio: { frame: 'flat' } },
   palette: 'studio',
-  palettes: { payload: true, studio: true, clay: { light: {...}, dark: {...} } },
+  palettes: ['payload', 'studio', 'clay'],
   accent: { studio: '#1d4ed8' },
   panel: ({ user }) => user?.role === 'admin'
 })
 ```
 
 - `character` and `palette` are the defaults. Zero config is `'enhanced'` and `'warm'`.
-- `characters` lists the characters editors may pick. `palettes` lists the palettes they may pick: `true` for a built-in one, or a definition (four base colors per mode) for your own. Default: everything built in. The plugin throws at startup when a default isn't allowed.
+- `characters` lists the characters editors may pick. `palettes` lists the palettes they may pick by name: built-in ones, or your own palettes defined in CSS. The config never holds colors. Default: everything built in. The plugin throws at startup when a default isn't allowed.
 - `options` holds option values per character. Each key is typed with only that character's options, so `options: { enhanced: { frame: 'flat' } }` is a type error. Stock has no key.
 - `accent` holds a hex per palette.
 - `panel` is `true`, `false` or `({ user }) => boolean`. Default `true`. When it resolves to `false`, the editor gets no panel button and their saved setup is ignored.
