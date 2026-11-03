@@ -59,6 +59,7 @@
   },
   "peerDependencies": {
     "@payloadcms/ui": "^4.0.0-beta.6",
+    "next": "^16.4.2",
     "payload": "^4.0.0-beta.6",
     "react": "^19",
     "react-dom": "^19"
@@ -72,6 +73,7 @@
     "@types/react": "19.3.0",
     "copyfiles": "2.4.1",
     "lucide-static": "1.61.0",
+    "next": "16.4.2",
     "payload": "4.0.0-beta.6",
     "react": "19.3.1",
     "react-dom": "19.3.1",

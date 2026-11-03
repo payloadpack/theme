@@ -28,6 +28,7 @@ const lucideIcons = path.join(packageRoot('lucide-static'), 'icons')
 
 const scopes: Record<string, string> = {
   'characters/enhanced/enhanced.css': "html[data-character='enhanced']",
+  'characters/studio/studio.css': "html[data-character='studio']",
   'palettes/accent.css': 'html[data-accent]',
   'options/density.css': "html[data-density='comfortable']",
   'options/icons.css': "html[data-icons='lucide']",
@@ -35,8 +36,10 @@ const scopes: Record<string, string> = {
   'options/nav-icons.css': "html:is([data-icons='lucide'], [data-nav='icons'])",
   'options/nav.css': "html[data-nav='icons']",
   'options/radius.css': 'html[data-radius]',
+  'palettes/studio.css': "html[data-palette='studio']",
   'palettes/warm.css': "html[data-palette='warm']",
   'styles/appearance-panel.css': '.payloadpack-appearance-panel',
+  'styles/nav-logo.css': '.payloadpack-nav-logo',
   'styles/rail.css': 'html[data-rail]',
   'styles/fields/radio-cards.css': `.${RADIO_CARDS}`,
   'styles/fields/switch.css': `.${SWITCH}`,

@@ -45,7 +45,15 @@ Enhanced's defaults keep today's layout apart from motion:
 | `motion`  | `on`                                                                        |
 | `nav`     | `icons` (provisional)                                                       |
 
-Studio's defaults are still open (see Open). The canvas uses provisional ones.
+Studio's defaults:
+
+| Option    | Studio default |
+| --------- | -------------- |
+| `font`    | `geist`        |
+| `frame`   | `boxed`        |
+| `width`   | `centered`     |
+| `density` | `comfortable`  |
+| `icons`   | `lucide`       |
 
 ## Palettes
 
@@ -58,11 +66,11 @@ A palette is CSS, the way Tailwind v4 defines design tokens: a block scoped to `
 | text       | text and icons; muted text is mixed from it  |
 | accent     | primary buttons, links, selection            |
 
-| Palette | Light                               | Dark                                               | Accent    |
-| ------- | ----------------------------------- | -------------------------------------------------- | --------- |
-| Payload | Payload's own Figma UI3 colors      | Payload's own Figma UI3 colors                     | `#0d99ff` |
-| Warm    | Payload's light colors              | today's Enhanced near-black (`#0f0f0e`, `#f3f2ed`) | `#0d99ff` |
-| Studio  | a faintly tinted field, white cards | the same idea on near-black                        | `#c2410c` |
+| Palette | Light                               | Dark                                                              | Accent    |
+| ------- | ----------------------------------- | ----------------------------------------------------------------- | --------- |
+| Payload | Payload's own Figma UI3 colors      | Payload's own Figma UI3 colors                                    | `#0d99ff` |
+| Warm    | Payload's light colors              | today's Enhanced near-black (`#0f0f0e`, `#f3f2ed`)                | `#0d99ff` |
+| Studio  | a faintly tinted field, white cards | the same tint on near-black, cards a shade lighter than the field | `#c2410c` |
 
 - The Payload palette applies no overrides, so plain Payload is the Stock character with the Payload palette. Today's look is Enhanced with Warm, the zero-config default.
 - Editors override a palette's accent with 8 swatches or a hex field, and each palette remembers its own accent.
@@ -191,7 +199,7 @@ The Studio character:
 - `frame: 'boxed'` puts each view in a soft card on the field; `flat` drops the card.
 - `width: 'centered'` caps the content width; `full` drops the cap.
 - The user menu moves to the bottom of the nav with CSS only: `.nav__header { display: contents }`, then `order` on the user menu. Payload's popover flips upward by itself.
-- A logo at the top of the nav comes from a small component in the `beforeNavLinks` slot that renders `admin.components.graphics.Icon` from the config. Payload 4.0.0-beta.6 renders `graphics.Icon` nowhere itself.
+- A logo at the top of the nav comes from a small component in the `beforeNav` slot that renders `admin.components.graphics.Icon` from the config, or Payload's icon. `beforeNav` sits above the Collections and Folders tabs, so the logo stays when an editor switches tabs; `beforeNavLinks` sits inside the Collections tab. Payload 4.0.0-beta.6 renders `graphics.Icon` nowhere itself.
 
 The Studio palette mixes its field, nav and card surfaces from the accent into Payload's light and dark surfaces with `color-mix`, so any hex gets matching surfaces. The tint is faint: Copper gives a field of about `#f0ebe6`.
 
@@ -205,19 +213,17 @@ From Payload 4.0.0-beta.6's CSS:
   - Payload's own blue, `#0d99ff`, keeps Payload's exact ramp.
   - No component hard-codes a blue.
 - `radius`: `--radius-small`, `--radius-medium`, `--radius-large`, `--button-radius`, `--field-border-radius`, `--popup-radius` and `--popup-item-radius`. Components pick a tier directly, so the option sets the tiers.
-- `font`: `--font-family-sans`. Payload loads Inter with `next/font` as an unlayered class on `<html>`, so the option needs a layered `!important` declaration.
+- `font`: `--font-family-sans`. Payload loads Inter with `next/font` as an unlayered class on `<html>`, so the option needs a layered `!important` declaration. Geist loads with `next/font/google` in the server provider, with `preload: false` so only editors who use it download it, and the provider sets its family as `--payloadpack-font-geist` on `<html>`.
 - `density`: what `density.css` already does.
 - `motion`: what Payload 3 animated and Payload 4 dropped:
   - the drawer's 200ms backdrop fade and panel slide
   - the tooltip's 0.2s fade
   - the small transitions on fields, buttons and cards
   - Payload 3 never animated popups or modals.
-- `width`: Payload has no content-width token. Only `admin.constrainWidth` caps the edit view.
+- `width`: Payload has no content-width token. Only `admin.constrainWidth` caps the edit view. `centered` caps every view below the app header at 880px.
 
 ## Open
 
-- How Geist loads (ticket 3). Recommended: `next/font/google` in the package, the way Payload loads Inter.
-- Studio's character defaults, the Studio palette's dark version and the exact surface mixes.
 - Tests and README screenshots across characters and palettes.
 
 ## Out of scope

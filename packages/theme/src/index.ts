@@ -77,7 +77,11 @@ export function themePlugin(pluginConfig: ThemePluginConfig = {}): Plugin {
           ...(config.admin?.components?.actions ?? []),
           { path: `${PACKAGE_NAME}/rsc#AppearanceServerPanel`, serverProps: { panel } }
         ],
-        beforeNav: [...(config.admin?.components?.beforeNav ?? []), `${PACKAGE_NAME}/client#RailToggle`],
+        beforeNav: [
+          ...(characters.includes('studio') ? [`${PACKAGE_NAME}/rsc#NavLogo`] : []),
+          ...(config.admin?.components?.beforeNav ?? []),
+          `${PACKAGE_NAME}/client#RailToggle`
+        ],
         providers: [
           ...(config.admin?.components?.providers ?? []),
           { path: `${PACKAGE_NAME}/rsc#AppearanceServerProvider`, serverProps: { codeEditorFontSize, panel, settings } }

@@ -33,7 +33,7 @@
     },
     "packages/theme": {
       "name": "@payloadpack/theme",
-      "version": "0.2.3",
+      "version": "0.2.4",
       "devDependencies": {
         "@payloadcms/richtext-lexical": "4.0.0-beta.6",
         "@payloadcms/ui": "4.0.0-beta.6",
@@ -43,6 +43,7 @@
         "@types/react": "19.3.0",
         "copyfiles": "2.4.1",
         "lucide-static": "1.61.0",
+        "next": "16.4.2",
         "payload": "4.0.0-beta.6",
         "react": "19.3.1",
         "react-dom": "19.3.1",
@@ -53,6 +54,7 @@
       },
       "peerDependencies": {
         "@payloadcms/ui": "^4.0.0-beta.6",
+        "next": "^16.4.2",
         "payload": "^4.0.0-beta.6",
         "react": "^19",
         "react-dom": "^19",

@@ -29,6 +29,7 @@ import { LLMInstructionsDescription as LLMInstructionsDescription_3817bf644402e6
 import { LLMInstructionsCell as LLMInstructionsCell_ab83ff7e88da8d3530831f296ec4756a } from '@payloadcms/ui/rsc'
 import { AppearanceServerPanel as AppearanceServerPanel_518a69ce6606b4282299e343b77e30ca } from '@payloadpack/theme/rsc'
 import { ToastsNavLink as ToastsNavLink_470ab6fef553fc16111542c4a45d5261 } from '../../../views/ToastsNavLink'
+import { NavLogo as NavLogo_518a69ce6606b4282299e343b77e30ca } from '@payloadpack/theme/rsc'
 import { RailToggle as RailToggle_5441c603e82e992293b6f37bceb423a5 } from '@payloadpack/theme/client'
 import { AppearanceServerProvider as AppearanceServerProvider_518a69ce6606b4282299e343b77e30ca } from '@payloadpack/theme/rsc'
 import { FolderIcon as FolderIcon_3817bf644402e67bfe6577f60ef982de } from '@payloadcms/ui'
@@ -75,6 +76,7 @@ export const importMap = {
   "@payloadcms/ui/rsc#LLMInstructionsCell": LLMInstructionsCell_ab83ff7e88da8d3530831f296ec4756a,
   "@payloadpack/theme/rsc#AppearanceServerPanel": AppearanceServerPanel_518a69ce6606b4282299e343b77e30ca,
   "/views/ToastsNavLink#ToastsNavLink": ToastsNavLink_470ab6fef553fc16111542c4a45d5261,
+  "@payloadpack/theme/rsc#NavLogo": NavLogo_518a69ce6606b4282299e343b77e30ca,
   "@payloadpack/theme/client#RailToggle": RailToggle_5441c603e82e992293b6f37bceb423a5,
   "@payloadpack/theme/rsc#AppearanceServerProvider": AppearanceServerProvider_518a69ce6606b4282299e343b77e30ca,
   "@payloadcms/ui#FolderIcon": FolderIcon_3817bf644402e67bfe6577f60ef982de,

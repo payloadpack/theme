@@ -186,6 +186,27 @@
       }
     }
 
+    .payloadpack-appearance-panel__preview--studio {
+      gap: 3px;
+      padding: 3px;
+      background-color: var(--color-bg-secondary);
+
+      > :first-child {
+        flex-basis: 20%;
+        border-color: transparent;
+      }
+
+      > :last-child {
+        border: var(--stroke-width-small) solid var(--color-border);
+        border-radius: calc(var(--radius-medium) - 1px);
+        background-color: var(--color-bg);
+
+        > * {
+          border-radius: var(--radius-full);
+        }
+      }
+    }
+
     .payloadpack-appearance-panel__halves {
       display: flex;
       height: 3.25rem;

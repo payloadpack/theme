@@ -1,7 +1,11 @@
 import { enhanced } from './enhanced/index.js'
+import { studio } from './studio/index.js'
 
 export const options = {
   radius: ['none', 'sm', 'md', 'lg', 'full'],
+  font: ['payload', 'geist', 'system'],
+  frame: ['boxed', 'flat'],
+  width: ['centered', 'full'],
   density: ['compact', 'comfortable'],
   icons: ['payload', 'lucide'],
   motion: ['off', 'on'],
@@ -16,7 +20,8 @@ export type Values = { [O in Option]?: OptionValue<O> }
 
 export const characters = {
   stock: { defaults: {} },
-  enhanced
+  enhanced,
+  studio
 } satisfies Record<string, { defaults: Values }>
 
 export type Character = keyof typeof characters
