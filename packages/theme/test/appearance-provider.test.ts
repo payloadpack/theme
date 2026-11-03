@@ -5,12 +5,15 @@ import { expect, it } from 'vitest'
 import { AppearanceProvider } from '../src/components/appearance-provider.js'
 import type { Choices, Settings } from '../src/lib/appearance.js'
 
+const geist = "'Geist', 'Geist Fallback'"
+
 const runScript = (settings: Settings, initialChoices: Choices = {}) => {
   const html = renderToString(
     createElement(AppearanceProvider, {
       children: null,
       codeEditorFontSize: false,
       cookieName: 'payload-appearance',
+      geist,
       initialChoices,
       settings
     })
@@ -44,13 +47,13 @@ it('keeps the initial appearance inside its inline script', () => {
   })
 })
 
-it("sets the palette and its accent, and leaves Payload's blue to Payload", () => {
+it("sets the palette, its accent and the Geist family, and leaves Payload's blue to Payload", () => {
   expect(runScript(settings)).toEqual({
     dataset: { character: 'enhanced', density: 'comfortable', icons: 'lucide', palette: 'warm' },
-    style: { '--payloadpack-accent': '#0d99ff' }
+    style: { '--payloadpack-accent': '#0d99ff', '--payloadpack-font-geist': geist }
   })
   expect(runScript(settings, { accent: { payload: '#c2410c' }, palette: 'payload' })).toEqual({
     dataset: { accent: '#c2410c', character: 'enhanced', density: 'comfortable', icons: 'lucide', palette: 'payload' },
-    style: { '--payloadpack-accent': '#c2410c' }
+    style: { '--payloadpack-accent': '#c2410c', '--payloadpack-font-geist': geist }
   })
 })

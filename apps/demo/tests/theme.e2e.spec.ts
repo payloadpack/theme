@@ -91,7 +91,7 @@ test.describe('Theme plugin', () => {
 
     const html = await (await page.request.get('/admin')).text()
     expect(html).toContain(
-      `<script>Object.assign(document.documentElement.dataset,{"character":"stock","palette":"warm"});document.documentElement.style.setProperty('--payloadpack-accent',"#0d99ff")</script>`
+      `<script>Object.assign(document.documentElement.dataset,{"character":"stock","palette":"warm"});document.documentElement.style.setProperty('--payloadpack-accent',"#0d99ff");document.documentElement.style.setProperty('--payloadpack-font-geist',"'Geist', 'Geist Fallback'")</script>`
     )
 
     await page.goto('/admin')
@@ -842,6 +842,28 @@ test.describe('Studio character', () => {
     const popup = page.locator('.user-menu .popup__content')
     await expect(popup).toBeVisible()
     expect(((await popup.boundingBox())?.y ?? 0) + ((await popup.boundingBox())?.height ?? 0)).toBeLessThanOrEqual(menu?.y ?? 0)
+  })
+
+  test('loads Geist for the body font and switches to Payload or the system font', async ({ page }) => {
+    await page.context().addCookies([studio()])
+    await openList(page)
+    const body = page.locator('body')
+
+    await expect(body).toHaveCSS('font-family', /^Geist, "Geist Fallback"/)
+    expect(
+      await page.evaluate(async () => {
+        await document.fonts.ready
+        return [...document.fonts].some((font) => font.family === 'Geist' && font.status === 'loaded')
+      })
+    ).toBe(true)
+
+    await page.context().addCookies([studio({ font: 'payload' })])
+    await page.reload()
+    await expect(body).toHaveCSS('font-family', /^Inter, "Inter Fallback"/)
+
+    await page.context().addCookies([studio({ font: 'system' })])
+    await page.reload()
+    await expect(body).toHaveCSS('font-family', /^system-ui,/)
   })
 
   test('leaves Stock and Enhanced in their own layout and font', async ({ page }) => {

@@ -1,6 +1,10 @@
 @layer payload {
   html[data-character='studio'] {
     /* 1. Font */
+    &[data-font='geist'] {
+      --font-family-sans: var(--payloadpack-font-geist) !important;
+    }
+
     &[data-font='system'] {
       --font-family-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif !important;
     }

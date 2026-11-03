@@ -12,6 +12,8 @@ const ONE_YEAR_IN_SECONDS = 60 * 60 * 24 * 365
 
 const ACCENT_PROPERTY = '--payloadpack-accent'
 
+const GEIST_PROPERTY = '--payloadpack-font-geist'
+
 const inline = (value: unknown) => JSON.stringify(value).replace(/</g, '\\u003c')
 
 type AppearanceContextValue = ReturnType<typeof resolve> & {
@@ -34,6 +36,7 @@ type AppearanceProviderProps = {
   children: ReactNode
   codeEditorFontSize: false | number
   cookieName: string
+  geist: string
   initialChoices: Choices
   settings: Settings
 }
@@ -42,6 +45,7 @@ export function AppearanceProvider({
   children,
   codeEditorFontSize,
   cookieName,
+  geist,
   initialChoices,
   settings
 }: AppearanceProviderProps) {
@@ -65,14 +69,16 @@ export function AppearanceProvider({
     const { dataset, style } = document.documentElement
     Object.assign(dataset, attributes)
     style.setProperty(ACCENT_PROPERTY, accent)
+    style.setProperty(GEIST_PROPERTY, geist)
 
     return () => {
       for (const key of Object.keys(attributes)) {
         delete dataset[key]
       }
       style.removeProperty(ACCENT_PROPERTY)
+      style.removeProperty(GEIST_PROPERTY)
     }
-  }, [accent, attributes])
+  }, [accent, attributes, geist])
 
   const context = useMemo(() => {
     const update = (next: Choices) => {
@@ -114,7 +120,7 @@ export function AppearanceProvider({
       {isServerHtml && (
         <script
           dangerouslySetInnerHTML={{
-            __html: `Object.assign(document.documentElement.dataset,${inline(attributes)});document.documentElement.style.setProperty('${ACCENT_PROPERTY}',${inline(accent)})`
+            __html: `Object.assign(document.documentElement.dataset,${inline(attributes)});document.documentElement.style.setProperty('${ACCENT_PROPERTY}',${inline(accent)});document.documentElement.style.setProperty('${GEIST_PROPERTY}',${inline(geist)})`
           }}
         />
       )}
