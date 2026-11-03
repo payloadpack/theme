@@ -85,7 +85,7 @@ The panel opens as a sheet on the right and fills the screen on phones. Every ch
 | Collapsed nav | Icons, Hidden          | Icons            | Icons          |
 
 - **Enhanced** draws a 2px focus ring, rounds popups and toasts a little more, lifts the date picker and toasts like menus, and insets the sidebar tabs.
-- **Studio** keeps the nav on the field and moves the user menu to the bottom of it. The top of the nav shows your `admin.components.graphics.Icon`, or Payload's icon when you have none. In the rail, the logo sits above the collapse button.
+- **Studio** keeps the nav on the field, puts the collapse button at its top left and moves the user menu to the bottom of it.
 - **Warm** gives dark mode a warm near-black palette and swaps Payload's blue selection for neutral greys. In both modes it draws the focus ring in the text color and fills checked checkboxes and selected radios with the text color instead of the accent.
 - **Studio**, the palette, mixes a faint share of the accent into a warm off-white field and nav, with white cards and lines tinted the same way. Dark mode mixes it into near-black. Selected items take a soft fill of the accent.
 - **Corners** scales Payload's own corner sizes. M keeps them as they are, None squares every corner, S and L make them smaller or larger, and Round is L with pill-shaped buttons.

@@ -39,7 +39,6 @@ const scopes: Record<string, string> = {
   'palettes/studio.css': "html[data-palette='studio']",
   'palettes/warm.css': "html[data-palette='warm']",
   'styles/appearance-panel.css': '.payloadpack-appearance-panel',
-  'styles/nav-logo.css': '.payloadpack-nav-logo',
   'styles/rail.css': 'html[data-rail]',
   'styles/fields/radio-cards.css': `.${RADIO_CARDS}`,
   'styles/fields/switch.css': `.${SWITCH}`,

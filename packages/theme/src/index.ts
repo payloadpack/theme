@@ -78,7 +78,6 @@ export function themePlugin(pluginConfig: ThemePluginConfig = {}): Plugin {
           { path: `${PACKAGE_NAME}/rsc#AppearanceServerPanel`, serverProps: { panel } }
         ],
         beforeNav: [
-          ...(characters.includes('studio') ? [`${PACKAGE_NAME}/rsc#NavLogo`] : []),
           ...(config.admin?.components?.beforeNav ?? []),
           `${PACKAGE_NAME}/client#RailToggle`
         ],

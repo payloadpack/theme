@@ -924,8 +924,7 @@ test.describe('Payload palette', () => {
       `.${VERTICAL_TABS}`,
       `.${RADIO_CARDS}`,
       `.${SWITCH}`,
-      '.payloadpack-appearance-panel',
-      '.payloadpack-nav-logo'
+      '.payloadpack-appearance-panel'
     ]
     for (const scope of ownClasses) {
       expect(
@@ -1236,24 +1235,26 @@ test.describe('Studio character', () => {
     await expect(page.locator('.nav')).toHaveCSS('border-right-width', '0px')
   })
 
-  test('collapses into a rail beside the card, with the toggle under the logo', async ({ page }) => {
+  test('collapses into a rail beside the card, keeping the toggle in its row at the top', async ({ page }) => {
     await page.context().addCookies([studio()])
     await openList(page)
+    const toggle = page.locator('.payloadpack-rail-toggle')
+    const open = (await toggle.boundingBox())!
     await page.getByRole('button', { name: 'Hide sidebar' }).click()
     await expect(page.locator('html')).toHaveAttribute('data-rail', '')
-    await page.evaluate(() => Promise.all(document.getAnimations().map((animation) => animation.finished)))
+    await settled(page.locator('.template-default'))
 
-    const [nav, card, logo, toggle, tabs] = await Promise.all(
-      ['.nav', '.template-default__wrap', '.payloadpack-nav-logo', '.payloadpack-rail-toggle', '.sidebar-tabs'].map(
+    const [nav, card, rail] = await Promise.all(
+      ['.nav', '.template-default__wrap', '.payloadpack-rail-toggle'].map(
         async (selector) => (await page.locator(selector).boundingBox())!
       )
     )
     expect(nav.width).toBe(64)
     expect(card.x).toBe(64)
-    expect(logo.x + logo.width / 2).toBe(32)
-    expect(toggle.x + toggle.width / 2).toBe(32)
-    expect(toggle.y).toBeGreaterThan(logo.y + logo.height)
-    expect(tabs.y).toBeGreaterThan(toggle.y + toggle.height)
+    expect(open.x + open.width / 2).toBe(24)
+    expect(rail.x + rail.width / 2).toBe(32)
+    expect(rail.y).toBe(open.y)
+    expect((await page.locator('#nav-showcase').boundingBox())!.y).toBeGreaterThan(rail.y + rail.height)
     await expect(page.locator('.nav .user-menu')).toBeHidden()
   })
 
@@ -1322,23 +1323,6 @@ test.describe('Studio character', () => {
     const popup = page.locator('.user-menu .popup__content')
     await expect(popup).toBeVisible()
     expect(((await popup.boundingBox())?.y ?? 0) + ((await popup.boundingBox())?.height ?? 0)).toBeLessThanOrEqual(menu?.y ?? 0)
-  })
-
-  test('shows the logo at the top of the nav under Studio only', async ({ page }) => {
-    await page.context().addCookies([studio()])
-    await openList(page)
-    const logo = page.locator('.payloadpack-nav-logo')
-
-    await expect(logo).toBeVisible()
-    await expect(logo.locator('svg.graphic-icon')).toBeVisible()
-    expect((await logo.boundingBox())?.y).toBeLessThan((await page.locator('.sidebar-tabs').boundingBox())?.y ?? 0)
-
-    for (const character of ['enhanced', 'stock']) {
-      await page.context().addCookies([appearance({ character })])
-      await page.reload()
-      await expect(page.locator('html')).toHaveAttribute('data-character', character)
-      await expect(logo).toBeHidden()
-    }
   })
 
   test('loads Geist for the body font and switches to Payload or the system font', async ({ page }) => {

@@ -155,7 +155,7 @@ With `nav: 'icons'`, a collapsed nav becomes a 64px rail of icons instead of dis
 - Payload closes the nav when the window shrinks past 1440px or 1024px. While the rail is on, the provider reopens it with `useNav().setNavOpen(true)`, without saving that.
 - At 768px and below the rail is off and the nav is Payload's full-screen drawer.
 - `nav: 'hidden'` leaves Payload's collapse exactly as it is.
-- Under Studio the logo sits centered at the top of the rail, with the collapse button below it, and the user menu at the bottom is hidden like the header's under Enhanced.
+- Under Studio the collapse button keeps its row at the top left of the nav and only centers itself in the rail, and the user menu at the bottom is hidden like the header's under Enhanced.
 
 ## Scoping and folders
 
@@ -197,7 +197,6 @@ src/options/motion.css
 src/options/nav.css
 src/options/nav-icons.css           the nav's Lucide icons, shared by icons: 'lucide' and the rail
 src/styles/appearance-panel.css
-src/styles/nav-logo.css
 src/styles/rail.css                 the rail's tooltip colors
 src/styles/fields/*
 ```
@@ -215,7 +214,6 @@ The Studio character:
 - `frame: 'boxed'` puts each view in a soft card on the field; `flat` drops the card. The card's corners are `--radius-large` plus 6px, so they follow `radius`.
 - `width: 'centered'` caps the content width; `full` drops the cap.
 - The user menu moves to the bottom of the nav with CSS only: `.nav__header { display: contents }`, then `order` on the user menu. Payload's popover flips upward by itself.
-- A logo at the top of the nav comes from a small component in the `beforeNav` slot that renders `admin.components.graphics.Icon` from the config, or Payload's icon. `beforeNav` sits above the Collections and Folders tabs, so the logo stays when an editor switches tabs; `beforeNavLinks` sits inside the Collections tab. Payload 4.0.0-beta.6 renders `graphics.Icon` nowhere itself.
 
 The Studio palette mixes its field, nav and card surfaces from the accent into Payload's light and dark surfaces with `color-mix`, so any hex gets matching surfaces. The tint is faint: Copper gives a field of about `#f0ebe6`.
 

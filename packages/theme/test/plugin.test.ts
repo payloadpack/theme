@@ -32,14 +32,10 @@ it('gives every supported language the English panel labels, and lets the app ov
   expect(translations.de.payloadpack.colorMode).toBe('Color mode')
 })
 
-it('puts the logo before the app nav components only when Studio is allowed, and the rail toggle after them', async () => {
-  const beforeNav = async (pluginConfig: ThemePluginConfig) => {
-    const config = await themePlugin(pluginConfig)({ admin: { components: { beforeNav: ['/nav#Banner'] } } } as Config)
-    return config.admin?.components?.beforeNav
-  }
+it('puts the rail toggle after the app nav components', async () => {
+  const config = await themePlugin({})({ admin: { components: { beforeNav: ['/nav#Banner'] } } } as Config)
 
-  expect(await beforeNav({})).toEqual(['@payloadpack/theme/rsc#NavLogo', '/nav#Banner', '@payloadpack/theme/client#RailToggle'])
-  expect(await beforeNav({ characters: ['stock', 'enhanced'] })).toEqual(['/nav#Banner', '@payloadpack/theme/client#RailToggle'])
+  expect(config.admin?.components?.beforeNav).toEqual(['/nav#Banner', '@payloadpack/theme/client#RailToggle'])
 })
 
 it('throws when the default character is not allowed', () => {

@@ -48,15 +48,8 @@
     }
 
     .nav__close {
-      position: absolute;
-      inset-block-start: var(--spacer-2);
-      inset-inline-end: var(--spacer-2);
-      z-index: 1;
-    }
-
-    .payloadpack-nav-logo {
-      display: flex;
-      margin: var(--spacer-2-5) var(--spacer-2-5) 0;
+      align-self: flex-start;
+      margin: var(--spacer-2) var(--spacer-2) 0;
     }
 
     .user-menu {
@@ -66,16 +59,8 @@
 
     /* 5. Rail */
     @media (min-width: 769px) {
-      &[data-rail] {
-        .payloadpack-nav-logo {
-          margin-inline: calc((var(--payloadpack-rail-width) - var(--spacer-4)) / 2);
-          margin-block-end: calc(2 * var(--spacer-1) + var(--spacer-5));
-        }
-
-        .nav__close {
-          inset-block-start: calc(var(--spacer-2-5) + var(--spacer-4) + var(--spacer-1));
-          inset-inline-end: calc((var(--payloadpack-rail-width) - var(--spacer-5)) / 2);
-        }
+      &[data-rail] .nav__close {
+        margin-inline-start: calc((var(--payloadpack-rail-width) - var(--spacer-5)) / 2);
       }
     }
   }
