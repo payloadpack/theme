@@ -57,7 +57,7 @@ A palette is a named set of colors with a light and a dark version, plus a defau
 
 - Plain Payload is the Stock character with the Payload palette. Today's look is the Enhanced character with the Warm palette, which is the zero-config default.
 - Warm also draws the focus ring and checked boxes in the text color instead of the accent.
-- The accent belongs to the palette. Editors override it with 8 swatches or a hex field, and each palette remembers its own accent. One accent serves both versions: the theme mixes the dark-mode shades itself.
+- The accent belongs to the palette. Editors override it with 8 swatches or a hex field, and each palette remembers its own accent. One accent serves both versions: the theme mixes the shades itself. Selected items get a light tint and darker accent text in light mode, and a tint mixed into the palette's own background in dark mode, so even a white accent stays visible.
 
 ## Plugin config
 

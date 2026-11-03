@@ -37,6 +37,11 @@ const style = (page: Page, selector: string, property: string, pseudoElement?: s
       pseudoElement
     ] as const)
 
+const channels = async (page: Page, space: 'oklab' | 'oklch', color: string) =>
+  (await computedColor(page, `${space}(from ${color} ${space === 'oklab' ? 'l a b' : 'l c h'})`))
+    .match(/-?[\d.]+/g)
+    ?.map(Number) ?? []
+
 const backgrounds = (page: Page) =>
   page.evaluate(() => [document.documentElement, document.body].map((element) => getComputedStyle(element).backgroundColor))
 
@@ -766,6 +771,53 @@ test.describe('Accent', () => {
     await page.context().addCookies([appearance({ accent: { warm: '#c2410c' } })])
     await page.reload()
     await expect(primary).toHaveCSS('color', 'oklch(1 0 0)')
+  })
+
+  test('selected nav links take an ink of the accent in light mode and keep the text color in dark mode', async ({ page }) => {
+    await page.context().addCookies([appearance({ accent: { warm: '#c2410c' } }), cookie('theme', 'light')])
+    await page.goto('/admin/collections/showcase')
+    const [, , accentHue] = await channels(page, 'oklch', '#c2410c')
+    const [inkLightness, , inkHue] = await channels(page, 'oklch', await style(page, '.nav__link--selected', 'color'))
+
+    expect(inkLightness).toBeLessThan(0.45)
+    expect(Math.abs(inkHue - accentHue)).toBeLessThan(5)
+
+    await page.context().addCookies([cookie('theme', 'dark')])
+    await page.reload()
+    expect(await style(page, '.nav__link--selected', 'color')).toBe(await style(page, 'body', 'color'))
+  })
+
+  test('a white accent keeps selected items and primary buttons visible in light mode', async ({ page }) => {
+    await page
+      .context()
+      .addCookies([appearance({ accent: { payload: '#ffffff' }, palette: 'payload' }), cookie('theme', 'light')])
+    await page.goto('/admin/collections/showcase')
+    const [fillLightness] = await channels(
+      page,
+      'oklab',
+      await style(page, '.nav__link--selected', 'background-color', '::before')
+    )
+    const [inkLightness] = await channels(page, 'oklab', await style(page, '.nav__link--selected', 'color'))
+    const [, , , edgeAlpha] = await channels(page, 'oklab', await style(page, '.btn--style-primary:visible', 'border-top-color'))
+
+    expect(fillLightness).toBeLessThan(0.95)
+    expect(inkLightness).toBeLessThan(0.45)
+    expect(edgeAlpha).toBeGreaterThan(0)
+  })
+
+  test('dark selection mixes the accent into the palette background', async ({ page }) => {
+    await page.context().addCookies([appearance({ accent: { payload: '#c2410c' }, palette: 'payload' }), cookie('theme', 'dark')])
+    await page.goto('/admin/collections/showcase')
+    const surface = await channels(page, 'oklab', await style(page, 'html', 'background-color'))
+    const fill = await channels(page, 'oklab', await style(page, '.nav__link--selected', 'background-color', '::before'))
+    const accent = await channels(page, 'oklab', '#c2410c')
+    const share = (fill[0] - surface[0]) / (accent[0] - surface[0])
+
+    expect(share).toBeGreaterThan(0.2)
+    expect(share).toBeLessThan(0.5)
+    for (const channel of [1, 2]) {
+      expect(fill[channel]).toBeCloseTo(surface[channel] + share * (accent[channel] - surface[channel]), 2)
+    }
   })
 
   test('each palette keeps its own accent, and the hex field applies only valid colors', async ({ page }) => {
