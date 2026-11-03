@@ -31,8 +31,11 @@ const scopes: Record<string, string> = {
   'options/accent.css': 'html[data-accent]',
   'options/density.css': "html[data-density='comfortable']",
   'options/icons.css': "html[data-icons='lucide']",
+  'options/nav-icons.css': "html:is([data-icons='lucide'], [data-nav='icons'])",
+  'options/nav.css': "html[data-nav='icons']",
   'palettes/warm.css': "html[data-palette='warm']",
   'styles/appearance-panel.css': '.payloadpack-appearance-panel',
+  'styles/rail.css': 'html[data-rail]',
   'styles/fields/radio-cards.css': `.${RADIO_CARDS}`,
   'styles/fields/switch.css': `.${SWITCH}`,
   'styles/fields/vertical-tabs.css': `.${VERTICAL_TABS}`
@@ -48,6 +51,14 @@ const builtAtRuntime: Record<string, { file: string; snippets: string[] }> = {
   'copy-locale-data__button': {
     file: 'elements/CopyLocaleData/index.js',
     snippets: ["const baseClass = 'copy-locale-data'", 'id: `${baseClass}__button`']
+  },
+  'nav-group__label': {
+    file: 'elements/NavGroup/index.js',
+    snippets: ["const baseClass = 'nav-group'", 'className: `${baseClass}__label`']
+  },
+  'nav__link-label': {
+    file: 'elements/Nav/index.client.js',
+    snippets: ["const baseClass = 'nav'", 'className: `${baseClass}__link-label`']
   }
 }
 
@@ -503,7 +514,7 @@ describe('theme contract with Payload', () => {
     expect(constants).toContain('lineHeight: 16,')
   })
   it('references only Lucide icons that lucide-static ships', () => {
-    const icons = matchAll(themeCss['options/icons.css'], /lucide-static\/icons\/([a-z0-9-]+)\.svg/g)
+    const icons = matchAll(allThemeCss, /lucide-static\/icons\/([a-z0-9-]+)\.svg/g)
     expect(icons.length).toBeGreaterThan(0)
     expect(icons.filter((icon) => !existsSync(path.join(lucideIcons, `${icon}.svg`)))).toEqual([])
   })

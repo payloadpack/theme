@@ -7,6 +7,8 @@ test.beforeEach(async ({ page }) => {
   await clearSetup(page)
 })
 
+const nextScripts = '**/_next/static/**/*.js'
+
 const openShowcase = async (page: Page) => {
   await page.context().addCookies([cookie('theme', 'dark')])
   await page.goto((await findShowcase(page)).path)
@@ -101,7 +103,6 @@ test.describe('Theme plugin', () => {
   })
 
   test('paints the dashboard in the theme before hydration', async ({ page }) => {
-    const nextScripts = '**/_next/static/**/*.js'
     await page.context().addCookies([cookie('theme', 'dark')])
 
     await page.route(nextScripts, (route) => route.abort())
@@ -409,6 +410,7 @@ test.describe('Theme values', () => {
   })
 
   test('hide sidebar button shows the focus ring', async ({ page }) => {
+    await page.context().addCookies([appearance({ options: { enhanced: { nav: 'hidden' } } })])
     await page.goto('/admin')
     await page.getByRole('button', { name: 'Hide sidebar' }).focus()
 
@@ -756,5 +758,132 @@ test.describe('Accent', () => {
     await pickAndSave(page, palettes.getByRole('button', { name: 'Payload' }))
     await expect(html).toHaveAttribute('data-palette', 'payload')
     await expect(html).toHaveAttribute('data-accent', '#be185d')
+  })
+})
+
+test.describe('Rail', () => {
+  const collapsed = cookie('nav-rail', 'true')
+  const navWidth = (page: Page) => page.locator('.nav').evaluate((nav) => nav.getBoundingClientRect().width)
+  const afterNextFrame = (page: Page) =>
+    page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))))
+
+  test.beforeEach(({ page }) =>
+    page.route('**/api/payload-preferences/nav', (route) =>
+      route.request().method() === 'POST' ? route.fulfill({ json: {} }) : route.fallback()
+    )
+  )
+
+  test('collapses the nav into a 64px rail of Lucide icons without labels', async ({ page }) => {
+    await page.context().addCookies([appearance({ options: { enhanced: { icons: 'payload' } } })])
+    await page.goto('/admin')
+    await page.getByRole('button', { name: 'Hide sidebar' }).click()
+
+    await expect(page.getByRole('button', { name: 'Show sidebar' })).toHaveAttribute('aria-expanded', 'false')
+    expect(await navWidth(page)).toBe(64)
+    await expect(page.locator('.nav-group__toggle').first()).toBeHidden()
+    for (const link of await page.locator('.nav__link').all()) {
+      expect(await link.evaluate((element) => getComputedStyle(element, '::after').maskImage)).toContain('data:image/svg+xml')
+      await expect(link.locator('.nav__link-label')).toHaveCSS('clip-path', 'inset(50%)')
+    }
+  })
+
+  test('renders the collapsed rail on the server and keeps it through a reload', async ({ page }) => {
+    await page.goto('/admin')
+    await page.getByRole('button', { name: 'Hide sidebar' }).click()
+
+    expect(await (await page.request.get('/admin')).text()).toContain('"nav":"icons","rail":""')
+
+    await page.route(nextScripts, (route) => route.abort())
+    await page.reload()
+    expect(await navWidth(page)).toBe(64)
+
+    await page.unroute(nextScripts)
+    await page.reload()
+    await expect(page.getByRole('button', { name: 'Show sidebar' })).toBeVisible()
+    expect(await navWidth(page)).toBe(64)
+  })
+
+  test('reaches the toggle and the rail icons by keyboard, with a tooltip on focus', async ({ page }) => {
+    await page.context().addCookies([collapsed])
+    await page.goto('/admin')
+    await page.getByRole('button', { name: 'Show sidebar' }).focus()
+    await expect(page.locator('.payloadpack-rail-toggle .sidebar-toggle')).toHaveCSS('outline-style', 'solid')
+    await expect(page.locator('.payloadpack-rail-toggle .sidebar-toggle')).toHaveCSS('outline-width', '2px')
+
+    const showcase = page.locator('#nav-showcase')
+    await page.locator('#nav-users').focus()
+    await page.keyboard.press('Tab')
+    await expect(showcase).toBeFocused()
+    expect(await showcase.evaluate((link) => getComputedStyle(link, '::before').outlineStyle)).toBe('solid')
+
+    const label = showcase.locator('.nav__link-label')
+    await expect(label).toHaveCSS('clip-path', 'none')
+    const [link, tooltip] = await Promise.all([showcase.boundingBox(), label.boundingBox()])
+    expect(tooltip!.x).toBeGreaterThanOrEqual(link!.x + link!.width)
+    expect(tooltip!.y + tooltip!.height / 2).toBeCloseTo(link!.y + link!.height / 2, 0)
+
+    await page.addStyleTag({ content: '.nav__link-label { pointer-events: auto; }' })
+    expect(
+      await label.evaluate((element) => {
+        const box = element.getBoundingClientRect()
+        return element.contains(document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2))
+      })
+    ).toBe(true)
+  })
+
+  test('shows a collapsed group as a chevron that opens it', async ({ page }) => {
+    await page.goto('/admin')
+    await page.getByRole('button', { name: 'Previews' }).click()
+    await page.getByRole('button', { name: 'Hide sidebar' }).click()
+
+    const group = page.getByRole('button', { name: 'Previews' })
+    await group.hover()
+    await expect(group.locator('.nav-group__indicator')).toHaveCSS('opacity', '1')
+    await expect(group.locator('.nav-group__label')).toHaveCSS('clip-path', 'none')
+
+    await group.click()
+    await expect(page.getByRole('link', { name: 'Toasts' })).toBeVisible()
+    await expect(group).toBeHidden()
+  })
+
+  test("nav: 'hidden' keeps Payload's own close button", async ({ page }) => {
+    await page.context().addCookies([appearance({ options: { enhanced: { nav: 'hidden' } } }), collapsed])
+    await page.goto('/admin')
+
+    await expect(page.locator('html')).not.toHaveAttribute('data-rail')
+    await expect(page.locator('.payloadpack-rail-toggle')).toHaveCount(0)
+    await page.locator('.nav__close').click()
+    await expect(page.locator('.nav')).toHaveAttribute('inert', '')
+    expect((await page.locator('.template-default__wrap').boundingBox())?.x).toBe(0)
+  })
+
+  for (const { nav, name, closes } of [
+    { closes: false, name: "keeps Payload's nav open", nav: 'icons' },
+    { closes: true, name: 'lets Payload close the nav', nav: 'hidden' }
+  ] as const) {
+    test(`nav: '${nav}' ${name} when the window shrinks past 1440px`, async ({ page }) => {
+      await page.context().addCookies([appearance({ options: { enhanced: { nav } } })])
+      await page.setViewportSize({ height: 900, width: 1500 })
+      await page.goto('/admin')
+      await expect(page.locator('.nav')).toHaveClass(/nav--nav-hydrated/)
+      await expect(page.locator('.nav')).not.toHaveAttribute('inert')
+
+      await page.setViewportSize({ height: 900, width: 1300 })
+      await expect.poll(() => style(page, 'html', '--vw')).toBe('13px')
+      await afterNextFrame(page)
+      expect(await page.locator('.nav').evaluate((nav) => (nav as HTMLElement).inert)).toBe(closes)
+    })
+  }
+
+  test("at 768px wide the nav is Payload's drawer", async ({ page }) => {
+    await page.context().addCookies([collapsed])
+    await page.setViewportSize({ height: 900, width: 768 })
+    await page.goto('/admin')
+
+    await expect(page.locator('.payloadpack-rail-toggle')).toBeHidden()
+    await page.locator('.app-header__sidebar-toggle').click()
+    expect(await navWidth(page)).toBe(768)
+    await expect(page.locator('.nav__close')).toBeVisible()
+    await expect(page.locator('#nav-showcase .nav__link-label')).toHaveCSS('clip-path', 'none')
   })
 })

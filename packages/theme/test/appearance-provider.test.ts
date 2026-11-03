@@ -5,13 +5,15 @@ import { expect, it } from 'vitest'
 import { AppearanceProvider } from '../src/components/appearance-provider.js'
 import type { Choices, Settings } from '../src/lib/appearance.js'
 
-const runScript = (settings: Settings, initialChoices: Choices = {}) => {
+const runScript = (settings: Settings, initialChoices: Choices = {}, initialRail = false) => {
   const html = renderToString(
     createElement(AppearanceProvider, {
       children: null,
       codeEditorFontSize: false,
       cookieName: 'payload-appearance',
       initialChoices,
+      initialRail,
+      railCookieName: 'payload-nav-rail',
       settings
     })
   )
@@ -52,5 +54,16 @@ it("sets the palette and its accent, and leaves Payload's blue to Payload", () =
   expect(runScript(settings, { accent: { payload: '#c2410c' }, palette: 'payload' })).toEqual({
     dataset: { accent: '#c2410c', character: 'enhanced', density: 'comfortable', icons: 'lucide', palette: 'payload' },
     style: { '--payloadpack-accent': '#c2410c' }
+  })
+})
+
+it('renders the collapsed rail only while the nav option is icons', () => {
+  const withNav: Settings = { ...settings, options: { enhanced: { nav: 'icons' } } }
+
+  expect(runScript(withNav, {}, true).dataset).toEqual({ character: 'enhanced', nav: 'icons', palette: 'warm', rail: '' })
+  expect(runScript(withNav, { options: { enhanced: { nav: 'hidden' } } }, true).dataset).toEqual({
+    character: 'enhanced',
+    nav: 'hidden',
+    palette: 'warm'
   })
 })

@@ -1,6 +1,6 @@
 'use client'
 
-import { usePreferences } from '@payloadcms/ui'
+import { useNav, usePreferences, useWindowInfo } from '@payloadcms/ui'
 import { createContext, type ReactNode, use, useLayoutEffect, useMemo, useState, useSyncExternalStore } from 'react'
 
 import type { Character, Option, OptionValue } from '../characters/index.js'
@@ -14,16 +14,24 @@ const ACCENT_PROPERTY = '--payloadpack-accent'
 
 const inline = (value: unknown) => JSON.stringify(value).replace(/</g, '\\u003c')
 
+const writeCookie = (name: string, value: string | undefined) => {
+  document.cookie = value
+    ? `${name}=${value}; path=/; max-age=${ONE_YEAR_IN_SECONDS}; SameSite=Lax`
+    : `${name}=; path=/; max-age=0; SameSite=Lax`
+}
+
 type AppearanceContextValue = ReturnType<typeof resolve> & {
   characters: Character[]
   palettes: Palette[]
   paste: (text: string) => boolean
+  rail: boolean
   reset: () => void
   setAccent: (accent: string) => void
   setCharacter: (character: Character) => void
   setOption: <O extends Option>(option: O, value: OptionValue<O>) => void
   setPalette: (palette: Palette) => void
   setup: Choices
+  toggleRail: () => void
 }
 
 const AppearanceContext = createContext<AppearanceContextValue | null>(null)
@@ -35,6 +43,8 @@ type AppearanceProviderProps = {
   codeEditorFontSize: false | number
   cookieName: string
   initialChoices: Choices
+  initialRail: boolean
+  railCookieName: string
   settings: Settings
 }
 
@@ -43,16 +53,29 @@ export function AppearanceProvider({
   codeEditorFontSize,
   cookieName,
   initialChoices,
+  initialRail,
+  railCookieName,
   settings
 }: AppearanceProviderProps) {
   const [choices, setChoices] = useState(initialChoices)
+  const [rail, setRail] = useState(initialRail)
   const { setPreference } = usePreferences()
   const look = useMemo(() => resolve(settings, choices), [settings, choices])
   const { accent, character, palette, values } = look
+  const hasRail = values.nav === 'icons'
   const attributes = useMemo(
-    () => ({ character, ...values, palette, ...(accent === payloadBlue ? {} : { accent }) }),
-    [accent, character, palette, values]
+    () => ({
+      character,
+      ...values,
+      ...(hasRail && rail ? { rail: '' } : {}),
+      palette,
+      ...(accent === payloadBlue ? {} : { accent })
+    }),
+    [accent, character, hasRail, palette, rail, values]
   )
+  const { navOpen, setNavOpen } = useNav()
+  const { breakpoints } = useWindowInfo()
+  const keepsNavOpen = hasRail && breakpoints?.s === false
   const isServerHtml = useSyncExternalStore(
     subscribeToNothing,
     () => false,
@@ -74,12 +97,16 @@ export function AppearanceProvider({
     }
   }, [accent, attributes])
 
+  useLayoutEffect(() => {
+    if (keepsNavOpen && !navOpen) {
+      setNavOpen(true)
+    }
+  }, [keepsNavOpen, navOpen, setNavOpen])
+
   const context = useMemo(() => {
     const update = (next: Choices) => {
       const normalized = normalize(settings, next)
-      document.cookie = Object.keys(normalized).length
-        ? `${cookieName}=${encodeURIComponent(JSON.stringify(normalized))}; path=/; max-age=${ONE_YEAR_IN_SECONDS}; SameSite=Lax`
-        : `${cookieName}=; path=/; max-age=0; SameSite=Lax`
+      writeCookie(cookieName, Object.keys(normalized).length ? encodeURIComponent(JSON.stringify(normalized)) : undefined)
       void setPreference(preferenceKey, normalized)
       setChoices(normalized)
     }
@@ -95,6 +122,7 @@ export function AppearanceProvider({
         }
         return pasted !== undefined
       },
+      rail,
       reset: () => update({}),
       setAccent: (next: string) => update({ ...choices, accent: { ...choices.accent, [palette]: next } }),
       setCharacter: (next: Character) => update({ ...choices, character: next }),
@@ -104,9 +132,13 @@ export function AppearanceProvider({
           options: { ...choices.options, [character]: { ...choices.options?.[character], [option]: value } }
         }),
       setPalette: (next: Palette) => update({ ...choices, palette: next }),
-      setup: setupOf(look)
+      setup: setupOf(look),
+      toggleRail: () => {
+        writeCookie(railCookieName, rail ? undefined : 'true')
+        setRail(!rail)
+      }
     }
-  }, [character, choices, cookieName, look, palette, setPreference, settings])
+  }, [character, choices, cookieName, look, palette, rail, railCookieName, setPreference, settings])
 
   return (
     <AppearanceContext value={context}>

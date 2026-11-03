@@ -2,7 +2,8 @@ import { enhanced } from './enhanced/index.js'
 
 export const options = {
   density: ['compact', 'comfortable'],
-  icons: ['payload', 'lucide']
+  icons: ['payload', 'lucide'],
+  nav: ['icons', 'hidden']
 } as const
 
 export type Option = keyof typeof options
