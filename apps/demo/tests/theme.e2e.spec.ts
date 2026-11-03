@@ -39,6 +39,11 @@ const style = (page: Page, selector: string, property: string, pseudoElement?: s
       pseudoElement
     ] as const)
 
+const channels = async (page: Page, space: 'oklab' | 'oklch', color: string) =>
+  (await computedColor(page, `${space}(from ${color} ${space === 'oklab' ? 'l a b' : 'l c h'})`))
+    .match(/-?[\d.]+/g)
+    ?.map(Number) ?? []
+
 const backgrounds = (page: Page) =>
   page.evaluate(() => [document.documentElement, document.body].map((element) => getComputedStyle(element).backgroundColor))
 
@@ -210,24 +215,45 @@ test.describe('Appearance panel', () => {
     const attributes = await page.locator('html').evaluate((html) => ({ ...html.dataset }))
 
     const elsewhere = await browser.newContext({ baseURL, storageState: authFile })
+    await elsewhere.grantPermissions(['clipboard-read', 'clipboard-write'])
     const other = await elsewhere.newPage()
     await other.goto('/admin')
     const otherSheet = await openAppearancePanel(other)
     const pasteButton = otherSheet.getByRole('button', { name: 'Paste setup' })
-    const textarea = otherSheet.getByRole('textbox', { name: 'Paste setup' })
-    const apply = otherSheet.getByRole('button', { name: 'Apply' })
+    const writeClipboard = (text: string) => other.evaluate((value) => navigator.clipboard.writeText(value), text)
 
+    await writeClipboard('not a setup')
     await pasteButton.click()
-    await textarea.fill('not a setup')
-    await apply.click()
-    await expect(otherSheet.getByRole('alert')).toHaveText('This text is not a valid setup.')
+    await expect(otherSheet.getByRole('button', { name: 'Invalid setup' })).toBeVisible()
+    await expect(otherSheet.getByRole('status')).toHaveText('Invalid setup')
     await expect(other.locator('html')).toHaveAttribute('data-character', 'enhanced')
+    await expect(pasteButton).toBeVisible()
+    await expect(otherSheet.getByRole('status')).toBeEmpty()
 
-    await textarea.fill(setup)
-    await pickAndSave(other, apply)
-    await expect(textarea).toBeHidden()
+    await writeClipboard(setup)
+    await pickAndSave(other, pasteButton)
     expect(await other.locator('html').evaluate((html) => ({ ...html.dataset }))).toEqual(attributes)
     await elsewhere.close()
+  })
+
+  test('draws the bundled Lucide palette icon on the header button', async ({ page }) => {
+    await page.goto('/admin')
+
+    expect(await style(page, '.payloadpack-appearance-panel__palette-icon', 'mask-image')).toContain('data:image/svg+xml')
+  })
+
+  test('segments sit 3px inside a bordered track', async ({ page }) => {
+    await page.goto('/admin')
+    const track = (await openAppearancePanel(page)).getByRole('group', { name: 'Density' })
+    const inset = await track.evaluate((element) => {
+      const outer = element.getBoundingClientRect()
+      const inner = element.querySelector('[aria-pressed="true"]')!.getBoundingClientRect()
+      return [inner.top - outer.top, outer.bottom - inner.bottom, outer.right - inner.right]
+    })
+
+    expect(inset).toEqual([4, 4, 4])
+    await expect(track).toHaveCSS('border-top-width', '1px')
+    await expect(track).toHaveCSS('border-radius', '8px')
   })
 
   test('switches Payload color mode', async ({ page }) => {
@@ -889,11 +915,58 @@ test.describe('Accent', () => {
 
     await page.context().addCookies([appearance({ accent: { warm: '#ffffff' } })])
     await page.goto('/admin/collections/showcase')
-    await expect(primary).toHaveCSS('color', 'rgb(0, 0, 0)')
+    await expect(primary).toHaveCSS('color', 'oklch(0 0 0)')
 
     await page.context().addCookies([appearance({ accent: { warm: '#c2410c' } })])
     await page.reload()
-    await expect(primary).toHaveCSS('color', 'rgb(255, 255, 255)')
+    await expect(primary).toHaveCSS('color', 'oklch(1 0 0)')
+  })
+
+  test('selected nav links take an ink of the accent in light mode and keep the text color in dark mode', async ({ page }) => {
+    await page.context().addCookies([appearance({ accent: { warm: '#c2410c' } }), cookie('theme', 'light')])
+    await page.goto('/admin/collections/showcase')
+    const [, , accentHue] = await channels(page, 'oklch', '#c2410c')
+    const [inkLightness, , inkHue] = await channels(page, 'oklch', await style(page, '.nav__link--selected', 'color'))
+
+    expect(inkLightness).toBeLessThan(0.45)
+    expect(Math.abs(inkHue - accentHue)).toBeLessThan(5)
+
+    await page.context().addCookies([cookie('theme', 'dark')])
+    await page.reload()
+    expect(await style(page, '.nav__link--selected', 'color')).toBe(await style(page, 'body', 'color'))
+  })
+
+  test('a white accent keeps selected items and primary buttons visible in light mode', async ({ page }) => {
+    await page
+      .context()
+      .addCookies([appearance({ accent: { payload: '#ffffff' }, palette: 'payload' }), cookie('theme', 'light')])
+    await page.goto('/admin/collections/showcase')
+    const [fillLightness] = await channels(
+      page,
+      'oklab',
+      await style(page, '.nav__link--selected', 'background-color', '::before')
+    )
+    const [inkLightness] = await channels(page, 'oklab', await style(page, '.nav__link--selected', 'color'))
+    const [, , , edgeAlpha] = await channels(page, 'oklab', await style(page, '.btn--style-primary:visible', 'border-top-color'))
+
+    expect(fillLightness).toBeLessThan(0.95)
+    expect(inkLightness).toBeLessThan(0.45)
+    expect(edgeAlpha).toBeGreaterThan(0)
+  })
+
+  test('dark selection mixes the accent into the palette background', async ({ page }) => {
+    await page.context().addCookies([appearance({ accent: { payload: '#c2410c' }, palette: 'payload' }), cookie('theme', 'dark')])
+    await page.goto('/admin/collections/showcase')
+    const surface = await channels(page, 'oklab', await style(page, 'html', 'background-color'))
+    const fill = await channels(page, 'oklab', await style(page, '.nav__link--selected', 'background-color', '::before'))
+    const accent = await channels(page, 'oklab', '#c2410c')
+    const share = (fill[0] - surface[0]) / (accent[0] - surface[0])
+
+    expect(share).toBeGreaterThan(0.2)
+    expect(share).toBeLessThan(0.5)
+    for (const channel of [1, 2]) {
+      expect(fill[channel]).toBeCloseTo(surface[channel] + share * (accent[channel] - surface[channel]), 2)
+    }
   })
 
   test('each palette keeps its own accent, and the hex field applies only valid colors', async ({ page }) => {

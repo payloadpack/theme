@@ -1,7 +1,7 @@
 'use client'
 
-import { useConfig, useTheme, useTranslation, XIcon } from '@payloadcms/ui'
-import { type ReactNode, useId, useState } from 'react'
+import { Button, useConfig, useTheme, useTranslation, XIcon } from '@payloadcms/ui'
+import { type ReactNode, useEffect, useId, useState } from 'react'
 
 import { characters as registry, type Option, options } from '../characters/index.js'
 import { hexPattern } from '../lib/appearance.js'
@@ -14,6 +14,8 @@ const colorModes = ['light', 'dark', 'auto'] as const
 const halves = ['light', 'dark'] as const
 
 const swatches = [payloadBlue, '#c2410c', '#b45309', '#4d7c0f', '#0f766e', '#1d4ed8', '#7c3aed', '#be185d']
+
+const FEEDBACK_MS = 2000
 
 const capitalize = (text: string) => `${text[0].toUpperCase()}${text.slice(1)}`
 
@@ -70,9 +72,10 @@ export function AppearancePanel() {
   const { config } = useConfig()
   const { t } = useTranslation<object, TranslationKey>()
   const [copied, setCopied] = useState<string>()
-  const [draft, setDraft] = useState<{ isInvalid: boolean; text: string }>()
+  const [rejectedAt, setRejectedAt] = useState<number>()
   const [hex, setHex] = useState<string>()
   const json = JSON.stringify(setup, null, 2)
+  const isRejected = rejectedAt !== undefined
   const supported = Object.keys(registry[character].defaults) as Option[]
 
   const typeHex = (text: string) => {
@@ -87,29 +90,26 @@ export function AppearancePanel() {
     setCopied(json)
   }
 
-  const apply = (text: string) => setDraft(paste(text) ? undefined : { isInvalid: true, text })
+  const pasteFromClipboard = async () => {
+    setRejectedAt(paste(await navigator.clipboard.readText()) ? undefined : Date.now())
+  }
+
+  useEffect(() => {
+    if (rejectedAt === undefined) {
+      return
+    }
+    const timeout = setTimeout(() => setRejectedAt(undefined), FEEDBACK_MS)
+    return () => clearTimeout(timeout)
+  }, [rejectedAt])
 
   return (
     <div className="payloadpack-appearance-panel">
       <button
         aria-label={t('payloadpack:appearance')}
-        className="payloadpack-appearance-panel__icon-button"
+        className="payloadpack-appearance-panel__trigger"
         popoverTarget={id}
         type="button">
-        <svg
-          aria-hidden="true"
-          fill="none"
-          stroke="currentColor"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          viewBox="0 0 24 24">
-          <path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z" />
-          <circle cx="13.5" cy="6.5" fill="currentColor" r=".5" />
-          <circle cx="17.5" cy="10.5" fill="currentColor" r=".5" />
-          <circle cx="6.5" cy="12.5" fill="currentColor" r=".5" />
-          <circle cx="8.5" cy="7.5" fill="currentColor" r=".5" />
-        </svg>
+        <span aria-hidden="true" className="payloadpack-appearance-panel__palette-icon" />
       </button>
       <dialog aria-labelledby={`${id}-title`} className="payloadpack-appearance-panel__sheet" id={id} popover="auto">
         <header className="payloadpack-appearance-panel__header">
@@ -119,7 +119,7 @@ export function AppearancePanel() {
           </div>
           <button
             aria-label={t('payloadpack:close')}
-            className="payloadpack-appearance-panel__icon-button"
+            className="payloadpack-appearance-panel__close"
             popoverTarget={id}
             popoverTargetAction="hide"
             type="button">
@@ -135,7 +135,11 @@ export function AppearancePanel() {
                     <span
                       aria-hidden="true"
                       className={`payloadpack-appearance-panel__preview payloadpack-appearance-panel__preview--${name}`}>
-                      <span />
+                      <span>
+                        <span />
+                        <span />
+                        <span />
+                      </span>
                       <span>
                         <span />
                         <span />
@@ -186,6 +190,7 @@ export function AppearancePanel() {
                           }}>
                           <span />
                           <span />
+                          <span />
                         </span>
                       ))}
                     </span>
@@ -210,14 +215,17 @@ export function AppearancePanel() {
             label={t('payloadpack:accent')}
             onChange={setAccent}
             selected={accent}>
-            <input
-              aria-label={t('payloadpack:accentHex')}
-              className="payloadpack-appearance-panel__hex"
-              onBlur={() => setHex(undefined)}
-              onChange={(event) => typeHex(event.target.value)}
-              spellCheck={false}
-              value={hex ?? accent}
-            />
+            <label className="payloadpack-appearance-panel__hex">
+              <span aria-hidden="true" />
+              {t('payloadpack:hex')}
+              <input
+                aria-label={t('payloadpack:accentHex')}
+                onBlur={() => setHex(undefined)}
+                onChange={(event) => typeHex(event.target.value)}
+                spellCheck={false}
+                value={hex ?? accent}
+              />
+            </label>
           </ChoiceGroup>
           {config.admin.theme === 'all' && (
             <ChoiceGroup
@@ -230,33 +238,18 @@ export function AppearancePanel() {
           )}
         </div>
         <footer className="payloadpack-appearance-panel__footer">
-          <button onClick={reset} type="button">
+          <Button buttonStyle="secondary" onClick={reset} size="large">
             {t('payloadpack:reset')}
-          </button>
-          <button onClick={copy} type="button">
+          </Button>
+          <Button buttonStyle="secondary" onClick={copy} size="large">
             {t(copied === json ? 'payloadpack:copied' : 'payloadpack:copySetup')}
-          </button>
-          <button
-            aria-expanded={draft !== undefined}
-            onClick={() => setDraft(draft ? undefined : { isInvalid: false, text: '' })}
-            type="button">
-            {t('payloadpack:pasteSetup')}
-          </button>
-          {draft && (
-            <div className="payloadpack-appearance-panel__paste">
-              <textarea
-                aria-invalid={draft.isInvalid}
-                aria-label={t('payloadpack:pasteSetup')}
-                onChange={(event) => setDraft({ isInvalid: false, text: event.target.value })}
-                spellCheck={false}
-                value={draft.text}
-              />
-              {draft.isInvalid && <p role="alert">{t('payloadpack:invalidSetup')}</p>}
-              <button onClick={() => apply(draft.text)} type="button">
-                {t('payloadpack:apply')}
-              </button>
-            </div>
-          )}
+          </Button>
+          <Button buttonStyle="secondary" onClick={pasteFromClipboard} size="large">
+            {t(isRejected ? 'payloadpack:invalidSetup' : 'payloadpack:pasteSetup')}
+          </Button>
+          <span className="sr-only" role="status">
+            {isRejected && t('payloadpack:invalidSetup')}
+          </span>
         </footer>
       </dialog>
     </div>

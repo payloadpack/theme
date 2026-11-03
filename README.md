@@ -71,7 +71,7 @@ The panel opens as a sheet on the right and fills the screen on phones. Every ch
 - **Accent** is the color of primary buttons, links and selected items: one of eight swatches or any `#rrggbb` color. Each palette keeps its own accent. Payload's blue, `#0d99ff`, keeps Payload's own shades, and any other accent gets matching shades for light and dark mode.
 - **Color mode** is Payload's own light and dark setting, the same one as Admin Theme on the account page. It is hidden when `admin.theme` is `'light'` or `'dark'`.
 - **Reset** returns to the defaults in your plugin config. It leaves the color mode alone.
-- **Copy setup** copies your character, its options, your palette and its accent as JSON. **Paste setup** applies a setup another editor copied, and says so when the text isn't one. The JSON is also valid plugin config.
+- **Copy setup** copies your character, its options, your palette and its accent as JSON. **Paste setup** applies the setup on your clipboard, for example one another editor copied, and says so when there isn't one. The JSON is also valid plugin config.
 
 | Option        | Values                 | Enhanced default | Studio default |
 | ------------- | ---------------------- | ---------------- | -------------- |

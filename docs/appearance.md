@@ -73,7 +73,7 @@ A palette is CSS, the way Tailwind v4 defines design tokens: a block scoped to `
 | Studio  | a faintly tinted field, white cards | the same tint on near-black, cards a shade lighter than the field | `#c2410c` |
 
 - The Payload palette applies no overrides, so plain Payload is the Stock character with the Payload palette. Today's look is Enhanced with Warm, the zero-config default.
-- Editors override a palette's accent with 8 swatches or a hex field, and each palette remembers its own accent.
+- Editors override a palette's accent with 8 swatches or a hex field, and each palette remembers its own accent. One accent serves both versions: the theme mixes the shades itself. Selected items get a light tint and darker accent text in light mode, and a tint mixed into the palette's own background in dark mode, so even a white accent stays visible.
 - Editors create a palette with **New palette** in the panel: it starts from the current palette and shows the three color fields for each mode and the accent. It sets the same variables inline on `<html>` and saves into their setup, so Copy setup shares it with colleagues.
 - **Copy as CSS** exports an editor's palette as a CSS block. Developers paste it into their admin stylesheet (Payload's `custom.scss`) and list its name in `themePlugin({ palettes: [...] })` to offer it to everyone.
 - The package ships no palette named after another company or product.
@@ -110,7 +110,7 @@ A setup is what an editor picked: a character, that character's options, a palet
 - The same setup is mirrored into a `<cookiePrefix>-appearance` cookie, which the server uses on the login page and every other signed-out view. With no saved preference yet, the cookie applies for signed-in editors too.
 - `panel` is not called on signed-out views, which have no user. The cookie applies there unless `panel` is `false`.
 - Reset clears the setup: the preference and the cookie.
-- Sharing: **Copy setup** copies the setup as JSON, with the character and palette always included, so another editor gets the same look. **Paste setup** applies a copied setup, checked like any other, and says so when the text isn't a valid setup. A developer can paste the same JSON into `themePlugin()` to make it the site default.
+- Sharing: **Copy setup** copies the setup as JSON, with the character and palette always included, so another editor gets the same look. **Paste setup** reads a copied setup from the clipboard, checks it like any other, and says so for a moment when the clipboard holds no valid setup. A developer can paste the same JSON into `themePlugin()` to make it the site default.
 - The old `admin-theme`, `density` and `icons` cookies are left to expire. There are no shims for the old attributes, cookies or the `appearanceControls` export.
 
 ## Color mode
