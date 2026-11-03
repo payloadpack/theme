@@ -187,6 +187,7 @@ src/characters/enhanced/enhanced.css
 src/characters/studio/index.ts
 src/characters/studio/studio.css
 src/palettes/index.ts               the registry of built-in palettes and their default accents
+src/palettes/palette.css            what every palette but Payload's shares: focus ring, fields, toggles, date picker and toasts
 src/palettes/warm.css
 src/palettes/studio.css
 src/palettes/accent.css

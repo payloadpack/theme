@@ -780,20 +780,6 @@ test.describe('Warm palette', () => {
     await expect(checkbox).toHaveCSS('box-shadow', /0px 0px 0px 3px/)
   })
 
-  test('one toggle border token reaches checkboxes and radios', async ({ page }) => {
-    await openShowcase(page)
-    await page.addStyleTag({ content: 'html { --payloadpack-toggle-border: rgb(255, 0, 0); }' })
-
-    await expect(page.locator('.field-type.checkbox .checkbox-input__visuals').first()).toHaveCSS(
-      'border-top-color',
-      'rgb(255, 0, 0)'
-    )
-    await expect(page.locator('.radio-input:not(.radio-input--is-selected) .radio-input__styled-radio').first()).toHaveCSS(
-      'border-top-color',
-      'rgb(255, 0, 0)'
-    )
-  })
-
   test('near-black dark palette', async ({ page }) => {
     await openShowcase(page)
 
@@ -808,23 +794,6 @@ test.describe('Warm palette', () => {
     const popup = page.locator('.popup__content:visible').first()
     await expect(popup).toHaveCSS('border-radius', '9px')
     await expect(popup).toHaveCSS('box-shadow', /^rgb\(42, 42, 39\) 0px 0px 0px 1px,/)
-  })
-
-  test('disabled and read-only fields fade to half the field colors', async ({ page }) => {
-    await openShowcase(page)
-    const half = (token: string) => computedColor(page, `color-mix(in srgb, var(${token}) 50%, transparent)`)
-    const reference = page.locator('.field-type.text').filter({ hasText: 'Reference' }).locator('input')
-    await expect(page.locator('#field-title')).toBeEnabled()
-    await expect(reference).toBeDisabled()
-
-    for (const field of [reference, page.locator('.slug-field-component__input-container')]) {
-      await expect(field).toHaveCSS('background-color', await half('--field-color-bg'))
-      await expect(field).toHaveCSS('border-top-color', await half('--field-color-border'))
-    }
-    await expect(page.locator('.slug-field-component__input')).toHaveCSS(
-      'color',
-      await computedColor(page, 'var(--color-text-secondary)')
-    )
   })
 
   test('enhanced contrast reaches radios and secondary text', async ({ page }) => {
@@ -879,6 +848,73 @@ test.describe('Warm palette', () => {
     await expect(success.locator('.toast-icon .icon')).toHaveCSS('color', darkTint)
     expect(darkTint).not.toBe(lightTint)
   })
+})
+
+test.describe('Every palette but Payload', () => {
+  for (const palette of ['warm', 'studio']) {
+    test.describe(palette, () => {
+      test.beforeEach(({ page }) => page.context().addCookies([appearance({ palette })]))
+
+      test('one toggle border token reaches checkboxes and radios', async ({ page }) => {
+        await openShowcase(page)
+        await page.addStyleTag({ content: 'html { --payloadpack-toggle-border: rgb(255, 0, 0); }' })
+
+        await expect(page.locator('.field-type.checkbox .checkbox-input__visuals').first()).toHaveCSS(
+          'border-top-color',
+          'rgb(255, 0, 0)'
+        )
+        await expect(page.locator('.radio-input:not(.radio-input--is-selected) .radio-input__styled-radio').first()).toHaveCSS(
+          'border-top-color',
+          'rgb(255, 0, 0)'
+        )
+      })
+
+      test('disabled and read-only fields fade to half the field colors', async ({ page }) => {
+        await openShowcase(page)
+        const half = (token: string) => computedColor(page, `color-mix(in srgb, var(${token}) 50%, transparent)`)
+        const reference = page.locator('.field-type.text').filter({ hasText: 'Reference' }).locator('input')
+        await expect(page.locator('#field-title')).toBeEnabled()
+        await expect(reference).toBeDisabled()
+
+        for (const field of [reference, page.locator('.slug-field-component__input-container')]) {
+          await expect(field).toHaveCSS('background-color', await half('--field-color-bg'))
+          await expect(field).toHaveCSS('border-top-color', await half('--field-color-border'))
+        }
+        await expect(page.locator('.slug-field-component__input')).toHaveCSS(
+          'color',
+          await computedColor(page, 'var(--color-text-secondary)')
+        )
+      })
+
+      test('every field draws the same border', async ({ page }) => {
+        await openShowcase(page)
+        const border = await computedColor(page, 'var(--color-border)')
+
+        for (const field of [
+          page.locator('#field-title'),
+          page.locator('.field-type.select .rs__control').first(),
+          page.locator('.date-time-picker input').first()
+        ]) {
+          await expect(field).toHaveCSS('border-top-color', border)
+        }
+      })
+
+      test('dark selections step clearly above their surroundings', async ({ page }) => {
+        await page.context().addCookies([cookie('theme', 'dark')])
+        await page.goto('/admin/collections/showcase')
+        const lightness = async (selector: string, pseudo?: string) =>
+          (await channels(page, 'oklab', await style(page, selector, 'background-color', pseudo)))[0]
+
+        expect((await lightness('.nav__link--selected', '::before')) - (await lightness('.nav'))).toBeGreaterThan(0.08)
+
+        await openAppearancePanel(page)
+        expect(
+          (await lightness('.payloadpack-appearance-panel__segments button[aria-pressed="true"]')) -
+            (await lightness('.payloadpack-appearance-panel__segments'))
+        ).toBeGreaterThan(0.08)
+      })
+    })
+  }
 })
 
 test.describe('Payload palette', () => {
@@ -1378,7 +1414,7 @@ test.describe('Studio palette', () => {
     await expect(field).toHaveCSS('background-color', await computedColor(page, 'color-mix(in oklab, #c2410c 5%, #131312)'))
     await expect(card).toHaveCSS('background-color', await computedColor(page, 'color-mix(in oklab, #c2410c 2%, #1c1c1b)'))
     expect(await style(page, '.nav__link--selected', 'background-color', '::before')).toBe(
-      await computedColor(page, 'color-mix(in oklab, #c2410c 26%, #1c1c1b)')
+      await computedColor(page, 'color-mix(in oklab, #c2410c 40%, #1c1c1b)')
     )
   })
 

@@ -312,7 +312,7 @@
         }
 
         &[aria-pressed='true']:is([data-theme='dark'] *) {
-          background-color: var(--color-border);
+          background-color: color-mix(in oklab, var(--color-text) 14%, var(--color-bg-secondary));
           box-shadow: none;
         }
       }

@@ -36,6 +36,7 @@ const scopes: Record<string, string> = {
   'options/nav-icons.css': "html:is([data-icons='lucide'], [data-nav='icons'])",
   'options/nav.css': "html[data-nav='icons']",
   'options/radius.css': 'html[data-radius]',
+  'palettes/palette.css': ":where([data-palette]:not([data-palette='payload']))",
   'palettes/studio.css': "html[data-palette='studio']",
   'palettes/warm.css': "html[data-palette='warm']",
   'styles/appearance-panel.css': '.payloadpack-appearance-panel',
@@ -423,10 +424,10 @@ describe('theme contract with Payload', () => {
     const toastCss = ['providers/ToastContainer/index.css', 'elements/Toasts/index.css']
       .map((file) => read(path.join(uiDist, file)))
       .join('\n')
-    const warm = themeCss['palettes/warm.css']
+    const palette = themeCss['palettes/palette.css']
     const handled = [
-      ...declaredProperties(ruleBody(warm, "&[data-theme='light'] .payload-toast-container") ?? ''),
-      ...declaredProperties(ruleBody(warm, '.toast-error') ?? '')
+      ...declaredProperties(ruleBody(palette, "&[data-theme='light'] .payload-toast-container[data-theme='dark']") ?? ''),
+      ...declaredProperties(ruleBody(palette, '.toast-error') ?? '')
     ]
     expect(referencedProperties(toastCss).filter((token) => darkTokens.has(token) && !handled.includes(token))).toEqual([])
   })

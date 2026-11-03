@@ -86,7 +86,8 @@ The panel opens as a sheet on the right and fills the screen on phones. Every ch
 
 - **Enhanced** draws a 2px focus ring, rounds popups and toasts a little more, lifts the date picker and toasts like menus, and insets the sidebar tabs.
 - **Studio** keeps the nav on the field, puts the collapse button at its top left and moves the user menu to the bottom of it.
-- **Warm** gives dark mode a warm near-black palette and swaps Payload's blue selection for neutral greys. In both modes it draws the focus ring in the text color and fills checked checkboxes and selected radios with the text color instead of the accent.
+- Every palette except Payload's draws the focus ring in the text color, gives all fields one border color, fades disabled and read-only fields to half their colors, and softens checkbox and radio rings.
+- **Warm** gives dark mode a warm near-black palette and swaps Payload's blue selection for neutral greys. It fills checked checkboxes and selected radios with the text color instead of the accent.
 - **Studio**, the palette, mixes a faint share of the accent into a warm off-white field and nav, with white cards and lines tinted the same way. Dark mode mixes it into near-black. Selected items take a soft fill of the accent.
 - **Corners** scales Payload's own corner sizes. M keeps them as they are, None squares every corner, S and L make them smaller or larger, and Round is L with pill-shaped buttons.
 - **Geist** loads [Geist](https://vercel.com/font) with `next/font`, the way Payload loads Inter, and only downloads it when an editor uses it. **Payload** keeps Inter. **System** uses the operating system's font.
@@ -254,7 +255,7 @@ Each toolbar sizes its buttons from its own token. All but the menu items and si
 | `--payloadpack-menu-item-height`            | Popup menu items, 32px                   |
 | `--payloadpack-sidebar-tabs-height`         | Collections and Folders tabs, 38px       |
 
-Checkboxes and radios share their size and, on the Warm palette, their colors:
+Checkboxes and radios share their size and, on every palette but Payload's, their colors:
 
 | Token                                 | Controls                                   |
 | ------------------------------------- | ------------------------------------------ |
