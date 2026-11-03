@@ -18,6 +18,13 @@ const payloadpack = {
   density: 'Density',
   densityComfortable: 'Comfortable',
   densityCompact: 'Compact',
+  font: 'Typeface',
+  fontGeist: 'Geist',
+  fontPayload: 'Payload',
+  fontSystem: 'System',
+  frame: 'Frame',
+  frameBoxed: 'Boxed',
+  frameFlat: 'Flat',
   icons: 'Icons',
   iconsLucide: 'Lucide',
   iconsPayload: 'Payload',
@@ -26,7 +33,10 @@ const payloadpack = {
   palette: 'Palette',
   pasteSetup: 'Paste setup',
   reset: 'Reset',
-  stockNote: "Stock keeps Payload's own layout. It has no options."
+  stockNote: "Stock keeps Payload's own layout. It has no options.",
+  width: 'Content width',
+  widthCentered: 'Centered',
+  widthFull: 'Full'
 } satisfies Record<OptionKey, string> & Record<string, string>
 
 export const translations = { payloadpack }

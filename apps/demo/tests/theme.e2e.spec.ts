@@ -758,3 +758,103 @@ test.describe('Accent', () => {
     await expect(html).toHaveAttribute('data-accent', '#be185d')
   })
 })
+
+test.describe('Studio character', () => {
+  const studio = (options: object = {}) => appearance({ character: 'studio', options: { studio: options } })
+
+  const openList = async (page: Page) => {
+    await page.goto('/admin/collections/showcase')
+    await page.locator('table').waitFor()
+  }
+
+  test('renders its attributes and puts each view in a card on the field', async ({ page }) => {
+    await page.context().addCookies([studio()])
+    await openList(page)
+    const html = page.locator('html')
+    const card = page.locator('.template-default__wrap')
+
+    for (const [name, value] of Object.entries({ font: 'geist', frame: 'boxed', width: 'centered', density: 'comfortable' })) {
+      await expect(html).toHaveAttribute(`data-${name}`, value)
+    }
+    await expect(card).toHaveCSS('border-top-width', '1px')
+    await expect(card).toHaveCSS('border-top-color', await computedColor(page, 'var(--color-border)'))
+    await expect(card).toHaveCSS('border-radius', '19px')
+    await expect(card).toHaveCSS('margin', '12px 12px 12px 0px')
+    await expect(page.locator('.nav')).toHaveCSS('border-right-width', '0px')
+
+    const toggleNav = (toggle: string) =>
+      Promise.all([
+        page.waitForResponse(
+          (response) => response.url().endsWith('/api/payload-preferences/nav') && response.request().method() === 'POST'
+        ),
+        page.locator(toggle).click()
+      ])
+
+    await toggleNav('.nav__close')
+    await expect(card).toHaveCSS('margin-left', '12px')
+    await expect(page.locator('.nav')).toHaveCSS('visibility', 'hidden')
+    await toggleNav('.app-header__sidebar-toggle')
+    await expect(card).toHaveCSS('margin-left', '0px')
+  })
+
+  test('flat drops the card', async ({ page }) => {
+    await page.context().addCookies([studio({ frame: 'flat' })])
+    await openList(page)
+    const card = page.locator('.template-default__wrap')
+
+    await expect(card).toHaveCSS('border-top-width', '0px')
+    await expect(card).toHaveCSS('border-radius', '0px')
+    await expect(card).toHaveCSS('margin', '0px')
+    await expect(page.locator('.nav')).toHaveCSS('border-right-width', '1px')
+  })
+
+  test('centered caps the content width and full does not', async ({ page }) => {
+    await page.context().addCookies([studio()])
+    await openList(page)
+
+    const insets = await page.locator('.collection-list').evaluate((list) => {
+      const inner = list.getBoundingClientRect()
+      const outer = list.parentElement!.getBoundingClientRect()
+      return { left: inner.left - outer.left, right: outer.right - inner.right, width: inner.width }
+    })
+    expect(insets.width).toBe(880)
+    expect(insets.left).toBeGreaterThan(0)
+    expect(insets.left).toBeCloseTo(insets.right, 0)
+
+    await page.context().addCookies([studio({ width: 'full' })])
+    await page.reload()
+    await page.locator('table').waitFor()
+    const wrapWidth = await page.locator('.template-default__wrap').evaluate((element) => element.clientWidth)
+    expect(await size(page, '.collection-list')).toMatchObject({ width: wrapWidth })
+  })
+
+  test('moves the user menu to the bottom of the nav and opens its menu upward', async ({ page }) => {
+    await page.context().addCookies([studio()])
+    await openList(page)
+    const nav = await page.locator('.nav').boundingBox()
+    const trigger = page.locator('.user-menu__trigger')
+    const menu = await trigger.boundingBox()
+
+    expect((nav?.y ?? 0) + (nav?.height ?? 0) - ((menu?.y ?? 0) + (menu?.height ?? 0))).toBeLessThanOrEqual(12)
+    expect(menu?.y).toBeGreaterThan((await page.locator('.nav-group').last().boundingBox())?.y ?? Infinity)
+
+    await trigger.click()
+    const popup = page.locator('.user-menu .popup__content')
+    await expect(popup).toBeVisible()
+    expect(((await popup.boundingBox())?.y ?? 0) + ((await popup.boundingBox())?.height ?? 0)).toBeLessThanOrEqual(menu?.y ?? 0)
+  })
+
+  test('leaves Stock and Enhanced in their own layout and font', async ({ page }) => {
+    for (const character of ['enhanced', 'stock']) {
+      await page.context().addCookies([appearance({ character })])
+      await openList(page)
+
+      await expect(page.locator('html')).not.toHaveAttribute('data-frame')
+      await expect(page.locator('.template-default__wrap')).toHaveCSS('margin', '0px')
+      await expect(page.locator('.template-default__wrap')).toHaveCSS('border-top-width', '0px')
+      await expect(page.locator('.nav__header')).toHaveCSS('display', 'flex')
+      expect((await page.locator('.user-menu').boundingBox())?.y).toBeLessThan(60)
+      await expect(page.locator('body')).toHaveCSS('font-family', /^Inter, "Inter Fallback"/)
+    }
+  })
+})

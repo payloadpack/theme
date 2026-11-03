@@ -28,6 +28,7 @@ const lucideIcons = path.join(packageRoot('lucide-static'), 'icons')
 
 const scopes: Record<string, string> = {
   'characters/enhanced/enhanced.css': "html[data-character='enhanced']",
+  'characters/studio/studio.css': "html[data-character='studio']",
   'options/accent.css': 'html[data-accent]',
   'options/density.css': "html[data-density='comfortable']",
   'options/icons.css': "html[data-icons='lucide']",
