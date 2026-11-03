@@ -49,37 +49,60 @@
     /* 3. Rail */
     @media (min-width: 769px) {
       &[data-rail] {
-        --nav-width: 4rem;
+        --payloadpack-rail-width: 4rem;
+
+        .template-default {
+          grid-template-columns: var(--payloadpack-rail-width) auto;
+        }
 
         .nav {
           z-index: 1;
+          width: var(--payloadpack-rail-width);
         }
 
         .nav__header {
-          justify-content: center;
+          padding-inline-end: calc((var(--payloadpack-rail-width) - var(--spacer-5)) / 2);
         }
 
         .nav__header .user-menu {
           width: 0;
+          opacity: 0;
           visibility: hidden;
         }
 
-        .sidebar-tabs__tabs {
-          flex-direction: column;
+        .sidebar-tabs:has(.sidebar-tabs__tab--active:first-child) > .sidebar-tabs__tabs,
+        .nav-group:not(.nav-group--collapsed) > .nav-group__toggle {
+          opacity: 0;
+          filter: blur(4px);
+          visibility: hidden;
         }
 
-        .sidebar-tabs__tab {
-          flex: none;
+        .sidebar-tabs:has(.sidebar-tabs__tab--active:first-child) > .sidebar-tabs__tabs {
+          width: calc(var(--nav-width) - 2 * var(--spacer-2-5));
+          margin-block-end: calc(-1 * (var(--button-height) + var(--spacer-2-5)));
         }
 
         .nav-group:not(.nav-group--collapsed) > .nav-group__toggle {
+          margin-block-end: calc(-2 * var(--spacer-2) - 1lh);
+        }
+
+        .sidebar-tabs:not(:has(.sidebar-tabs__tab--active:first-child)) {
+          > .sidebar-tabs__tabs {
+            flex-direction: column;
+          }
+
+          .sidebar-tabs__tab {
+            flex: none;
+          }
+        }
+
+        .sidebar-tabs__content > :not(:first-child) {
           display: none;
         }
 
         .nav__link,
         .nav-group__toggle {
-          justify-content: center;
-          padding-inline: 0;
+          padding-inline: calc((var(--payloadpack-rail-width) - 1rem) / 2) 0;
           anchor-name: --payloadpack-rail-item;
           anchor-scope: --payloadpack-rail-item;
         }
@@ -120,11 +143,11 @@
           border-radius: var(--radius-medium);
           box-shadow: var(--elevation-300-tooltip);
           pointer-events: none;
-          clip-path: inset(50%);
+          opacity: 0;
         }
 
         :is(.nav__link, .nav-group__toggle):is(:hover, :focus-visible) :is(.nav__link-label, .nav-group__label) {
-          clip-path: none;
+          opacity: 1;
         }
       }
     }

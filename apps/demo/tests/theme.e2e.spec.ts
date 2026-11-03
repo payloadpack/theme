@@ -645,6 +645,23 @@ test.describe('Motion', () => {
       .toEqual(expect.arrayContaining(['rs__menu opacity', 'rs__menu scale', 'rs__menu translate']))
   })
 
+  test('the nav slides open and closed, and the appearance panel slides in', async ({ page }) => {
+    const transitions = await recordTransitions(page, ['template-default', 'payloadpack-appearance-panel__sheet'])
+    await page.route('**/api/payload-preferences/nav*', (route) =>
+      route.request().method() === 'POST' ? route.fulfill({ json: {} }) : route.fallback()
+    )
+    await page.context().addCookies([appearance({ options: { enhanced: { nav: 'hidden' } } })])
+    await page.goto('/admin')
+
+    await page.getByRole('button', { name: 'Hide sidebar' }).click()
+    await expect.poll(transitions).toEqual(['template-default grid-template-columns'])
+
+    await page.getByRole('button', { name: 'Appearance' }).click()
+    await expect
+      .poll(transitions)
+      .toEqual(['payloadpack-appearance-panel__sheet translate', 'template-default grid-template-columns'])
+  })
+
   for (const [name, setup] of [
     ['motion is off', (page: Page) => page.context().addCookies([appearance({ options: { enhanced: { motion: 'off' } } })])],
     ['the OS reduces motion', (page: Page) => page.emulateMedia({ reducedMotion: 'reduce' })]
@@ -1017,7 +1034,7 @@ test.describe('Rail', () => {
     page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))))
 
   test.beforeEach(({ page }) =>
-    page.route('**/api/payload-preferences/nav', (route) =>
+    page.route('**/api/payload-preferences/nav*', (route) =>
       route.request().method() === 'POST' ? route.fulfill({ json: {} }) : route.fallback()
     )
   )
@@ -1028,12 +1045,25 @@ test.describe('Rail', () => {
     await page.getByRole('button', { name: 'Hide sidebar' }).click()
 
     await expect(page.getByRole('button', { name: 'Show sidebar' })).toHaveAttribute('aria-expanded', 'false')
-    expect(await navWidth(page)).toBe(64)
+    await expect.poll(() => navWidth(page)).toBe(64)
     await expect(page.locator('.nav-group__toggle').first()).toBeHidden()
     for (const link of await page.locator('.nav__link').all()) {
       expect(await link.evaluate((element) => getComputedStyle(element, '::after').maskImage)).toContain('data:image/svg+xml')
-      await expect(link.locator('.nav__link-label')).toHaveCSS('clip-path', 'inset(50%)')
+      await expect(link.locator('.nav__link-label')).toHaveCSS('opacity', '0')
     }
+  })
+
+  test('hides the sidebar tabs, and shows them only to switch back from another tab', async ({ page }) => {
+    await page.goto('/admin')
+    await page.getByRole('tab').nth(1).click()
+    await page.getByRole('button', { name: 'Hide sidebar' }).click()
+
+    await expect(page.getByRole('tablist')).toBeVisible()
+    await expect(page.locator('.sidebar-tabs__content > [role="tabpanel"]').nth(1)).toBeHidden()
+
+    await page.getByRole('tab').first().click()
+    await expect(page.getByRole('tablist')).toBeHidden()
+    await expect(page.locator('#nav-showcase')).toBeVisible()
   })
 
   test('renders the collapsed rail on the server and keeps it through a reload', async ({ page }) => {
@@ -1066,12 +1096,13 @@ test.describe('Rail', () => {
     expect(await showcase.evaluate((link) => getComputedStyle(link, '::before').outlineStyle)).toBe('solid')
 
     const label = showcase.locator('.nav__link-label')
-    await expect(label).toHaveCSS('clip-path', 'none')
+    await expect(label).toHaveCSS('opacity', '1')
     const [link, tooltip] = await Promise.all([showcase.boundingBox(), label.boundingBox()])
     expect(tooltip!.x).toBeGreaterThanOrEqual(link!.x + link!.width)
     expect(tooltip!.y + tooltip!.height / 2).toBeCloseTo(link!.y + link!.height / 2, 0)
 
     await page.addStyleTag({ content: '.nav__link-label { pointer-events: auto; }' })
+    await settled(label)
     expect(
       await label.evaluate((element) => {
         const box = element.getBoundingClientRect()
@@ -1088,7 +1119,7 @@ test.describe('Rail', () => {
     const group = page.getByRole('button', { name: 'Previews' })
     await group.hover()
     await expect(group.locator('.nav-group__indicator')).toHaveCSS('opacity', '1')
-    await expect(group.locator('.nav-group__label')).toHaveCSS('clip-path', 'none')
+    await expect(group.locator('.nav-group__label')).toHaveCSS('opacity', '1')
 
     await group.click()
     await expect(page.getByRole('link', { name: 'Toasts' })).toBeVisible()
@@ -1103,7 +1134,7 @@ test.describe('Rail', () => {
     await expect(page.locator('.payloadpack-rail-toggle')).toHaveCount(0)
     await page.locator('.nav__close').click()
     await expect(page.locator('.nav')).toHaveAttribute('inert', '')
-    expect((await page.locator('.template-default__wrap').boundingBox())?.x).toBe(0)
+    await expect.poll(async () => (await page.locator('.template-default__wrap').boundingBox())?.x).toBe(0)
   })
 
   for (const { nav, name, closes } of [
@@ -1133,7 +1164,7 @@ test.describe('Rail', () => {
     await page.locator('.app-header__sidebar-toggle').click()
     expect(await navWidth(page)).toBe(768)
     await expect(page.locator('.nav__close')).toBeVisible()
-    await expect(page.locator('#nav-showcase .nav__link-label')).toHaveCSS('clip-path', 'none')
+    await expect(page.locator('#nav-showcase .nav__link-label')).toHaveCSS('opacity', '1')
   })
 })
 
@@ -1177,6 +1208,7 @@ test.describe('Studio character', () => {
     await openList(page)
     await page.getByRole('button', { name: 'Hide sidebar' }).click()
     await expect(page.locator('html')).toHaveAttribute('data-rail', '')
+    await page.evaluate(() => Promise.all(document.getAnimations().map((animation) => animation.finished)))
 
     const [nav, card, logo, toggle, tabs] = await Promise.all(
       ['.nav', '.template-default__wrap', '.payloadpack-nav-logo', '.payloadpack-rail-toggle', '.sidebar-tabs'].map(

@@ -448,7 +448,7 @@ describe('theme contract with Payload', () => {
       ...['css/colors.css', 'css/design-tokens.css'].flatMap((file) => declaredProperties(read(path.join(uiDist, file)))),
       ...paletteTokens
     ])
-    const literal = /#[\da-f]{3,8}\b|\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color|color-mix)\(|\b(?:transparent|white|black)\b/i
+    const literal = /#[\da-f]{3,8}\b|\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color|color-mix)\(|(?<![\w-])(?:transparent|white|black)(?![\w-])/i
     const colorProperty =
       /^(?:color|background(?:-color)?|border(?:-[a-z]+)*-color|outline-color|fill|stroke|caret-color|accent-color)$/
     const aliasesColor = (value: string) => colorTokens.has(value.match(/^\s*var\(\s*(--[\w-]+)\s*\)\s*$/)?.[1] ?? '')

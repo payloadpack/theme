@@ -151,6 +151,7 @@ With `nav: 'icons'`, a collapsed nav becomes a 64px rail of icons instead of dis
 - The rail always shows the Lucide nav icons, even with `icons: 'payload'`.
 - Each icon shows its link's label as a tooltip on hover and focus, through CSS anchor positioning.
 - Group labels give way to dividers. A collapsed group shows as one chevron button, with the group name as its tooltip, that opens the group through Payload's own toggle.
+- The rail hides the Collections and Folders tabs. While another tab is active it shows the tab icons instead, so the editor can switch back: Payload hides the inactive panel with `display: none !important` in its earlier cascade layer, which no theme rule can override.
 - Payload closes the nav when the window shrinks past 1440px or 1024px. While the rail is on, the provider reopens it with `useNav().setNavOpen(true)`, without saving that.
 - At 768px and below the rail is off and the nav is Payload's full-screen drawer.
 - `nav: 'hidden'` leaves Payload's collapse exactly as it is.
