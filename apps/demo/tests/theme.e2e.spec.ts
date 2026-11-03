@@ -546,32 +546,58 @@ test.describe('Radius', () => {
 })
 
 test.describe('Motion', () => {
-  const recordTransitions = async (page: Page, selector: string) => {
+  const recordTransitions = async (page: Page, classNames: string[]) => {
     await page.addInitScript((watched) => {
       const runs: string[] = []
       Object.assign(window, { transitionRuns: runs })
       document.addEventListener('transitionrun', (event) => {
-        const target = event.target as Element
-        if (target.matches(watched)) {
-          runs.push(`${target.classList[0]} ${event.propertyName}`)
+        const name = watched.find((className) => (event.target as Element).classList.contains(className))
+        if (name) {
+          runs.push(`${name} ${event.propertyName}`)
         }
       })
-    }, selector)
+    }, classNames)
     return () => page.evaluate(() => (window as unknown as { transitionRuns: string[] }).transitionRuns.slice().sort())
   }
 
   const openDrawer = async (page: Page) => {
-    const transitions = await recordTransitions(page, '.drawer__blur-bg, .drawer__content')
+    const transitions = await recordTransitions(page, ['drawer__blur-bg', 'drawer__content'])
     await openShowcase(page)
     await page.locator('.relationship-add-new__add-button').click()
     await page.locator('.drawer--is-open .drawer__content').waitFor()
     return transitions
   }
 
+  const menus = ['popup__content', 'popup__hidden-content', 'rs__menu']
+  const moreOptions = (page: Page) => page.getByRole('button', { name: 'More options' }).first()
+  const select = (page: Page) => page.locator('.field-type.select .rs__control').first()
+
   test('drawers fade and slide in', async ({ page }) => {
     const transitions = await openDrawer(page)
 
     await expect.poll(transitions).toEqual(['drawer__blur-bg opacity', 'drawer__content opacity', 'drawer__content translate'])
+  })
+
+  test('popups fade and slide in and fade out, and select menus fade and slide in', async ({ page }) => {
+    const transitions = await recordTransitions(page, menus)
+    await openShowcase(page)
+
+    await moreOptions(page).click()
+    await expect.poll(transitions).toEqual(['popup__content opacity', 'popup__content translate'])
+
+    await page.keyboard.press('Escape')
+    await expect
+      .poll(transitions)
+      .toEqual(
+        expect.arrayContaining([
+          'popup__hidden-content display',
+          'popup__hidden-content opacity',
+          'popup__hidden-content overlay'
+        ])
+      )
+
+    await select(page).click()
+    await expect.poll(transitions).toEqual(expect.arrayContaining(['rs__menu opacity', 'rs__menu translate']))
   })
 
   for (const [name, setup] of [
@@ -586,10 +612,24 @@ test.describe('Motion', () => {
       await expect(page.locator('.drawer__content')).toHaveCSS('transition-property', 'transform')
       expect(await transitions()).toEqual([])
     })
+
+    test(`popups and select menus open and close at once when ${name}`, async ({ page }) => {
+      await setup(page)
+      const transitions = await recordTransitions(page, menus)
+      await openShowcase(page)
+
+      await moreOptions(page).click()
+      await expect(page.locator('.popup__content')).toHaveCSS('transition-duration', '0s')
+      await page.keyboard.press('Escape')
+      await expect(page.locator('.popup__content')).toHaveCount(0)
+      await select(page).click()
+      await expect(page.locator('.rs__menu')).toHaveCSS('transition-duration', '0s')
+      expect(await transitions()).toEqual([])
+    })
   }
 
   test('tooltips fade in and out', async ({ page }) => {
-    const transitions = await recordTransitions(page, '.tooltip')
+    const transitions = await recordTransitions(page, ['tooltip'])
     await page.goto('/admin')
 
     await page.getByRole('button', { name: 'Hide sidebar' }).hover()

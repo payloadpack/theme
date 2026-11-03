@@ -50,6 +50,18 @@ const builtAtRuntime: Record<string, { file: string; snippets: string[] }> = {
   'copy-locale-data__button': {
     file: 'elements/CopyLocaleData/index.js',
     snippets: ["const baseClass = 'copy-locale-data'", 'id: `${baseClass}__button`']
+  },
+  'popup--side-left': {
+    file: 'elements/Popup/index.js',
+    snippets: ["const baseClass = 'popup'", "horizontalAlignProp === 'left' ? 'left'", '`${baseClass}--side-${resolvedSide}`']
+  },
+  'popup--side-right': {
+    file: 'elements/Popup/index.js',
+    snippets: ["const baseClass = 'popup'", ": 'right'", '`${baseClass}--side-${resolvedSide}`']
+  },
+  'popup--v-top': {
+    file: 'elements/Popup/index.js',
+    snippets: ["const baseClass = 'popup'", '`${baseClass}--v-top`']
   }
 }
 
