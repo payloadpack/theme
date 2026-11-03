@@ -1,4 +1,4 @@
-import { RADIO_CARDS, VERTICAL_TABS } from '@payloadpack/theme'
+import { RADIO_CARDS, SWITCH, VERTICAL_TABS } from '@payloadpack/theme'
 import { expect, type Page, test } from '@playwright/test'
 
 import { cookie, findShowcase } from './demo'
@@ -262,6 +262,37 @@ test.describe('Theme values', () => {
     await expect(cards.nth(1)).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
     await expect(cards.first().locator('.radio-input__label > :last-child')).toHaveCSS('color', 'rgb(163, 162, 155)')
     await expect(cards.first()).toHaveCSS('border-radius', await style(page, '.field-type.text input', 'border-radius'))
+  })
+
+  test('switches slide the thumb and line the description up with the label', async ({ page }) => {
+    await openShowcase(page)
+    const field = page.locator(`.${SWITCH}`)
+    const track = field.locator('.checkbox-input__visuals')
+
+    const box = await size(page, `.${SWITCH} .checkbox-input__visuals`)
+    expect(box?.height).toBe(24)
+    expect(box?.width).toBeCloseTo(41.2, 1)
+    await expect(track).toHaveCSS('grid-template-columns', /^0px 17\.\d+px 17\.\d+px$/)
+    await expect(track).toHaveCSS('border-top-color', 'rgba(0, 0, 0, 0)')
+    await expect(track).toHaveCSS('background-color', 'rgba(255, 255, 255, 0.2)')
+    expect(await style(page, `.${SWITCH} .checkbox-input__visuals`, 'background-color', '::before')).toBe('rgb(243, 242, 237)')
+
+    await field.getByText('Notify subscribers').click()
+    await expect(field.getByRole('checkbox')).toBeChecked()
+    await expect(track).toHaveCSS('grid-template-columns', /^17\.\d+px 17\.\d+px 0px$/)
+    await expect(track).toHaveCSS('border-top-color', 'rgba(0, 0, 0, 0)')
+    await expect(track).toHaveCSS('background-color', 'rgb(243, 242, 237)')
+    expect(await style(page, `.${SWITCH} .checkbox-input__visuals`, 'background-color', '::before')).toBe('rgba(0, 0, 0, 0.9)')
+
+    const indent = await field.evaluate((root) => {
+      const description = root.querySelector('.field-description') as HTMLElement
+      const label = root.querySelector('.field-label') as HTMLElement
+      return {
+        description: description.getBoundingClientRect().left + parseFloat(getComputedStyle(description).paddingInlineStart),
+        label: label.getBoundingClientRect().left
+      }
+    })
+    expect(indent.description).toBeCloseTo(indent.label, 1)
   })
 
   test('Payload icons keep the Payload tick without its halo', async ({ page }) => {
@@ -530,7 +561,7 @@ test.describe('Theme values', () => {
     })
 
     expect(total).toBeGreaterThan(0)
-    const fieldLayouts = [`.${VERTICAL_TABS}`, `.${RADIO_CARDS}`]
+    const fieldLayouts = [`.${VERTICAL_TABS}`, `.${RADIO_CARDS}`, `.${SWITCH}`]
     for (const layout of fieldLayouts) {
       expect(
         applied.some((selector) => selector.startsWith(layout)),

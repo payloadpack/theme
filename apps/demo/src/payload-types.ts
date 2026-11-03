@@ -297,6 +297,10 @@ export interface Showcase {
     beachAccess?: boolean | null;
     skiStorage?: boolean | null;
   };
+  /**
+   * Email everyone who follows this showcase
+   */
+  notify?: boolean | null;
   body?: LexicalRichText<LexicalNodes_4E9B5B0F> | null;
   links?:
     | {
@@ -501,6 +505,7 @@ export interface ShowcaseSelect<T extends boolean = true> {
         beachAccess?: T;
         skiStorage?: T;
       };
+  notify?: T;
   body?: T;
   links?:
     | T

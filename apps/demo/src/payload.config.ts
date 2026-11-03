@@ -1,6 +1,6 @@
 import { sqliteAdapter } from '@payloadcms/db-sqlite'
 import { FixedToolbarFeature, lexicalEditor } from '@payloadcms/richtext-lexical'
-import { RADIO_CARDS, themePlugin, VERTICAL_TABS } from '@payloadpack/theme'
+import { RADIO_CARDS, SWITCH, themePlugin, VERTICAL_TABS } from '@payloadpack/theme'
 import path from 'path'
 import { createElement, Fragment } from 'react'
 import { buildConfig } from 'payload'
@@ -97,6 +97,12 @@ export default buildConfig({
               fields: AMENITIES.map((name) => ({ name, type: 'checkbox' as const, admin: { width: '25%' } }))
             }
           ]
+        },
+        {
+          name: 'notify',
+          type: 'checkbox',
+          label: 'Notify subscribers',
+          admin: { className: SWITCH, description: 'Email everyone who follows this showcase' }
         },
         {
           name: 'body',

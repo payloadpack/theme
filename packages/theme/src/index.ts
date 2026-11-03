@@ -7,6 +7,7 @@ const PACKAGE_NAME = '@payloadpack/theme'
 
 export const VERTICAL_TABS = 'payloadpack-vertical-tabs'
 export const RADIO_CARDS = 'payloadpack-radio-cards'
+export const SWITCH = 'payloadpack-switch'
 
 export type ThemePluginConfig = {
   codeEditorFontSize?: false | number

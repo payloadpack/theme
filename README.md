@@ -145,6 +145,29 @@ A label can also be JSX. Its first element is the title and any element after it
 { value: 'plus', label: <><strong>Plus</strong><span>For individuals and small teams.</span></> }
 ```
 
+## Switch
+
+<p>
+  <picture>
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/switch-light.png">
+    <img width="640" alt="A Notify subscribers checkbox shown as a switch that is turned on" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/switch-dark.png">
+  </picture>
+</p>
+
+Give a checkbox field the `SWITCH` class to show it as a switch:
+
+```ts
+import { SWITCH } from '@payloadpack/theme'
+
+const field = {
+  name: 'notify',
+  type: 'checkbox',
+  admin: { className: SWITCH }
+}
+```
+
+It is still Payload's checkbox: it saves with the form, and screen readers announce it as a checkbox. Its size and thumb are set in [Customize](#customize).
+
 ## Nav icons
 
 With Icons set to Lucide, every collection and global in the nav gets an icon. Common names get a matching one automatically: a slug containing `page`, `post`, `media`, `user`, `categor`, `product`, `order`, `form`, `tag`, `event` or [more than 30 other words](https://github.com/payloadpack/theme/blob/main/packages/theme/src/styles/lucide.css) is recognized. Anything else gets a generic icon.
@@ -191,6 +214,22 @@ Checkboxes and radios share their size and colors:
 ```css
 html {
   --payloadpack-row-button-height: 2.5rem;
+}
+```
+
+Switches take their colors from the toggle tokens and their shape from these. Set them on `.payloadpack-switch`:
+
+| Token                         | Controls                                             |
+| ----------------------------- | ---------------------------------------------------- |
+| `--payloadpack-switch-size`   | Height, 1.5rem. The width follows                    |
+| `--payloadpack-switch-gap`    | Space around the thumb as a share of the height, 0.1 |
+| `--payloadpack-switch-radius` | Thumb corners, fully round. The track follows        |
+| `--payloadpack-switch-thumb`  | Thumb color while off                                |
+
+```css
+.payloadpack-switch {
+  --payloadpack-switch-size: 1.5rem;
+  --payloadpack-switch-radius: 4px;
 }
 ```
 

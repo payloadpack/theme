@@ -4,7 +4,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
-import { RADIO_CARDS, VERTICAL_TABS } from '../src/index.js'
+import { RADIO_CARDS, SWITCH, VERTICAL_TABS } from '../src/index.js'
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)))
 
@@ -31,6 +31,7 @@ const scopes: Record<string, string> = {
   'lucide.css': "html[data-icons='lucide']",
   'neutral.css': "html[data-admin-theme='neutral']",
   'fields/radio-cards.css': `.${RADIO_CARDS}`,
+  'fields/switch.css': `.${SWITCH}`,
   'fields/vertical-tabs.css': `.${VERTICAL_TABS}`
 }
 
