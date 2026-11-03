@@ -31,6 +31,8 @@ const scopes: Record<string, string> = {
   'palettes/accent.css': 'html[data-accent]',
   'options/density.css': "html[data-density='comfortable']",
   'options/icons.css': "html[data-icons='lucide']",
+  'options/motion.css': "html[data-motion='on']",
+  'options/radius.css': 'html[data-radius]',
   'palettes/warm.css': "html[data-palette='warm']",
   'styles/appearance-panel.css': '.payloadpack-appearance-panel',
   'styles/fields/radio-cards.css': `.${RADIO_CARDS}`,
@@ -48,6 +50,18 @@ const builtAtRuntime: Record<string, { file: string; snippets: string[] }> = {
   'copy-locale-data__button': {
     file: 'elements/CopyLocaleData/index.js',
     snippets: ["const baseClass = 'copy-locale-data'", 'id: `${baseClass}__button`']
+  },
+  'popup--side-left': {
+    file: 'elements/Popup/index.js',
+    snippets: ["const baseClass = 'popup'", "horizontalAlignProp === 'left' ? 'left'", '`${baseClass}--side-${resolvedSide}`']
+  },
+  'popup--side-right': {
+    file: 'elements/Popup/index.js',
+    snippets: ["const baseClass = 'popup'", ": 'right'", '`${baseClass}--side-${resolvedSide}`']
+  },
+  'popup--v-top': {
+    file: 'elements/Popup/index.js',
+    snippets: ["const baseClass = 'popup'", '`${baseClass}--v-top`']
   }
 }
 
@@ -155,6 +169,7 @@ const hardCodedByPayload = [
     declaration: '.popup-button { height: var(--spacer-4, 1.5rem); }'
   },
   { file: 'css/theme.css', selector: ':root', declaration: '--popup-radius: var(--radius-large);' },
+  { file: 'elements/Drawer/index.css', selector: '.drawer__content', declaration: 'transition: transform 100ms ease-out;' },
   { file: 'elements/Dialog/index.css', selector: '.dialog--small', declaration: '--dialog-width: 280px;' },
   {
     file: 'elements/Dialog/index.css',
@@ -486,9 +501,7 @@ describe('theme contract with Payload', () => {
 
   it.each(hardCodedByPayload)('Payload still hard-codes $selector ($declaration)', ({ declaration, file, selector }) => {
     const css = read(path.join(uiDist, file))
-    expect(ruleBody(css, selector), `${selector} changed upstream, re-check its fix in options/density.css`).toContain(
-      squash(declaration)
-    )
+    expect(ruleBody(css, selector), `${selector} changed upstream, re-check its fix`).toContain(squash(declaration))
   })
 
   it('Payload still hard-codes the fixed-toolbar editor padding', () => {

@@ -1,0 +1,32 @@
+@layer payload {
+  html[data-radius] {
+    /* 1. None */
+    &[data-radius='none'] {
+      --radius-small: 0px;
+      --radius-chip: 0px;
+      --radius-medium: 0px;
+      --radius-large: 0px;
+    }
+
+    /* 2. Small */
+    &[data-radius='sm'] {
+      --radius-small: 0.0625rem;
+      --radius-chip: 0.125rem;
+      --radius-medium: 0.1875rem;
+      --radius-large: 0.5rem;
+    }
+
+    /* 3. Large */
+    &:is([data-radius='lg'], [data-radius='full']) {
+      --radius-small: 0.25rem;
+      --radius-chip: 0.3125rem;
+      --radius-medium: 0.5rem;
+      --radius-large: 1.25rem;
+    }
+
+    /* 4. Full */
+    &[data-radius='full'] {
+      --button-radius: var(--radius-full);
+    }
+  }
+}

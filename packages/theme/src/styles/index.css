@@ -1,8 +1,10 @@
 @import '../characters/enhanced/enhanced.css';
 @import '../palettes/warm.css';
 @import '../palettes/accent.css';
+@import '../options/radius.css';
 @import '../options/density.css';
 @import '../options/icons.css';
+@import '../options/motion.css';
 @import './fields/vertical-tabs.css';
 @import './fields/radio-cards.css';
 @import './fields/switch.css';

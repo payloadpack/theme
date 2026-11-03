@@ -23,8 +23,17 @@ const payloadpack = {
   iconsPayload: 'Payload',
   invalidSetup: 'This text is not a valid setup.',
   light: 'Light',
+  motion: 'Motion',
+  motionOff: 'Off',
+  motionOn: 'On',
   palette: 'Palette',
   pasteSetup: 'Paste setup',
+  radius: 'Corners',
+  radiusFull: 'Round',
+  radiusLg: 'L',
+  radiusMd: 'M',
+  radiusNone: 'None',
+  radiusSm: 'S',
   reset: 'Reset',
   stockNote: "Stock keeps Payload's own layout. It has no options."
 } satisfies Record<OptionKey, string> & Record<string, string>

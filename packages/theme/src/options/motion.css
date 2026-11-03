@@ -1,0 +1,101 @@
+@layer payload {
+  html[data-motion='on'] {
+    @media (prefers-reduced-motion: no-preference) {
+      /* 1. Drawers */
+      .drawer__blur-bg {
+        transition: opacity 200ms linear;
+
+        @starting-style {
+          opacity: 0;
+        }
+      }
+
+      .drawer__content {
+        transition:
+          transform 100ms ease-out,
+          opacity 200ms linear,
+          translate 200ms linear;
+
+        @starting-style {
+          opacity: 0;
+          translate: 5rem 0;
+        }
+      }
+
+      /* 2. Tooltips */
+      .tooltip {
+        transition:
+          opacity 0.2s ease-in-out,
+          visibility 0.2s ease-in-out;
+      }
+
+      .tooltip--show {
+        @starting-style {
+          opacity: 0;
+        }
+      }
+
+      /* 3. Fields */
+      .form-input,
+      .form-input-group,
+      .react-select .rs__control {
+        transition-property: border, box-shadow, background-color;
+        transition-duration: 100ms, 100ms, 500ms;
+        transition-timing-function: cubic-bezier(0, 0.2, 0.2, 1);
+      }
+
+      /* 4. Buttons */
+      .btn {
+        transition-property: border, color, background;
+        transition-duration: 100ms;
+        transition-timing-function: cubic-bezier(0, 0.2, 0.2, 1);
+      }
+
+      /* 5. Cards */
+      .card {
+        transition-property: border, box-shadow, background;
+        transition-duration: 100ms;
+        transition-timing-function: cubic-bezier(0, 0.2, 0.2, 1);
+      }
+
+      /* 6. Popups and menus */
+      .popup__content:popover-open,
+      .rs__menu,
+      .react-datepicker-popper {
+        transition:
+          opacity 150ms ease-out,
+          translate 150ms ease-out;
+
+        @starting-style {
+          opacity: 0;
+          translate: 0 calc(-1 * var(--spacer-1));
+        }
+      }
+
+      .popup--side-right:popover-open {
+        @starting-style {
+          translate: calc(-1 * var(--spacer-1)) 0;
+        }
+      }
+
+      .popup--side-left:popover-open {
+        @starting-style {
+          translate: var(--spacer-1) 0;
+        }
+      }
+
+      .popup--v-top:popover-open,
+      .rs__menu--placement-top,
+      .react-datepicker-popper[data-placement^='top'] {
+        transition: opacity 150ms ease-out;
+      }
+
+      .popup__hidden-content {
+        opacity: 0;
+        transition:
+          all 150ms step-end allow-discrete,
+          opacity 150ms ease-out;
+      }
+    }
+  }
+}
