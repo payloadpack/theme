@@ -1,4 +1,4 @@
-import { RADIO_CARDS, VERTICAL_TABS } from '@payloadpack/theme'
+import { RADIO_CARDS, SWITCH, VERTICAL_TABS } from '@payloadpack/theme'
 import { expect, type Page, test } from '@playwright/test'
 
 import { cookie, findShowcase } from './demo'
@@ -8,7 +8,7 @@ const looks = {
   themed: [cookie('admin-theme', 'neutral'), cookie('density', 'comfortable'), cookie('icons', 'lucide')]
 }
 
-const fields = { 'radio-cards': RADIO_CARDS, 'vertical-tabs': VERTICAL_TABS }
+const fields = { 'radio-cards': RADIO_CARDS, switch: SWITCH, 'vertical-tabs': VERTICAL_TABS }
 
 const box = async (page: Page, selector: string) => {
   const rect = await page.locator(selector).first().boundingBox()
@@ -26,6 +26,7 @@ const openShowcase = async (page: Page, cookies: ReturnType<typeof cookie>[], th
   await page.locator('.field-type.checkbox').filter({ hasText: 'Featured' }).getByRole('checkbox').check()
   await page.locator('.radio-group').filter({ hasText: 'Size' }).locator('.radio-input').filter({ hasText: /^m$/ }).click()
   await page.locator(`.${RADIO_CARDS} .radio-input`).nth(1).click()
+  await page.locator(`.${SWITCH}`).getByRole('checkbox').check()
   await page.getByRole('tab', { name: 'General' }).click()
   await page.evaluate(() => {
     ;(document.activeElement as HTMLElement | null)?.blur()

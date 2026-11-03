@@ -1,0 +1,70 @@
+@layer payload {
+  .payloadpack-switch {
+    --payloadpack-switch-size: 1.5rem;
+    --payloadpack-switch-gap: 0.1;
+    --payloadpack-switch-radius: 99rem;
+    --payloadpack-switch-thumb: var(--color-text);
+    --payloadpack-switch-padding: calc(var(--payloadpack-switch-size) * var(--payloadpack-switch-gap));
+    --payloadpack-switch-width: calc(
+      var(--payloadpack-switch-size) * 2 - (var(--stroke-width-small) + var(--payloadpack-switch-padding)) * 2
+    );
+    --payloadpack-toggle-size: var(--payloadpack-switch-width);
+
+    > .field-description {
+      padding-inline-start: calc(var(--payloadpack-switch-width) + var(--spacer-2));
+    }
+
+    .checkbox-input .checkbox-input__input {
+      width: var(--payloadpack-switch-width);
+      height: var(--payloadpack-switch-size);
+      margin-block: calc(var(--spacer-1) + (var(--text-body-medium-line-height) - var(--payloadpack-switch-size)) / 2);
+    }
+
+    .checkbox-input__visuals {
+      display: grid;
+      grid-template-columns: 0fr 1fr 1fr;
+      place-content: stretch;
+      padding: var(--payloadpack-switch-padding);
+      border-radius: calc(var(--payloadpack-switch-radius) + var(--payloadpack-switch-padding) + var(--stroke-width-small));
+      transition: grid-template-columns 200ms;
+
+      &::before {
+        content: '';
+        grid-area: 1 / 2;
+        height: 100%;
+        aspect-ratio: 1;
+        border-radius: var(--payloadpack-switch-radius);
+        background: var(--payloadpack-switch-thumb);
+      }
+
+      > * {
+        position: absolute;
+        visibility: hidden;
+      }
+    }
+
+    &:not(.error) .checkbox-input__control:not(:disabled) + .checkbox-input__visuals {
+      border-color: transparent;
+    }
+
+    &:not(.error) .checkbox-input__control:not(:disabled, :checked, :indeterminate) + .checkbox-input__visuals {
+      background: var(--checkbox-border-color);
+    }
+
+    .checkbox-input__control:checked + .checkbox-input__visuals {
+      grid-template-columns: 1fr 1fr 0fr;
+
+      &::before {
+        background: var(--checkbox-mark-color);
+      }
+    }
+
+    .checkbox-input__control:indeterminate + .checkbox-input__visuals {
+      grid-template-columns: 0.5fr 1fr 0.5fr;
+    }
+
+    .checkbox-input__control:disabled + .checkbox-input__visuals::before {
+      background: var(--checkbox-mark-color);
+    }
+  }
+}
