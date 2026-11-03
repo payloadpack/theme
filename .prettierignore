@@ -10,3 +10,4 @@ CHANGELOG.md
 .auth/
 .claude/settings.local.json
 packages/theme/src/options/icons.css
+packages/theme/src/options/nav-icons.css

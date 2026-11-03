@@ -5,7 +5,10 @@
 @import '../options/density.css';
 @import '../options/icons.css';
 @import '../options/motion.css';
+@import '../options/nav-icons.css';
+@import '../options/nav.css';
 @import './fields/vertical-tabs.css';
 @import './fields/radio-cards.css';
 @import './fields/switch.css';
 @import './appearance-panel.css';
+@import './rail.css';

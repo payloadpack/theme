@@ -19,15 +19,19 @@ async function savedChoices({ cookieName, payload, server, settings, user }: Pro
 }
 
 export async function AppearanceServerProvider(props: Props) {
-  const { children, codeEditorFontSize, panel, payload, settings, user } = props
+  const { children, codeEditorFontSize, panel, payload, server, settings, user } = props
   const cookieName = `${payload.config.cookiePrefix}-appearance`
+  const railCookieName = `${payload.config.cookiePrefix}-nav-rail`
   const choices = isEditable(panel, user) ? await savedChoices({ ...props, cookieName }) : {}
+  const initialRail = (await server.getCookies()).get(railCookieName)?.value === 'true'
 
   return (
     <AppearanceProvider
       codeEditorFontSize={codeEditorFontSize}
       cookieName={cookieName}
       initialChoices={choices}
+      initialRail={initialRail}
+      railCookieName={railCookieName}
       settings={settings}>
       {children}
     </AppearanceProvider>

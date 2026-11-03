@@ -177,54 +177,7 @@
     #action-unpublish,
     #action-unpublish-locale { --payloadpack-icon: url('lucide-static/icons/eye-off.svg'); }
 
-    /* 4. Navigation */
-    .nav__link { --payloadpack-icon: url('lucide-static/icons/layers-2.svg'); }
-    .nav__link[id^='nav-global-'] { --payloadpack-icon: url('lucide-static/icons/app-window.svg'); }
-    .nav__link[id*='header'] { --payloadpack-icon: url('lucide-static/icons/panel-top.svg'); }
-    .nav__link[id*='footer'] { --payloadpack-icon: url('lucide-static/icons/panel-bottom.svg'); }
-    .nav__link[id*='page'] { --payloadpack-icon: url('lucide-static/icons/file.svg'); }
-    .nav__link[id*='post'] { --payloadpack-icon: url('lucide-static/icons/pencil-line.svg'); }
-    .nav__link[id*='categor'] { --payloadpack-icon: url('lucide-static/icons/folder-tree.svg'); }
-    .nav__link[id*='order'] { --payloadpack-icon: url('lucide-static/icons/package.svg'); }
-    .nav__link[id*='product'] { --payloadpack-icon: url('lucide-static/icons/shopping-cart.svg'); }
-    .nav__link[id*='media'] { --payloadpack-icon: url('lucide-static/icons/image.svg'); }
-    .nav__link[id*='upload'] { --payloadpack-icon: url('lucide-static/icons/upload.svg'); }
-    .nav__link[id*='form'] { --payloadpack-icon: url('lucide-static/icons/file-text.svg'); }
-    .nav__link[id*='submission'] { --payloadpack-icon: url('lucide-static/icons/message-square.svg'); }
-    .nav__link[id*='block'],
-    .nav__link[id*='lock'] { --payloadpack-icon: url('lucide-static/icons/boxes.svg'); }
-    .nav__link[id*='redirect'] { --payloadpack-icon: url('lucide-static/icons/route.svg'); }
-    .nav__link[id*='settings'] { --payloadpack-icon: url('lucide-static/icons/settings.svg'); }
-    .nav__link[id*='user'] { --payloadpack-icon: url('lucide-static/icons/users.svg'); }
-    .nav__link[id*='session'] { --payloadpack-icon: url('lucide-static/icons/key.svg'); }
-    .nav__link[id*='verification'] { --payloadpack-icon: url('lucide-static/icons/rectangle-ellipsis.svg'); }
-    .nav__link[id*='account'] { --payloadpack-icon: url('lucide-static/icons/shield-user.svg'); }
-    .nav__link[id*='signup-invite'] { --payloadpack-icon: url('lucide-static/icons/user-plus.svg'); }
-    .nav__link[id*='twoFactor'],
-    .nav__link[id*='two-factor'] { --payloadpack-icon: url('lucide-static/icons/shield-check.svg'); }
-    .nav__link[id*='nav-apikey'] { --payloadpack-icon: url('lucide-static/icons/key-round.svg'); }
-    .nav__link[id*='nav-invitation'] { --payloadpack-icon: url('lucide-static/icons/mail-plus.svg'); }
-    .nav__link[id*='nav-organization'] { --payloadpack-icon: url('lucide-static/icons/building-2.svg'); }
-    .nav__link[id*='nav-team'] { --payloadpack-icon: url('lucide-static/icons/users-round.svg'); }
-    .nav__link[id*='nav-member'] { --payloadpack-icon: url('lucide-static/icons/user-plus.svg'); }
-    .nav__link[id*='comment'] { --payloadpack-icon: url('lucide-static/icons/message-circle.svg'); }
-    .nav__link[id*='nav-passkey'] { --payloadpack-icon: url('lucide-static/icons/fingerprint-pattern.svg'); }
-    .nav__link[id*='review'] { --payloadpack-icon: url('lucide-static/icons/star.svg'); }
-    .nav__link[id*='search'] { --payloadpack-icon: url('lucide-static/icons/search.svg'); }
-    .nav__link[id*='tag'] { --payloadpack-icon: url('lucide-static/icons/tags.svg'); }
-    .nav__link[id*='analytics'] { --payloadpack-icon: url('lucide-static/icons/bar-chart.svg'); }
-    .nav__link[id*='appointment'],
-    .nav__link[id*='booking'],
-    .nav__link[id*='event'],
-    .nav__link[id*='calendar'] { --payloadpack-icon: url('lucide-static/icons/calendar-clock.svg'); }
-    .nav__link[id*='subscription'] { --payloadpack-icon: url('lucide-static/icons/credit-card.svg'); }
-    .nav__link[id*='budget'] { --payloadpack-icon: url('lucide-static/icons/chart-pie.svg'); }
-    .nav__link[id*='budget-rate'] { --payloadpack-icon: url('lucide-static/icons/percent.svg'); }
-    .nav__link[id*='budget-ticket'] { --payloadpack-icon: url('lucide-static/icons/ticket.svg'); }
-    .nav__link[id*='time-log'] { --payloadpack-icon: url('lucide-static/icons/clock.svg'); }
-    .nav__link[id*='api-key'] { --payloadpack-icon: url('lucide-static/icons/key-round.svg'); }
-
-    /* 5. Toasts */
+    /* 4. Toasts */
     .toast-error .toast-icon svg.icon--warning { --payloadpack-icon: url('lucide-static/icons/octagon-x.svg'); }
   }
 }

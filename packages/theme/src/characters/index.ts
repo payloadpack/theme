@@ -4,7 +4,8 @@ export const options = {
   radius: ['none', 'sm', 'md', 'lg', 'full'],
   density: ['compact', 'comfortable'],
   icons: ['payload', 'lucide'],
-  motion: ['off', 'on']
+  motion: ['off', 'on'],
+  nav: ['icons', 'hidden']
 } as const
 
 export type Option = keyof typeof options
