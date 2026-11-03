@@ -985,17 +985,12 @@ test.describe('Accent', () => {
       .context()
       .addCookies([appearance({ accent: { payload: '#ffffff' }, palette: 'payload' }), cookie('theme', 'light')])
     await page.goto('/admin/collections/showcase')
-    const [fillLightness] = await channels(
-      page,
-      'oklab',
-      await style(page, '.nav__link--selected', 'background-color', '::before')
-    )
-    const [inkLightness] = await channels(page, 'oklab', await style(page, '.nav__link--selected', 'color'))
-    const [, , , edgeAlpha] = await channels(page, 'oklab', await style(page, '.btn--style-primary:visible', 'border-top-color'))
+    const oklab = async (selector: string, property: string, pseudo?: string) =>
+      channels(page, 'oklab', await style(page, selector, property, pseudo))
 
-    expect(fillLightness).toBeLessThan(0.95)
-    expect(inkLightness).toBeLessThan(0.45)
-    expect(edgeAlpha).toBeGreaterThan(0)
+    await expect.poll(async () => (await oklab('.nav__link--selected', 'background-color', '::before'))[0]).toBeLessThan(0.95)
+    await expect.poll(async () => (await oklab('.nav__link--selected', 'color'))[0]).toBeLessThan(0.45)
+    await expect.poll(async () => (await oklab('.btn--style-primary:visible', 'border-top-color'))[3]).toBeGreaterThan(0)
   })
 
   test('dark selection mixes the accent into the palette background', async ({ page }) => {
