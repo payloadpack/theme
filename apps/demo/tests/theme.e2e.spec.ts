@@ -43,7 +43,7 @@ const backgrounds = (page: Page) =>
 test.describe('Logged out', () => {
   test.use({ storageState: { cookies: [], origins: [] } })
 
-  test('defaults to Enhanced and Warm with medium radius, comfortable density and Lucide icons', async ({ page }) => {
+  test('defaults to Enhanced and Warm with medium radius, comfortable density, Lucide icons and motion', async ({ page }) => {
     await page.context().addCookies([cookie('theme', 'dark')])
     await page.goto('/admin/login')
 
@@ -51,6 +51,7 @@ test.describe('Logged out', () => {
     await expect(page.locator('html')).toHaveAttribute('data-radius', 'md')
     await expect(page.locator('html')).toHaveAttribute('data-density', 'comfortable')
     await expect(page.locator('html')).toHaveAttribute('data-icons', 'lucide')
+    await expect(page.locator('html')).toHaveAttribute('data-motion', 'on')
     await expect(page.locator('html')).toHaveAttribute('data-palette', 'warm')
     await expect(page.locator('html')).toHaveCSS('background-color', 'rgb(15, 15, 14)')
   })
@@ -97,7 +98,7 @@ test.describe('Theme plugin', () => {
 
     await page.goto('/admin')
     await expect(page.locator('html')).toHaveAttribute('data-character', 'stock')
-    for (const option of ['radius', 'density', 'icons']) {
+    for (const option of ['radius', 'density', 'icons', 'motion']) {
       await expect(page.locator('html')).not.toHaveAttribute(`data-${option}`)
     }
   })
@@ -541,6 +542,61 @@ test.describe('Radius', () => {
 
     await expect(page.locator(button).first()).toHaveCSS('border-radius', '9999px')
     await expect(page.locator(field).first()).toHaveCSS('border-radius', '8px')
+  })
+})
+
+test.describe('Motion', () => {
+  const recordTransitions = async (page: Page, selector: string) => {
+    await page.addInitScript((watched) => {
+      const runs: string[] = []
+      Object.assign(window, { transitionRuns: runs })
+      document.addEventListener('transitionrun', (event) => {
+        const target = event.target as Element
+        if (target.matches(watched)) {
+          runs.push(`${target.classList[0]} ${event.propertyName}`)
+        }
+      })
+    }, selector)
+    return () => page.evaluate(() => (window as unknown as { transitionRuns: string[] }).transitionRuns.slice().sort())
+  }
+
+  const openDrawer = async (page: Page) => {
+    const transitions = await recordTransitions(page, '.drawer__blur-bg, .drawer__content')
+    await openShowcase(page)
+    await page.locator('.relationship-add-new__add-button').click()
+    await page.locator('.drawer--is-open .drawer__content').waitFor()
+    return transitions
+  }
+
+  test('drawers fade and slide in', async ({ page }) => {
+    const transitions = await openDrawer(page)
+
+    await expect.poll(transitions).toEqual(['drawer__blur-bg opacity', 'drawer__content opacity', 'drawer__content translate'])
+  })
+
+  for (const [name, setup] of [
+    ['motion is off', (page: Page) => page.context().addCookies([appearance({ options: { enhanced: { motion: 'off' } } })])],
+    ['the OS reduces motion', (page: Page) => page.emulateMedia({ reducedMotion: 'reduce' })]
+  ] as const) {
+    test(`drawers open at once when ${name}`, async ({ page }) => {
+      await setup(page)
+      const transitions = await openDrawer(page)
+
+      await expect(page.locator('.drawer__blur-bg')).toHaveCSS('transition-duration', '0s')
+      await expect(page.locator('.drawer__content')).toHaveCSS('transition-property', 'transform')
+      expect(await transitions()).toEqual([])
+    })
+  }
+
+  test('tooltips fade in and out', async ({ page }) => {
+    const transitions = await recordTransitions(page, '.tooltip')
+    await page.goto('/admin')
+
+    await page.getByRole('button', { name: 'Hide sidebar' }).hover()
+    await expect.poll(transitions).toEqual(['tooltip opacity'])
+
+    await page.mouse.move(700, 700)
+    await expect.poll(transitions).toEqual(['tooltip opacity', 'tooltip opacity', 'tooltip visibility'])
   })
 })
 

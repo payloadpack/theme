@@ -1,0 +1,62 @@
+@layer payload {
+  html[data-motion='on'] {
+    @media (prefers-reduced-motion: no-preference) {
+      /* 1. Drawers */
+      .drawer__blur-bg {
+        transition: opacity 200ms linear;
+
+        @starting-style {
+          opacity: 0;
+        }
+      }
+
+      .drawer__content {
+        transition:
+          transform 100ms ease-out,
+          opacity 200ms linear,
+          translate 200ms linear;
+
+        @starting-style {
+          opacity: 0;
+          translate: 5rem 0;
+        }
+      }
+
+      /* 2. Tooltips */
+      .tooltip {
+        transition:
+          opacity 0.2s ease-in-out,
+          visibility 0.2s ease-in-out;
+      }
+
+      .tooltip--show {
+        @starting-style {
+          opacity: 0;
+        }
+      }
+
+      /* 3. Fields */
+      .form-input,
+      .form-input-group,
+      .react-select .rs__control {
+        transition-property: border, box-shadow, background-color;
+        transition-duration: 100ms, 100ms, 500ms;
+        transition-timing-function: cubic-bezier(0, 0.2, 0.2, 1);
+      }
+
+      /* 4. Buttons */
+      .btn {
+        transition-property: border, color, background;
+        transition-duration: 100ms;
+        transition-timing-function: cubic-bezier(0, 0.2, 0.2, 1);
+      }
+
+      /* 5. Cards */
+      .card {
+        transition-property: border, box-shadow, background;
+        transition-duration: 100ms;
+        transition-timing-function: cubic-bezier(0, 0.2, 0.2, 1);
+      }
+    }
+  }
+}

@@ -3,7 +3,8 @@ import { enhanced } from './enhanced/index.js'
 export const options = {
   radius: ['none', 'sm', 'md', 'lg', 'full'],
   density: ['compact', 'comfortable'],
-  icons: ['payload', 'lucide']
+  icons: ['payload', 'lucide'],
+  motion: ['off', 'on']
 } as const
 
 export type Option = keyof typeof options
