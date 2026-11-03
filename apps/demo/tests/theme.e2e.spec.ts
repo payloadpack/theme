@@ -1150,6 +1150,7 @@ test.describe('Studio character', () => {
     await expect(card).toHaveCSS('border-top-width', '1px')
     await expect(card).toHaveCSS('border-top-color', await computedColor(page, 'var(--color-border)'))
     await expect(card).toHaveCSS('border-radius', '26px')
+    await expect(card).toHaveCSS('overflow', 'clip')
     await expect(card).toHaveCSS('margin', '12px 12px 12px 0px')
     await expect(page.locator('.nav')).toHaveCSS('border-right-width', '0px')
   })

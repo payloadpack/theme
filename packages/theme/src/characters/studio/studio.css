@@ -19,6 +19,7 @@
         .template-default__wrap {
           width: auto;
           margin: var(--spacer-2-5);
+          overflow: clip;
           border: var(--stroke-width-small) solid var(--color-border);
           border-radius: calc(var(--radius-large) + var(--spacer-1-5));
         }
