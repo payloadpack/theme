@@ -24,13 +24,13 @@
     <td>
       <picture>
         <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/compare-themed-light.png">
-        <img alt="The same edit view with the Enhanced character, Comfortable density and Lucide icons" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/compare-themed-dark.png">
+        <img alt="The same edit view with the Enhanced character, the Warm palette, Comfortable density and Lucide icons" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/compare-themed-dark.png">
       </picture>
     </td>
   </tr>
 </table>
 
-Each editor picks how their admin panel looks from the Appearance panel in the header: Enhanced, with a warm dark palette, a roomier density and Lucide icons, or Stock, which is plain Payload. Choices are rendered on the server, so pages never flash.
+Each editor picks how their admin panel looks from the Appearance panel in the header: a character for the layout, a palette for the colors and an accent. The default is the Enhanced character, with a roomier density and Lucide icons, on the Warm palette. Stock on the Payload palette is plain Payload. Setups are rendered on the server, so pages never flash.
 
 ## Install
 
@@ -59,30 +59,33 @@ Click the palette button in the header to open the Appearance panel:
 <p>
   <picture>
     <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/appearance-light.png">
-    <img width="360" alt="The Appearance panel with Stock and Enhanced cards and Density, Icons and Color mode controls" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/appearance-dark.png">
+    <img width="360" alt="The Appearance panel with Stock and Enhanced cards, Density and Icons controls, Payload and Warm palette cards and accent swatches" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/appearance-dark.png">
   </picture>
 </p>
 
 The panel opens as a sheet on the right and fills the screen on phones. Every change applies at once, so there is no Save button. Escape or a click outside closes it.
 
-- **Character** is the design language of the whole admin panel. Stock is Payload exactly as it ships and has no options. Enhanced touches up Payload's own design without changing its structure, and is the default. The section is hidden when only one character is allowed.
+- **Character** is how the whole admin panel is laid out and behaves. Stock is Payload's own layout and has no options. Enhanced touches up Payload's own design without changing its structure, and is the default. The section is hidden when only one character is allowed.
 - **Options** belong to a character. Enhanced has Density and Icons. Each character keeps its own values, so switching to Stock and back keeps them.
+- **Palette** is the colors, in a light and a dark version. Payload is Payload's own colors. Warm, the default, is Payload's light colors and a warm near-black dark mode. Every palette works with every character. The section is hidden when only one palette is allowed.
+- **Accent** is the color of primary buttons, links and selected items: one of eight swatches or any `#rrggbb` color. Each palette keeps its own accent. Payload's blue, `#0d99ff`, keeps Payload's own shades, and any other accent gets matching shades for light and dark mode.
 - **Color mode** is Payload's own light and dark setting, the same one as Admin Theme on the account page. It is hidden when `admin.theme` is `'light'` or `'dark'`.
 - **Reset** returns to the defaults in your plugin config. It leaves the color mode alone.
-- **Copy config** shows in development only. It copies the plugin config that makes the current look the default, such as `themePlugin({ enhanced: { density: 'compact' } })`.
+- **Copy setup** copies your character, its options, your palette and its accent as JSON. **Paste setup** applies a setup another editor copied, and says so when the text isn't one. The JSON is also valid plugin config.
 
 | Option  | Values               | Enhanced default |
 | ------- | -------------------- | ---------------- |
 | Density | Compact, Comfortable | Comfortable      |
 | Icons   | Payload, Lucide      | Lucide           |
 
-- **Enhanced** gives dark mode a warm near-black palette and swaps Payload's blue selection for neutral greys. In both modes it draws a 2px focus ring in the text color and fills checked checkboxes and selected radios with the text color instead of blue.
+- **Enhanced** draws a 2px focus ring, rounds popups and toasts a little more, lifts the date picker and toasts like menus, and insets the sidebar tabs.
+- **Warm** gives dark mode a warm near-black palette and swaps Payload's blue selection for neutral greys. In both modes it draws the focus ring in the text color and fills checked checkboxes and selected radios with the text color instead of the accent.
 - **Comfortable** sets 14px body text, 36px fields and buttons, 32px menu items and 18px checkboxes and radios, gives dialogs more room, and fixes Payload components that hard-code their sizes.
 - **Lucide** replaces Payload's icons with [Lucide](https://lucide.dev) and adds icons to the nav and the document menu. The icons are bundled, so nothing loads from a CDN.
 
-Choices are stored per browser in one cookie, `<cookiePrefix>-appearance`, next to Payload's own theme cookie. The server renders them, so they apply on the login page too.
+A signed-in editor's setup is saved in Payload's own preferences, so it follows them to every browser. It is mirrored in one cookie, `<cookiePrefix>-appearance`, next to Payload's own theme cookie, which the server uses on the login page and until a setup is saved. The server renders the setup, so pages never flash.
 
-The panel's labels ship in English. To translate them, or rename one, set the `payloadpack` keys from [translations.ts](https://github.com/payloadpack/theme/blob/main/packages/theme/src/translations.ts) in your own `i18n.translations`, which win over the plugin's. Character names stay as they are.
+The panel's labels ship in English. To translate them, or rename one, set the `payloadpack` keys from [translations.ts](https://github.com/payloadpack/theme/blob/main/packages/theme/src/translations.ts) in your own `i18n.translations`, which win over the plugin's. Character and palette names stay as they are.
 
 ```ts
 export default buildConfig({
@@ -100,19 +103,35 @@ export default buildConfig({
 themePlugin({
   character: 'enhanced',
   characters: ['stock', 'enhanced'],
-  enhanced: { density: 'compact', icons: 'lucide' },
+  options: { enhanced: { density: 'compact', icons: 'lucide' } },
+  palette: 'warm',
+  palettes: ['payload', 'warm'],
+  accent: { warm: '#1d4ed8' },
   panel: ({ user }) => user?.role === 'admin',
   codeEditorFontSize: 13
 })
 ```
 
-| Key                  | Default                                       | Description                                                                                                                                                                                                                                                  |
-| -------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `character`          | `'enhanced'`                                  | The character everyone starts with. It must be one of `characters`.                                                                                                                                                                                          |
-| `characters`         | `['stock', 'enhanced']`                       | The characters editors may pick. An editor whose character is no longer allowed gets `character`.                                                                                                                                                            |
-| `enhanced`           | `{ density: 'comfortable', icons: 'lucide' }` | Enhanced's option values, which editors start from and Reset returns to. Only Enhanced's options are allowed, so a typo is a type error. Stock has no options and no key.                                                                                    |
-| `panel`              | `true`                                        | Who gets the Appearance panel: `true`, `false` or `({ user }) => boolean`. When it resolves to `false`, the editor gets no palette button and their cookie is ignored. Signed-out views have no user, so there the cookie applies unless `panel` is `false`. |
-| `codeEditorFontSize` | `13`                                          | Font size for code editors in Comfortable density. Payload's default is 11. Fields that set `admin.editorOptions.fontSize` keep their own size. `false` turns it off.                                                                                        |
+| Key                  | Default                                                     | Description                                                                                                                                                                                                                                                       |
+| -------------------- | ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `character`          | `'enhanced'`                                                | The character everyone starts with. It must be one of `characters`.                                                                                                                                                                                               |
+| `characters`         | `['stock', 'enhanced']`                                     | The characters editors may pick. An editor whose character is no longer allowed gets `character`.                                                                                                                                                                 |
+| `options`            | `{ enhanced: { density: 'comfortable', icons: 'lucide' } }` | Option values per character, which editors start from and Reset returns to. Each character takes only its own options, so a typo is a type error. Stock has no options and no key.                                                                                |
+| `palette`            | `'warm'`                                                    | The palette everyone starts with. It must be one of `palettes`.                                                                                                                                                                                                   |
+| `palettes`           | `['payload', 'warm']`                                       | The palettes editors may pick. An editor whose palette is no longer allowed gets `palette`.                                                                                                                                                                       |
+| `accent`             | `{ payload: '#0d99ff', warm: '#0d99ff' }`                   | The accent per palette, as `#rrggbb`, which editors start from and Reset returns to.                                                                                                                                                                              |
+| `panel`              | `true`                                                      | Who gets the Appearance panel: `true`, `false` or `({ user }) => boolean`. When it resolves to `false`, the editor gets no palette button and their saved setup is ignored. Signed-out views have no user, so there the cookie applies unless `panel` is `false`. |
+| `codeEditorFontSize` | `13`                                                        | Font size for code editors in Comfortable density. Payload's default is 11. Fields that set `admin.editorOptions.fontSize` keep their own size. `false` turns it off.                                                                                             |
+
+A setup from Copy setup has the same shape, so pasting it into `themePlugin()` makes it everyone's default:
+
+```ts
+themePlugin({
+  character: 'stock',
+  palette: 'payload',
+  accent: { payload: '#be185d' }
+})
+```
 
 ## Vertical tabs
 
@@ -221,7 +240,7 @@ Each toolbar sizes its buttons from its own token. All but the menu items and si
 | `--payloadpack-menu-item-height`            | Popup menu items, 32px                   |
 | `--payloadpack-sidebar-tabs-height`         | Collections and Folders tabs, 38px       |
 
-Checkboxes and radios share their size and colors:
+Checkboxes and radios share their size and, on the Warm palette, their colors:
 
 | Token                                 | Controls                                   |
 | ------------------------------------- | ------------------------------------------ |
