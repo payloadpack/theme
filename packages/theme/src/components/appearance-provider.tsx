@@ -5,8 +5,13 @@ import { createContext, type ReactNode, use, useLayoutEffect, useMemo, useState,
 import type { Character, Option, OptionValue } from '../characters/index.js'
 import { useMonacoFontSize } from '../hooks/use-monaco-font-size.js'
 import { type Choices, normalize, resolve, type Settings } from '../lib/appearance.js'
+import { payloadBlue } from '../palettes/index.js'
 
 const ONE_YEAR_IN_SECONDS = 60 * 60 * 24 * 365
+
+const ACCENT_PROPERTY = '--payloadpack-accent'
+
+const inline = (value: unknown) => JSON.stringify(value).replace(/</g, '\\u003c')
 
 type AppearanceContextValue = ReturnType<typeof resolve> & {
   characters: Character[]
@@ -29,8 +34,11 @@ type AppearanceProviderProps = {
 
 export function AppearanceProvider({ children, codeEditorFontSize, cookieName, initialChoices, settings }: AppearanceProviderProps) {
   const [choices, setChoices] = useState(initialChoices)
-  const { character, palette, values } = useMemo(() => resolve(settings, choices), [settings, choices])
-  const attributes = useMemo(() => ({ character, ...values, palette }), [character, palette, values])
+  const { accent, character, palette, values } = useMemo(() => resolve(settings, choices), [settings, choices])
+  const attributes = useMemo(
+    () => ({ character, ...values, palette, ...(accent === payloadBlue ? {} : { accent }) }),
+    [accent, character, palette, values]
+  )
   const isServerHtml = useSyncExternalStore(
     subscribeToNothing,
     () => false,
@@ -40,15 +48,17 @@ export function AppearanceProvider({ children, codeEditorFontSize, cookieName, i
   useMonacoFontSize(values.density === 'comfortable' && codeEditorFontSize)
 
   useLayoutEffect(() => {
-    const { dataset } = document.documentElement
+    const { dataset, style } = document.documentElement
     Object.assign(dataset, attributes)
+    style.setProperty(ACCENT_PROPERTY, accent)
 
     return () => {
       for (const key of Object.keys(attributes)) {
         delete dataset[key]
       }
+      style.removeProperty(ACCENT_PROPERTY)
     }
-  }, [attributes])
+  }, [accent, attributes])
 
   const context = useMemo(() => {
     const update = (next: Choices) => {
@@ -60,6 +70,7 @@ export function AppearanceProvider({ children, codeEditorFontSize, cookieName, i
     }
 
     return {
+      accent,
       character,
       characters: Object.keys(settings.defaults) as Character[],
       palette,
@@ -69,7 +80,7 @@ export function AppearanceProvider({ children, codeEditorFontSize, cookieName, i
         update({ ...choices, [character]: { ...choices[character], [option]: value } }),
       values
     }
-  }, [character, choices, cookieName, palette, settings, values])
+  }, [accent, character, choices, cookieName, palette, settings, values])
 
   return (
     <AppearanceContext value={context}>
@@ -77,7 +88,7 @@ export function AppearanceProvider({ children, codeEditorFontSize, cookieName, i
       {isServerHtml && (
         <script
           dangerouslySetInnerHTML={{
-            __html: `Object.assign(document.documentElement.dataset,${JSON.stringify(attributes).replace(/</g, '\\u003c')})`
+            __html: `Object.assign(document.documentElement.dataset,${inline(attributes)});document.documentElement.style.setProperty('${ACCENT_PROPERTY}',${inline(accent)})`
           }}
         />
       )}

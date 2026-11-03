@@ -87,7 +87,7 @@ test.describe('Theme plugin', () => {
 
     const html = await (await page.request.get('/admin')).text()
     expect(html).toContain(
-      '<script>Object.assign(document.documentElement.dataset,{"character":"stock","palette":"warm"})</script>'
+      `<script>Object.assign(document.documentElement.dataset,{"character":"stock","palette":"warm"});document.documentElement.style.setProperty('--payloadpack-accent',"#0d99ff")</script>`
     )
 
     await page.goto('/admin')
@@ -613,13 +613,15 @@ test.describe('Warm palette', () => {
 })
 
 test.describe('Payload palette', () => {
-  test("Stock keeps Payload's own backgrounds", async ({ page }) => {
+  test("Stock keeps Payload's own backgrounds and blue", async ({ page }) => {
     await page.context().addCookies([appearance({ character: 'stock', palette: 'payload' })])
     await openShowcase(page)
 
     await expect(page.locator('html')).toHaveAttribute('data-palette', 'payload')
+    await expect(page.locator('html')).not.toHaveAttribute('data-accent')
     await expect(page.locator('html')).toHaveCSS('background-color', 'rgb(44, 44, 44)')
     await expect(page.locator('.nav')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
+    expect(await style(page, 'html', '--ramp-blue-400')).toBe('#80caff')
 
     await page.context().addCookies([cookie('theme', 'light')])
     await page.reload()
@@ -657,5 +659,20 @@ test.describe('Payload palette', () => {
       ).toBe(true)
     }
     expect(applied.filter((selector) => !ownClasses.some((scope) => selector.startsWith(scope)))).toEqual([])
+  })
+})
+
+test.describe('Accent', () => {
+  test('recolors primary buttons in light and dark', async ({ page }) => {
+    await page.context().addCookies([appearance({ accent: { warm: '#c2410c' } })])
+    await page.goto('/admin/collections/showcase')
+    const primary = page.locator('.btn--style-primary:visible').first()
+
+    await expect(page.locator('html')).toHaveAttribute('data-accent', '#c2410c')
+    await expect(primary).toHaveCSS('background-color', 'rgb(194, 65, 12)')
+
+    await page.context().addCookies([cookie('theme', 'dark')])
+    await page.reload()
+    await expect(primary).toHaveCSS('background-color', 'rgb(194, 65, 12)')
   })
 })

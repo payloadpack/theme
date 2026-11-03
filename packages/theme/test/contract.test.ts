@@ -28,6 +28,7 @@ const lucideIcons = path.join(packageRoot('lucide-static'), 'icons')
 
 const scopes: Record<string, string> = {
   'characters/enhanced/enhanced.css': "html[data-character='enhanced']",
+  'options/accent.css': 'html[data-accent]',
   'options/density.css': "html[data-density='comfortable']",
   'options/icons.css': "html[data-icons='lucide']",
   'palettes/warm.css': "html[data-palette='warm']",
@@ -373,7 +374,8 @@ describe('theme contract with Payload', () => {
   })
 
   it('reads only tokens that Payload or the plugin declares', () => {
-    const known = new Set([...declaredProperties(payloadCss), ...declaredProperties(allThemeCss)])
+    const setByProvider = matchAll(read(path.join(sourceDir, 'components/appearance-provider.tsx')), /'(--payloadpack-[\w-]+)'/g)
+    const known = new Set([...declaredProperties(payloadCss), ...declaredProperties(allThemeCss), ...setByProvider])
     expect(referencedProperties(allThemeCss).filter((token) => !known.has(token))).toEqual([])
   })
 
@@ -393,6 +395,12 @@ describe('theme contract with Payload', () => {
       ...declaredProperties(ruleBody(warm, '.toast-error') ?? '')
     ]
     expect(referencedProperties(toastCss).filter((token) => darkTokens.has(token) && !handled.includes(token))).toEqual([])
+  })
+
+  it('remaps every blue step Payload reads from the accent', () => {
+    expect(declaredProperties(themeCss['options/accent.css'])).toEqual(
+      referencedProperties(payloadCss).filter((token) => /^--ramp-(?:pale-)?blue-/.test(token))
+    )
   })
 
   it('keeps every color out of characters and options', () => {
@@ -417,7 +425,7 @@ describe('theme contract with Payload', () => {
       referencedProperties(value).some((token) => token.startsWith('--payloadpack-') && paletteTokens.has(token))
 
     const colored = Object.keys(themeCss)
-      .filter((file) => /^(?:characters|options)\//.test(file))
+      .filter((file) => /^(?:characters|options)\//.test(file) && file !== 'options/accent.css')
       .flatMap((file) =>
         rules(themeCss[file]).flatMap(({ declarations }) =>
           [...declarations.matchAll(/(?:^|;)\s*([\w-]+)\s*:([^;]*)/g)]

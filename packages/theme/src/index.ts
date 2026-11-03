@@ -23,6 +23,7 @@ type CharacterConfigs = {
 }
 
 export type ThemePluginConfig = CharacterConfigs & {
+  accent?: Partial<Record<Palette, string>>
   character?: Character
   characters?: Character[]
   codeEditorFontSize?: false | number
@@ -33,6 +34,7 @@ export type ThemePluginConfig = CharacterConfigs & {
 
 export function themePlugin(pluginConfig: ThemePluginConfig = {}): Plugin {
   const {
+    accent = {},
     character = defaultCharacter,
     characters = Object.keys(registry) as Character[],
     codeEditorFontSize = 13,
@@ -51,10 +53,10 @@ export function themePlugin(pluginConfig: ThemePluginConfig = {}): Plugin {
   }
 
   const settings: Settings = {
+    accents: Object.fromEntries(palettes.map((name) => [name, accent[name] ?? paletteRegistry[name].accent])),
     character,
     defaults: Object.fromEntries(characters.map((name) => [name, { ...registry[name].defaults, ...developerValues[name] }])),
-    palette,
-    palettes
+    palette
   }
 
   return (config) => ({

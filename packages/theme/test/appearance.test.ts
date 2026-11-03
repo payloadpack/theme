@@ -5,35 +5,47 @@ import type { User } from 'payload'
 import { isEditable, normalize, parseChoices, resolve, type Settings } from '../src/lib/appearance.js'
 
 const settings: Settings = {
+  accents: { payload: '#0d99ff', warm: '#0d99ff' },
   character: 'enhanced',
   defaults: { enhanced: { density: 'compact', icons: 'lucide' }, stock: {} },
-  palette: 'warm',
-  palettes: ['payload', 'warm']
+  palette: 'warm'
 }
 
 it('layers the editor choices over the developer defaults', () => {
   expect(resolve(settings, {})).toEqual({
+    accent: '#0d99ff',
     character: 'enhanced',
     palette: 'warm',
     values: { density: 'compact', icons: 'lucide' }
   })
   expect(resolve(settings, { enhanced: { icons: 'payload' }, palette: 'payload' })).toEqual({
+    accent: '#0d99ff',
     character: 'enhanced',
     palette: 'payload',
     values: { density: 'compact', icons: 'payload' }
   })
   expect(resolve(settings, { character: 'stock', enhanced: { icons: 'payload' } })).toEqual({
+    accent: '#0d99ff',
     character: 'stock',
     palette: 'warm',
     values: {}
   })
 })
 
+it('keeps each palette its own accent across switches', () => {
+  const accent = { payload: '#be185d', warm: '#7c3aed' }
+
+  expect(resolve(settings, { accent, palette: 'payload' }).accent).toBe('#be185d')
+  expect(resolve(settings, { accent }).accent).toBe('#7c3aed')
+  expect(resolve(settings, { accent: { payload: '#be185d' } }).accent).toBe('#0d99ff')
+})
+
 it('drops characters, palettes, options and values the settings do not allow', () => {
-  const onlyEnhanced: Settings = { ...settings, defaults: { enhanced: settings.defaults.enhanced }, palettes: ['warm'] }
+  const onlyEnhanced: Settings = { ...settings, accents: { warm: '#0d99ff' }, defaults: { enhanced: settings.defaults.enhanced } }
 
   expect(
     normalize(onlyEnhanced, {
+      accent: { payload: '#be185d' },
       character: 'stock',
       enhanced: { density: 'huge', icons: 'payload', motion: 'on' },
       palette: 'payload'
@@ -42,9 +54,20 @@ it('drops characters, palettes, options and values the settings do not allow', (
   expect(normalize(settings, { character: 'constructor', palette: 'neon', stock: { density: 'comfortable' } })).toEqual({})
 })
 
+it('keeps only lowercase #rrggbb accents', () => {
+  expect(normalize(settings, { accent: { neon: '#123456', payload: '#BE185D', warm: 'red' } })).toEqual({})
+  expect(normalize(settings, { accent: { payload: '#be185d', warm: '#7c3aed80' } })).toEqual({ accent: { payload: '#be185d' } })
+})
+
 it('keeps only choices that differ from the defaults, per character', () => {
   expect(
-    normalize(settings, { character: 'enhanced', enhanced: { density: 'compact', icons: 'payload' }, palette: 'warm', stock: {} })
+    normalize(settings, {
+      accent: { warm: '#0d99ff' },
+      character: 'enhanced',
+      enhanced: { density: 'compact', icons: 'payload' },
+      palette: 'warm',
+      stock: {}
+    })
   ).toEqual({ enhanced: { icons: 'payload' } })
   expect(normalize(settings, { character: 'stock', enhanced: { icons: 'payload' }, palette: 'payload' })).toEqual({
     character: 'stock',

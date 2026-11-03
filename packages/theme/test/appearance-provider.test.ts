@@ -3,22 +3,54 @@ import { renderToString } from 'react-dom/server'
 import { expect, it } from 'vitest'
 
 import { AppearanceProvider } from '../src/components/appearance-provider.js'
+import type { Choices, Settings } from '../src/lib/appearance.js'
 
-it('keeps the initial appearance inside its inline script', () => {
-  const density = '</script><script>alert(1)</script>' as 'compact'
-  const settings = {
-    character: 'enhanced' as const,
-    defaults: { enhanced: { density, icons: 'lucide' as const } },
-    palette: 'warm' as const,
-    palettes: ['warm' as const]
-  }
+const runScript = (settings: Settings, initialChoices: Choices = {}) => {
   const html = renderToString(
-    createElement(AppearanceProvider, { children: null, codeEditorFontSize: false, cookieName: 'payload-appearance', initialChoices: {}, settings })
+    createElement(AppearanceProvider, {
+      children: null,
+      codeEditorFontSize: false,
+      cookieName: 'payload-appearance',
+      initialChoices,
+      settings
+    })
   )
   const script = html.match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? ''
   const dataset = {}
+  const style: Record<string, string> = {}
 
-  new Function('document', script)({ documentElement: { dataset } })
+  new Function('document', script)({
+    documentElement: { dataset, style: { setProperty: (name: string, value: string) => (style[name] = value) } }
+  })
 
-  expect(dataset).toEqual({ character: 'enhanced', density, icons: 'lucide', palette: 'warm' })
+  return { dataset, style }
+}
+
+const settings: Settings = {
+  accents: { payload: '#0d99ff', warm: '#0d99ff' },
+  character: 'enhanced',
+  defaults: { enhanced: { density: 'comfortable', icons: 'lucide' } },
+  palette: 'warm'
+}
+
+it('keeps the initial appearance inside its inline script', () => {
+  const density = '</script><script>alert(1)</script>' as 'compact'
+
+  expect(runScript({ ...settings, defaults: { enhanced: { density, icons: 'lucide' } } }).dataset).toEqual({
+    character: 'enhanced',
+    density,
+    icons: 'lucide',
+    palette: 'warm'
+  })
+})
+
+it("sets the palette and its accent, and leaves Payload's blue to Payload", () => {
+  expect(runScript(settings)).toEqual({
+    dataset: { character: 'enhanced', density: 'comfortable', icons: 'lucide', palette: 'warm' },
+    style: { '--payloadpack-accent': '#0d99ff' }
+  })
+  expect(runScript(settings, { accent: { payload: '#c2410c' }, palette: 'payload' })).toEqual({
+    dataset: { accent: '#c2410c', character: 'enhanced', density: 'comfortable', icons: 'lucide', palette: 'payload' },
+    style: { '--payloadpack-accent': '#c2410c' }
+  })
 })

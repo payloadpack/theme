@@ -1,7 +1,22 @@
 import type { Config } from 'payload'
 import { expect, it } from 'vitest'
 
-import { themePlugin } from '../src/index.js'
+import { themePlugin, type ThemePluginConfig } from '../src/index.js'
+import { resolve, type Settings } from '../src/lib/appearance.js'
+
+const settingsOf = async (pluginConfig: ThemePluginConfig) => {
+  const config = await themePlugin(pluginConfig)({} as Config)
+  const providers = config.admin?.components?.providers as { serverProps: { settings: Settings } }[]
+  return providers[0].serverProps.settings
+}
+
+it('takes the accent from the palette, then the developer, then the editor', async () => {
+  const settings = await settingsOf({ accent: { warm: '#c2410c' } })
+
+  expect(resolve(settings, { palette: 'payload' }).accent).toBe('#0d99ff')
+  expect(resolve(settings, {}).accent).toBe('#c2410c')
+  expect(resolve(settings, { accent: { warm: '#1d4ed8' } }).accent).toBe('#1d4ed8')
+})
 
 it('gives every supported language the English panel labels, and lets the app override them', async () => {
   const config = await themePlugin()({
