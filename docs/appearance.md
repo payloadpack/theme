@@ -49,7 +49,7 @@ Studio's defaults are still open (see Open). The canvas uses provisional ones.
 
 ## Palettes
 
-A palette is CSS, the way Tailwind v4 defines design tokens: a block that sets four base custom properties, `--payloadpack-background`, `--payloadpack-surface`, `--payloadpack-text` and `--payloadpack-accent`, scoped to `[data-palette='<name>']`, with its dark version nested under `[data-theme='dark']`. One shared stylesheet derives every Payload color token from them with `color-mix`: surfaces, borders, muted text, hover and selected states, the accent's shades and the text on the accent. Built-in and custom palettes are the same shape, so a new palette costs only its colors. Because the scope is the attribute and not only `<html>`, a preview card with `data-palette="clay"` shows the palette's real colors. Palettes work with every character, Stock included. There are no presets.
+A palette is CSS, the way Tailwind v4 defines design tokens: a block scoped to `[data-palette='<name>']` that sets `--payloadpack-background`, `--payloadpack-surface` and `--payloadpack-text` with `light-dark(light, dark)`, plus one `--payloadpack-accent` for both modes. The same text works as a stylesheet block, as inline style for an editor's palette and as the Copy as CSS export. One shared stylesheet derives every Payload color token from them with `color-mix`: surfaces, borders, muted text, hover and selected states, the accent's shades and the text on the accent. Built-in and custom palettes are the same shape, so a new palette costs only its colors. Because the scope is the attribute and not only `<html>`, a preview card with `data-palette="clay"` shows the palette's real colors. Palettes work with every character, Stock included. There are no presets.
 
 | Base color | What it paints                               |
 | ---------- | -------------------------------------------- |
@@ -66,7 +66,7 @@ A palette is CSS, the way Tailwind v4 defines design tokens: a block that sets f
 
 - The Payload palette applies no overrides, so plain Payload is the Stock character with the Payload palette. Today's look is Enhanced with Warm, the zero-config default.
 - Editors override a palette's accent with 8 swatches or a hex field, and each palette remembers its own accent.
-- Editors create a palette with **New palette** in the panel: it starts from the current palette and shows the four color fields for each mode. It sets the same four variables inline on `<html>` and saves into their setup, so Copy setup shares it with colleagues.
+- Editors create a palette with **New palette** in the panel: it starts from the current palette and shows the three color fields for each mode and the accent. It sets the same variables inline on `<html>` and saves into their setup, so Copy setup shares it with colleagues.
 - **Copy as CSS** exports an editor's palette as a CSS block. Developers paste it into their admin stylesheet (Payload's `custom.scss`) and list its name in `themePlugin({ palettes: [...] })` to offer it to everyone.
 - The package ships no palette named after another company or product.
 
