@@ -56,7 +56,7 @@
         }
 
         .nav {
-          z-index: 1;
+          z-index: var(--z-popup);
           width: var(--payloadpack-rail-width);
         }
 

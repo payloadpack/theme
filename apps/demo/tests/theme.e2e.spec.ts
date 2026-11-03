@@ -1111,6 +1111,28 @@ test.describe('Rail', () => {
     ).toBe(true)
   })
 
+  test('shows rail tooltips above the sticky document header', async ({ page }) => {
+    await page.context().addCookies([collapsed])
+    await page.goto('/admin/collections/showcase/1')
+    await page.mouse.wheel(0, 600)
+    const showcase = page.locator('#nav-showcase')
+    const label = showcase.locator('.nav__link-label')
+    await page.locator('.doc-controls').evaluate((controls, link) => {
+      controls.style.marginTop = `${link!.getBoundingClientRect().top - controls.getBoundingClientRect().top}px`
+    }, await showcase.elementHandle())
+    await page.addStyleTag({ content: '.nav__link-label { pointer-events: auto; }' })
+    await showcase.hover()
+
+    await expect(label).toHaveCSS('opacity', '1')
+    await settled(label)
+    expect(
+      await label.evaluate((element) => {
+        const box = element.getBoundingClientRect()
+        return element.contains(document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2))
+      })
+    ).toBe(true)
+  })
+
   test('shows a collapsed group as a chevron that opens it', async ({ page }) => {
     await page.goto('/admin')
     await page.getByRole('button', { name: 'Previews' }).click()
