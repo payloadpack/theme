@@ -22,12 +22,12 @@
 
     /* 2. Shape */
     & {
-      --popup-radius: calc(var(--radius-medium) + var(--spacer-1));
+      --popup-radius: calc(var(--radius-medium) + min(var(--radius-medium), var(--spacer-1)));
     }
 
     .sidebar-tabs__tabs {
       padding: 3px;
-      border-radius: calc(var(--button-radius) + 3px);
+      border-radius: calc(var(--button-radius) + min(var(--button-radius), 3px));
     }
 
     .sidebar-tabs__tab {

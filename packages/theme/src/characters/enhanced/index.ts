@@ -1,3 +1,3 @@
 export const enhanced = {
-  defaults: { density: 'comfortable', icons: 'lucide' }
+  defaults: { radius: 'md', density: 'comfortable', icons: 'lucide' }
 } as const

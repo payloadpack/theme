@@ -25,6 +25,12 @@ const payloadpack = {
   light: 'Light',
   palette: 'Palette',
   pasteSetup: 'Paste setup',
+  radius: 'Corners',
+  radiusFull: 'Round',
+  radiusLg: 'L',
+  radiusMd: 'M',
+  radiusNone: 'None',
+  radiusSm: 'S',
   reset: 'Reset',
   stockNote: "Stock keeps Payload's own layout. It has no options."
 } satisfies Record<OptionKey, string> & Record<string, string>

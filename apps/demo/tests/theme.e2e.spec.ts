@@ -43,11 +43,12 @@ const backgrounds = (page: Page) =>
 test.describe('Logged out', () => {
   test.use({ storageState: { cookies: [], origins: [] } })
 
-  test('defaults to Enhanced and Warm with comfortable density and Lucide icons', async ({ page }) => {
+  test('defaults to Enhanced and Warm with medium radius, comfortable density and Lucide icons', async ({ page }) => {
     await page.context().addCookies([cookie('theme', 'dark')])
     await page.goto('/admin/login')
 
     await expect(page.locator('html')).toHaveAttribute('data-character', 'enhanced')
+    await expect(page.locator('html')).toHaveAttribute('data-radius', 'md')
     await expect(page.locator('html')).toHaveAttribute('data-density', 'comfortable')
     await expect(page.locator('html')).toHaveAttribute('data-icons', 'lucide')
     await expect(page.locator('html')).toHaveAttribute('data-palette', 'warm')
@@ -96,8 +97,9 @@ test.describe('Theme plugin', () => {
 
     await page.goto('/admin')
     await expect(page.locator('html')).toHaveAttribute('data-character', 'stock')
-    await expect(page.locator('html')).not.toHaveAttribute('data-density')
-    await expect(page.locator('html')).not.toHaveAttribute('data-icons')
+    for (const option of ['radius', 'density', 'icons']) {
+      await expect(page.locator('html')).not.toHaveAttribute(`data-${option}`)
+    }
   })
 
   test('paints the dashboard in the theme before hydration', async ({ page }) => {
@@ -496,6 +498,49 @@ test.describe('Theme values', () => {
 
     await page.getByRole('button', { name: 'More options' }).first().click()
     await expect(page.locator('.popup__content:visible').first()).toHaveCSS('border-radius', '2px')
+  })
+})
+
+test.describe('Radius', () => {
+  const button = '.doc-controls__controls .btn'
+  const field = '.field-type.text input'
+
+  test("md keeps Payload's own radii", async ({ page }) => {
+    const radii = () =>
+      Promise.all([
+        ...['--radius-small', '--radius-chip', '--radius-medium', '--radius-large'].map((token) => style(page, 'html', token)),
+        style(page, button, 'border-radius'),
+        style(page, field, 'border-radius')
+      ])
+
+    await page.context().addCookies([appearance({ character: 'stock' })])
+    await openShowcase(page)
+    const payload = await radii()
+
+    await page.context().addCookies([appearance({})])
+    await openShowcase(page)
+
+    await expect(page.locator('html')).toHaveAttribute('data-radius', 'md')
+    expect(await radii()).toEqual(payload)
+  })
+
+  test('none squares buttons, fields and popups', async ({ page }) => {
+    await page.context().addCookies([appearance({ options: { enhanced: { radius: 'none' } } })])
+    await openShowcase(page)
+
+    await expect(page.locator(button).first()).toHaveCSS('border-radius', '0px')
+    await expect(page.locator(field).first()).toHaveCSS('border-radius', '0px')
+
+    await page.getByRole('button', { name: 'More options' }).first().click()
+    await expect(page.locator('.popup__content:visible').first()).toHaveCSS('border-radius', '0px')
+  })
+
+  test('full makes buttons pills and keeps fields on the large tier', async ({ page }) => {
+    await page.context().addCookies([appearance({ options: { enhanced: { radius: 'full' } } })])
+    await openShowcase(page)
+
+    await expect(page.locator(button).first()).toHaveCSS('border-radius', '9999px')
+    await expect(page.locator(field).first()).toHaveCSS('border-radius', '8px')
   })
 })
 

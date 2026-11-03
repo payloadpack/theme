@@ -1,6 +1,7 @@
 import { enhanced } from './enhanced/index.js'
 
 export const options = {
+  radius: ['none', 'sm', 'md', 'lg', 'full'],
   density: ['compact', 'comfortable'],
   icons: ['payload', 'lucide']
 } as const

@@ -1,6 +1,7 @@
 @import '../characters/enhanced/enhanced.css';
 @import '../palettes/warm.css';
 @import '../options/accent.css';
+@import '../options/radius.css';
 @import '../options/density.css';
 @import '../options/icons.css';
 @import './fields/vertical-tabs.css';
