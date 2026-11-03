@@ -2,7 +2,7 @@ import type { Page } from '@playwright/test'
 
 export const authFile = 'tests/.auth/demo.json'
 
-export const baseURL = 'http://localhost:3020'
+export const baseURL = `http://localhost:${process.env.DEMO_PORT ?? 3020}`
 
 export const cookie = (name: string, value: string) => ({ name: `theme-demo-${name}`, url: baseURL, value })
 
