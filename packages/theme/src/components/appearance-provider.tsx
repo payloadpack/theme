@@ -38,7 +38,13 @@ type AppearanceProviderProps = {
   settings: Settings
 }
 
-export function AppearanceProvider({ children, codeEditorFontSize, cookieName, initialChoices, settings }: AppearanceProviderProps) {
+export function AppearanceProvider({
+  children,
+  codeEditorFontSize,
+  cookieName,
+  initialChoices,
+  settings
+}: AppearanceProviderProps) {
   const [choices, setChoices] = useState(initialChoices)
   const { setPreference } = usePreferences()
   const look = useMemo(() => resolve(settings, choices), [settings, choices])

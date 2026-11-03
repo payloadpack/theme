@@ -80,7 +80,9 @@ export function themePlugin(pluginConfig: ThemePluginConfig = {}): Plugin {
     i18n: {
       ...config.i18n,
       translations: deepMergeSimple(
-        Object.fromEntries(Object.keys(config.i18n?.supportedLanguages ?? { en: true }).map((language) => [language, translations])),
+        Object.fromEntries(
+          Object.keys(config.i18n?.supportedLanguages ?? { en: true }).map((language) => [language, translations])
+        ),
         config.i18n?.translations ?? {}
       )
     }

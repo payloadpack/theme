@@ -8,11 +8,11 @@ An editor's look is two independent choices: a **character** (how the admin is l
 
 Three built-in characters. Apps cannot register their own. A character owns everything except color.
 
-| Character | What it is |
-| --- | --- |
-| Stock | Payload's own layout and behavior. No options. |
-| Enhanced | Payload touched up without changing its structure: roomier, rounder popups and tabs, Lucide icons. The zero-config default. |
-| Studio | The first bold character: each view sits in a soft card on a field, the nav collapses to a rail, the user menu sits at the bottom. |
+| Character | What it is                                                                                                                         |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Stock     | Payload's own layout and behavior. No options.                                                                                     |
+| Enhanced  | Payload touched up without changing its structure: roomier, rounder popups and tabs, Lucide icons. The zero-config default.        |
+| Studio    | The first bold character: each view sits in a soft card on a field, the nav collapses to a rail, the user menu sits at the bottom. |
 
 Characters restyle only through CSS and Payload's own slots (providers, header actions, nav slots). No Payload view is replaced: no dashboard, command palette, login or document outline.
 
@@ -20,28 +20,28 @@ Characters restyle only through CSS and Payload's own slots (providers, header a
 
 Each character declares which options it supports and their defaults. Option values belong to a character: Studio's radius and Enhanced's radius are separate values.
 
-| Option | Values | Enhanced | Studio |
-| --- | --- | --- | --- |
-| `radius` | `none` `sm` `md` `lg` `full` | yes | yes |
-| `font` | `payload` (Inter, which Payload already loads), `geist` or `system` | | yes |
-| `frame` | `boxed` `flat` | | yes |
-| `width` | `centered` `full` | | yes |
-| `density` | `compact` `comfortable` | yes | yes |
-| `icons` | `payload` `lucide` | yes | yes |
-| `motion` | `off` `on`: restores the open and close transitions Payload 4 removed | yes | yes |
-| `nav` | `icons` `hidden`: what a collapsed nav becomes | yes | yes |
+| Option    | Values                                                                | Enhanced | Studio |
+| --------- | --------------------------------------------------------------------- | -------- | ------ |
+| `radius`  | `none` `sm` `md` `lg` `full`                                          | yes      | yes    |
+| `font`    | `payload` (Inter, which Payload already loads), `geist` or `system`   |          | yes    |
+| `frame`   | `boxed` `flat`                                                        |          | yes    |
+| `width`   | `centered` `full`                                                     |          | yes    |
+| `density` | `compact` `comfortable`                                               | yes      | yes    |
+| `icons`   | `payload` `lucide`                                                    | yes      | yes    |
+| `motion`  | `off` `on`: restores the open and close transitions Payload 4 removed | yes      | yes    |
+| `nav`     | `icons` `hidden`: what a collapsed nav becomes                        | yes      | yes    |
 
 `prefers-reduced-motion` always wins over `motion: 'on'`.
 
 Enhanced's defaults keep today's layout apart from motion:
 
-| Option | Enhanced default |
-| --- | --- |
-| `radius` | `md`: Payload's own radius tiers. `none`, `sm`, `lg` and `full` scale them. |
-| `density` | `comfortable` |
-| `icons` | `lucide` |
-| `motion` | `on` |
-| `nav` | `icons` (provisional) |
+| Option    | Enhanced default                                                            |
+| --------- | --------------------------------------------------------------------------- |
+| `radius`  | `md`: Payload's own radius tiers. `none`, `sm`, `lg` and `full` scale them. |
+| `density` | `comfortable`                                                               |
+| `icons`   | `lucide`                                                                    |
+| `motion`  | `on`                                                                        |
+| `nav`     | `icons` (provisional)                                                       |
 
 Studio's defaults are still open (see Open). The canvas uses provisional ones.
 
@@ -49,11 +49,11 @@ Studio's defaults are still open (see Open). The canvas uses provisional ones.
 
 A palette is a named set of colors with a light and a dark version, plus a default accent. Palettes work with every character, Stock included. There are no presets: palettes are the named sets.
 
-| Palette | Light | Dark | Default accent |
-| --- | --- | --- | --- |
-| Payload | Payload's own Figma UI3 colors | Payload's own Figma UI3 colors | `#0d99ff` |
-| Warm | Payload's light colors | today's Enhanced near-black (`#0f0f0e`, `#f3f2ed`), neutral gray selection | `#0d99ff` |
-| Studio | a field tinted by the accent, white cards | still to design | `#c2410c` |
+| Palette | Light                                     | Dark                                                                       | Default accent |
+| ------- | ----------------------------------------- | -------------------------------------------------------------------------- | -------------- |
+| Payload | Payload's own Figma UI3 colors            | Payload's own Figma UI3 colors                                             | `#0d99ff`      |
+| Warm    | Payload's light colors                    | today's Enhanced near-black (`#0f0f0e`, `#f3f2ed`), neutral gray selection | `#0d99ff`      |
+| Studio  | a field tinted by the accent, white cards | still to design                                                            | `#c2410c`      |
 
 - Plain Payload is the Stock character with the Payload palette. Today's look is the Enhanced character with the Warm palette, which is the zero-config default.
 - Warm also draws the focus ring and checked boxes in the text color instead of the accent.
@@ -69,7 +69,7 @@ themePlugin({
   palette: 'studio',
   palettes: ['payload', 'studio'],
   accent: { studio: '#1d4ed8' },
-  panel: ({ user }) => user?.role === 'admin',
+  panel: ({ user }) => user?.role === 'admin'
 })
 ```
 
@@ -132,9 +132,19 @@ With `nav: 'icons'`, a collapsed nav becomes a 64px rail of icons instead of dis
 The provider renders the active character, its option values, the palette and the accent onto `<html>`:
 
 ```html
-<html data-character="studio" data-radius="lg" data-density="comfortable" data-icons="lucide" data-motion="on"
-  data-nav="icons" data-frame="boxed" data-width="centered" data-font="geist"
-  data-palette="studio" data-accent="#c2410c" style="--payloadpack-accent: #c2410c">
+<html
+  data-character="studio"
+  data-radius="lg"
+  data-density="comfortable"
+  data-icons="lucide"
+  data-motion="on"
+  data-nav="icons"
+  data-frame="boxed"
+  data-width="centered"
+  data-font="geist"
+  data-palette="studio"
+  data-accent="#c2410c"
+  style="--payloadpack-accent: #c2410c"></html>
 ```
 
 Under the Stock character, no option attribute is rendered, so no option stylesheet can apply. The palette applies under any character.
