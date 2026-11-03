@@ -1,7 +1,11 @@
 import { RADIO_CARDS, SWITCH, VERTICAL_TABS } from '@payloadpack/theme'
 import { expect, type Page, test } from '@playwright/test'
 
-import { appearance, cookie, findShowcase, openAppearancePanel } from './demo'
+import { appearance, clearSetup, cookie, findShowcase, openAppearancePanel } from './demo'
+
+test.beforeEach(async ({ page }) => {
+  await clearSetup(page)
+})
 
 const looks = {
   stock: [appearance({ character: 'stock', palette: 'payload' })],

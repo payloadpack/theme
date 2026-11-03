@@ -29,14 +29,14 @@ const runScript = (settings: Settings, initialChoices: Choices = {}) => {
 const settings: Settings = {
   accents: { payload: '#0d99ff', warm: '#0d99ff' },
   character: 'enhanced',
-  defaults: { enhanced: { density: 'comfortable', icons: 'lucide' } },
+  options: { enhanced: { density: 'comfortable', icons: 'lucide' } },
   palette: 'warm'
 }
 
 it('keeps the initial appearance inside its inline script', () => {
   const density = '</script><script>alert(1)</script>' as 'compact'
 
-  expect(runScript({ ...settings, defaults: { enhanced: { density, icons: 'lucide' } } }).dataset).toEqual({
+  expect(runScript({ ...settings, options: { enhanced: { density, icons: 'lucide' } } }).dataset).toEqual({
     character: 'enhanced',
     density,
     icons: 'lucide',

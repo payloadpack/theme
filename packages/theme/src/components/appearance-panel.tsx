@@ -4,13 +4,10 @@ import { useConfig, useTheme, useTranslation, XIcon } from '@payloadcms/ui'
 import { type ReactNode, useId, useState } from 'react'
 
 import { characters as registry, type Option, options } from '../characters/index.js'
-import { configSnippet } from '../lib/config-snippet.js'
 import type { TranslationKey } from '../translations.js'
 import { useAppearance } from './appearance-provider.js'
 
 const colorModes = ['light', 'dark', 'auto'] as const
-
-const isDevelopment = process.env.NODE_ENV === 'development'
 
 const capitalize = (text: string) => `${text[0].toUpperCase()}${text.slice(1)}`
 
@@ -45,20 +42,21 @@ function Choices<V extends string>({ choices, className, label, onChange, select
 
 export function AppearancePanel() {
   const id = useId()
-  const { character, characters, reset, setCharacter, setOption, values } = useAppearance()
+  const { character, characters, paste, reset, setCharacter, setOption, setup, values } = useAppearance()
   const { autoMode, setTheme, theme } = useTheme()
   const { config } = useConfig()
   const { t } = useTranslation<object, TranslationKey>()
-  const [isSnippetShown, setIsSnippetShown] = useState(false)
   const [copied, setCopied] = useState<string>()
-  const snippet = configSnippet(character, values)
+  const [draft, setDraft] = useState<{ isInvalid: boolean; text: string }>()
+  const json = JSON.stringify(setup, null, 2)
   const supported = Object.keys(registry[character].defaults) as Option[]
 
   const copy = async () => {
-    setIsSnippetShown(true)
-    await navigator.clipboard.writeText(snippet)
-    setCopied(snippet)
+    await navigator.clipboard.writeText(json)
+    setCopied(json)
   }
+
+  const apply = (text: string) => setDraft(paste(text) ? undefined : { isInvalid: true, text })
 
   return (
     <div className="payloadpack-appearance-panel">
@@ -156,12 +154,30 @@ export function AppearancePanel() {
           <button onClick={reset} type="button">
             {t('payloadpack:reset')}
           </button>
-          {isDevelopment && (
-            <button onClick={copy} type="button">
-              {t(copied === snippet ? 'payloadpack:copied' : 'payloadpack:copyConfig')}
-            </button>
+          <button onClick={copy} type="button">
+            {t(copied === json ? 'payloadpack:copied' : 'payloadpack:copySetup')}
+          </button>
+          <button
+            aria-expanded={draft !== undefined}
+            onClick={() => setDraft(draft ? undefined : { isInvalid: false, text: '' })}
+            type="button">
+            {t('payloadpack:pasteSetup')}
+          </button>
+          {draft && (
+            <div className="payloadpack-appearance-panel__paste">
+              <textarea
+                aria-invalid={draft.isInvalid}
+                aria-label={t('payloadpack:pasteSetup')}
+                onChange={(event) => setDraft({ isInvalid: false, text: event.target.value })}
+                spellCheck={false}
+                value={draft.text}
+              />
+              {draft.isInvalid && <p role="alert">{t('payloadpack:invalidSetup')}</p>}
+              <button onClick={() => apply(draft.text)} type="button">
+                {t('payloadpack:apply')}
+              </button>
+            </div>
           )}
-          {isSnippetShown && <pre>{snippet}</pre>}
         </footer>
       </dialog>
     </div>

@@ -1,10 +1,11 @@
 'use client'
 
+import { usePreferences } from '@payloadcms/ui'
 import { createContext, type ReactNode, use, useLayoutEffect, useMemo, useState, useSyncExternalStore } from 'react'
 
 import type { Character, Option, OptionValue } from '../characters/index.js'
 import { useMonacoFontSize } from '../hooks/use-monaco-font-size.js'
-import { type Choices, normalize, resolve, type Settings } from '../lib/appearance.js'
+import { type Choices, normalize, parseChoices, preferenceKey, resolve, type Settings, setupOf } from '../lib/appearance.js'
 import { payloadBlue } from '../palettes/index.js'
 
 const ONE_YEAR_IN_SECONDS = 60 * 60 * 24 * 365
@@ -15,9 +16,11 @@ const inline = (value: unknown) => JSON.stringify(value).replace(/</g, '\\u003c'
 
 type AppearanceContextValue = ReturnType<typeof resolve> & {
   characters: Character[]
+  paste: (text: string) => boolean
   reset: () => void
   setCharacter: (character: Character) => void
   setOption: <O extends Option>(option: O, value: OptionValue<O>) => void
+  setup: Choices
 }
 
 const AppearanceContext = createContext<AppearanceContextValue | null>(null)
@@ -34,7 +37,9 @@ type AppearanceProviderProps = {
 
 export function AppearanceProvider({ children, codeEditorFontSize, cookieName, initialChoices, settings }: AppearanceProviderProps) {
   const [choices, setChoices] = useState(initialChoices)
-  const { accent, character, palette, values } = useMemo(() => resolve(settings, choices), [settings, choices])
+  const { setPreference } = usePreferences()
+  const look = useMemo(() => resolve(settings, choices), [settings, choices])
+  const { accent, character, palette, values } = look
   const attributes = useMemo(
     () => ({ character, ...values, palette, ...(accent === payloadBlue ? {} : { accent }) }),
     [accent, character, palette, values]
@@ -66,21 +71,30 @@ export function AppearanceProvider({ children, codeEditorFontSize, cookieName, i
       document.cookie = Object.keys(normalized).length
         ? `${cookieName}=${encodeURIComponent(JSON.stringify(normalized))}; path=/; max-age=${ONE_YEAR_IN_SECONDS}; SameSite=Lax`
         : `${cookieName}=; path=/; max-age=0; SameSite=Lax`
+      void setPreference(preferenceKey, normalized)
       setChoices(normalized)
     }
 
     return {
-      accent,
-      character,
-      characters: Object.keys(settings.defaults) as Character[],
-      palette,
+      ...look,
+      characters: Object.keys(settings.options) as Character[],
+      paste: (text: string) => {
+        const pasted = parseChoices(settings, text)
+        if (pasted) {
+          update(pasted)
+        }
+        return pasted !== undefined
+      },
       reset: () => update({}),
       setCharacter: (next: Character) => update({ ...choices, character: next }),
       setOption: <O extends Option>(option: O, value: OptionValue<O>) =>
-        update({ ...choices, [character]: { ...choices[character], [option]: value } }),
-      values
+        update({
+          ...choices,
+          options: { ...choices.options, [character]: { ...choices.options?.[character], [option]: value } }
+        }),
+      setup: setupOf(look)
     }
-  }, [accent, character, choices, cookieName, palette, settings, values])
+  }, [character, choices, cookieName, look, setPreference, settings])
 
   return (
     <AppearanceContext value={context}>

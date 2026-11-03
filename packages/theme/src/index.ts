@@ -18,15 +18,16 @@ export const VERTICAL_TABS = 'payloadpack-vertical-tabs'
 export const RADIO_CARDS = 'payloadpack-radio-cards'
 export const SWITCH = 'payloadpack-switch'
 
-type CharacterConfigs = {
+type OptionsConfig = {
   [C in Character as keyof (typeof registry)[C]['defaults'] extends never ? never : C]?: CharacterValues<C>
 }
 
-export type ThemePluginConfig = CharacterConfigs & {
+export type ThemePluginConfig = {
   accent?: Partial<Record<Palette, string>>
   character?: Character
   characters?: Character[]
   codeEditorFontSize?: false | number
+  options?: OptionsConfig
   palette?: Palette
   palettes?: Palette[]
   panel?: Panel
@@ -42,7 +43,7 @@ export function themePlugin(pluginConfig: ThemePluginConfig = {}): Plugin {
     palettes = Object.keys(paletteRegistry) as Palette[],
     panel = true
   } = pluginConfig
-  const developerValues: Partial<Record<Character, Values>> = pluginConfig
+  const options: Partial<Record<Character, Values>> = pluginConfig.options ?? {}
 
   if (!characters.includes(character)) {
     throw new Error(`themePlugin: character '${character}' is not one of characters: ${characters.join(', ')}`)
@@ -55,7 +56,7 @@ export function themePlugin(pluginConfig: ThemePluginConfig = {}): Plugin {
   const settings: Settings = {
     accents: Object.fromEntries(palettes.map((name) => [name, accent[name] ?? paletteRegistry[name].accent])),
     character,
-    defaults: Object.fromEntries(characters.map((name) => [name, { ...registry[name].defaults, ...developerValues[name] }])),
+    options: Object.fromEntries(characters.map((name) => [name, { ...registry[name].defaults, ...options[name] }])),
     palette
   }
 

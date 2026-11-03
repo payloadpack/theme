@@ -5,69 +5,57 @@ import type { Palette } from '../palettes/index.js'
 
 export type Panel = boolean | ((args: { user: User }) => boolean)
 
-export const isEditable = (panel: Panel, user: undefined | User) => (typeof panel === 'function' ? !user || panel({ user }) : panel)
+export const isEditable = (panel: Panel, user: undefined | User) =>
+  typeof panel === 'function' ? !user || panel({ user }) : panel
+
+export const preferenceKey = 'payloadpack-appearance'
 
 export type Settings = {
   accents: Record<string, string>
   character: Character
-  defaults: Partial<Record<Character, Values>>
+  options: Partial<Record<Character, Values>>
   palette: Palette
 }
 
 export type Choices = {
   accent?: Partial<Record<Palette, string>>
   character?: Character
+  options?: Partial<Record<Character, Values>>
   palette?: Palette
-} & Partial<Record<Character, Values>>
+}
 
-const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null
-
-const isAllowed = (settings: Settings, value: unknown): value is Character =>
-  typeof value === 'string' && Object.hasOwn(settings.defaults, value)
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value)
 
 const isOptionValue = (option: string, value: unknown) =>
   Object.hasOwn(options, option) && (options[option as Option] as readonly unknown[]).includes(value)
 
-const isHex = (value: unknown) => typeof value === 'string' && /^#[0-9a-f]{6}$/.test(value)
+const isHex = (_: string, value: unknown) => typeof value === 'string' && /^#[0-9a-f]{6}$/.test(value)
+
+const pick = (allowed: object, fallback: string, value: unknown) =>
+  typeof value === 'string' && value !== fallback && Object.hasOwn(allowed, value) ? value : undefined
+
+const changed = (defaults: object, input: unknown, isValid: (key: string, value: unknown) => boolean) => {
+  const picked = isRecord(input) ? input : {}
+  const kept = Object.entries(defaults).filter(([key, fallback]) => picked[key] !== fallback && isValid(key, picked[key]))
+  return kept.length ? Object.fromEntries(kept.map(([key]) => [key, picked[key]])) : undefined
+}
 
 export function normalize(settings: Settings, input: unknown): Choices {
   const raw = isRecord(input) ? input : {}
-  const choices: Choices = {}
-
-  if (isAllowed(settings, raw.character) && raw.character !== settings.character) {
-    choices.character = raw.character
+  const pickedOptions = isRecord(raw.options) ? raw.options : {}
+  const options = Object.entries(settings.options).flatMap(([character, defaults]) => {
+    const values = changed(defaults, pickedOptions[character], isOptionValue)
+    return values ? [[character, values]] : []
+  })
+  const choices = {
+    character: pick(settings.options, settings.character, raw.character),
+    options: options.length ? Object.fromEntries(options) : undefined,
+    palette: pick(settings.accents, settings.palette, raw.palette),
+    accent: changed(settings.accents, raw.accent, isHex)
   }
 
-  if (typeof raw.palette === 'string' && Object.hasOwn(settings.accents, raw.palette) && raw.palette !== settings.palette) {
-    choices.palette = raw.palette as Palette
-  }
-
-  const accent = Object.fromEntries(
-    Object.entries(settings.accents).flatMap(([palette, fallback]) => {
-      const value = isRecord(raw.accent) ? raw.accent[palette] : undefined
-      return value !== fallback && isHex(value) ? [[palette, value]] : []
-    })
-  )
-
-  if (Object.keys(accent).length) {
-    choices.accent = accent
-  }
-
-  for (const [character, defaults] of Object.entries(settings.defaults)) {
-    const picked = raw[character]
-    const values = Object.fromEntries(
-      Object.entries(defaults).flatMap(([option, fallback]) => {
-        const value = isRecord(picked) ? picked[option] : undefined
-        return value !== fallback && isOptionValue(option, value) ? [[option, value]] : []
-      })
-    )
-
-    if (Object.keys(values).length) {
-      choices[character as Character] = values
-    }
-  }
-
-  return choices
+  return Object.fromEntries(Object.entries(choices).filter(([, value]) => value !== undefined)) as Choices
 }
 
 export function resolve(settings: Settings, choices: Choices) {
@@ -77,20 +65,28 @@ export function resolve(settings: Settings, choices: Choices) {
     accent: choices.accent?.[palette] ?? settings.accents[palette],
     character,
     palette,
-    values: { ...settings.defaults[character], ...choices[character] }
+    values: { ...settings.options[character], ...choices.options?.[character] }
   }
 }
 
-export function parseChoices(settings: Settings, cookie: string | undefined): Choices {
-  if (!cookie) {
-    return {}
+export const setupOf = ({ accent, character, palette, values }: ReturnType<typeof resolve>): Choices => ({
+  character,
+  ...(Object.keys(values).length ? { options: { [character]: values } } : {}),
+  palette,
+  accent: { [palette]: accent }
+})
+
+export function parseChoices(settings: Settings, text: string | undefined): Choices | undefined {
+  if (!text) {
+    return undefined
   }
 
   try {
-    return normalize(settings, JSON.parse(cookie))
+    const parsed: unknown = JSON.parse(text)
+    return isRecord(parsed) ? normalize(settings, parsed) : undefined
   } catch (error) {
     if (error instanceof SyntaxError) {
-      return {}
+      return undefined
     }
     throw error
   }

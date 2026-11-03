@@ -1,7 +1,11 @@
 import { RADIO_CARDS, SWITCH, VERTICAL_TABS } from '@payloadpack/theme'
 import { expect, type Page, test } from '@playwright/test'
 
-import { appearance, cookie, findShowcase, openAppearancePanel } from './demo'
+import { appearance, authFile, baseURL, clearSetup, cookie, findShowcase, openAppearancePanel, pickAndSave } from './demo'
+
+test.beforeEach(async ({ page }) => {
+  await clearSetup(page)
+})
 
 const openShowcase = async (page: Page) => {
   await page.context().addCookies([cookie('theme', 'dark')])
@@ -51,7 +55,7 @@ test.describe('Logged out', () => {
   })
 
   test('ignores unknown cookie values', async ({ page }) => {
-    await page.context().addCookies([appearance({ character: 'constructor', enhanced: { density: '</script>' } })])
+    await page.context().addCookies([appearance({ character: 'constructor', options: { enhanced: { density: '</script>' } } })])
     await page.goto('/admin/login')
 
     await expect(page.locator('html')).toHaveAttribute('data-character', 'enhanced')
@@ -76,14 +80,14 @@ test.describe('Theme plugin', () => {
     })
     await expect(code).toHaveCSS('font-size', '13px')
 
-    await page.context().addCookies([appearance({ enhanced: { density: 'compact' } })])
+    await page.context().addCookies([appearance({ options: { enhanced: { density: 'compact' } } })])
     await page.reload()
     await expect(code).toHaveCSS('font-size', '11px')
     await expect(smallCode).toHaveCSS('font-size', '10px')
   })
 
   test('renders the appearance cookie on the server, with no option attributes under Stock', async ({ page }) => {
-    await page.context().addCookies([appearance({ character: 'stock', enhanced: { density: 'compact' } })])
+    await page.context().addCookies([appearance({ character: 'stock', options: { enhanced: { density: 'compact' } } })])
 
     const html = await (await page.request.get('/admin')).text()
     expect(html).toContain(
@@ -134,7 +138,7 @@ test.describe('Appearance panel', () => {
     await page.goto('/admin')
     const sheet = await openAppearancePanel(page)
 
-    await sheet.getByRole('button', { name: 'Stock' }).click()
+    await pickAndSave(page, sheet.getByRole('button', { name: 'Stock' }))
 
     await expect(sheet.getByRole('button', { name: 'Stock' })).toHaveAttribute('aria-pressed', 'true')
     await expect(sheet.getByText('It has no options, so only color mode applies')).toBeVisible()
@@ -164,11 +168,62 @@ test.describe('Appearance panel', () => {
     await expect(page.locator('html')).toHaveAttribute('data-density', 'compact')
 
     await sheet.getByRole('button', { name: 'Stock' }).click()
-    await sheet.getByRole('button', { name: 'Reset' }).click()
+    await pickAndSave(page, sheet.getByRole('button', { name: 'Reset' }))
 
     await expect(page.locator('html')).toHaveAttribute('data-character', 'enhanced')
     await expect(page.locator('html')).toHaveAttribute('data-density', 'comfortable')
     expect((await page.context().cookies()).map(({ name }) => name)).not.toContain('theme-demo-appearance')
+
+    await page.reload()
+    await expect(page.locator('html')).toHaveAttribute('data-character', 'enhanced')
+    await expect(page.locator('html')).toHaveAttribute('data-density', 'comfortable')
+  })
+
+  test('saves the setup in Payload preferences, so it follows the editor to a new browser', async ({ browser, page }) => {
+    await page.goto('/admin')
+    const sheet = await openAppearancePanel(page)
+
+    await pickAndSave(page, sheet.getByRole('group', { name: 'Density' }).getByRole('button', { name: 'Compact' }))
+
+    const elsewhere = await browser.newContext({ baseURL, storageState: authFile })
+    const other = await elsewhere.newPage()
+    await other.goto('/admin')
+
+    expect((await elsewhere.cookies()).map(({ name }) => name)).not.toContain('theme-demo-appearance')
+    await expect(other.locator('html')).toHaveAttribute('data-density', 'compact')
+    await elsewhere.close()
+  })
+
+  test('copies the setup in one browser and pastes it in another', async ({ browser, context, page }) => {
+    await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+    await page.context().addCookies([appearance({ accent: { payload: '#be185d' }, character: 'stock', palette: 'payload' })])
+    await page.goto('/admin')
+    const sheet = await openAppearancePanel(page)
+
+    await sheet.getByRole('button', { name: 'Copy setup' }).click()
+    await expect(sheet.getByRole('button', { name: 'Copied' })).toBeVisible()
+    const setup = await page.evaluate(() => navigator.clipboard.readText())
+    const attributes = await page.locator('html').evaluate((html) => ({ ...html.dataset }))
+
+    const elsewhere = await browser.newContext({ baseURL, storageState: authFile })
+    const other = await elsewhere.newPage()
+    await other.goto('/admin')
+    const otherSheet = await openAppearancePanel(other)
+    const pasteButton = otherSheet.getByRole('button', { name: 'Paste setup' })
+    const textarea = otherSheet.getByRole('textbox', { name: 'Paste setup' })
+    const apply = otherSheet.getByRole('button', { name: 'Apply' })
+
+    await pasteButton.click()
+    await textarea.fill('not a setup')
+    await apply.click()
+    await expect(otherSheet.getByRole('alert')).toHaveText('This text is not a valid setup.')
+    await expect(other.locator('html')).toHaveAttribute('data-character', 'enhanced')
+
+    await textarea.fill(setup)
+    await pickAndSave(other, apply)
+    await expect(textarea).toBeHidden()
+    expect(await other.locator('html').evaluate((html) => ({ ...html.dataset }))).toEqual(attributes)
+    await elsewhere.close()
   })
 
   test('switches Payload color mode', async ({ page }) => {
@@ -290,7 +345,7 @@ test.describe('Theme values', () => {
   })
 
   test('Payload icons keep the Payload tick without its halo', async ({ page }) => {
-    await page.context().addCookies([appearance({ enhanced: { icons: 'payload' } })])
+    await page.context().addCookies([appearance({ options: { enhanced: { icons: 'payload' } } })])
     await openShowcase(page)
     const featured = page.locator('.field-type.checkbox').filter({ hasText: 'Featured' })
     await featured.getByRole('checkbox').check()

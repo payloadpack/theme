@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test'
+import type { Locator, Page } from '@playwright/test'
 
 export const authFile = 'tests/.auth/demo.json'
 
@@ -7,6 +7,16 @@ export const baseURL = `http://localhost:${process.env.DEMO_PORT ?? 3020}`
 export const cookie = (name: string, value: string) => ({ name: `theme-demo-${name}`, url: baseURL, value })
 
 export const appearance = (choices: object) => cookie('appearance', encodeURIComponent(JSON.stringify(choices)))
+
+const setupPreference = '/api/payload-preferences/payloadpack-appearance'
+
+export const clearSetup = (page: Page) => page.request.delete(setupPreference)
+
+export const pickAndSave = (page: Page, control: Locator) =>
+  Promise.all([
+    page.waitForResponse((response) => response.url().endsWith(setupPreference) && response.request().method() === 'POST'),
+    control.click()
+  ])
 
 export const openAppearancePanel = async (page: Page) => {
   await page.getByRole('button', { name: 'Appearance' }).click()
