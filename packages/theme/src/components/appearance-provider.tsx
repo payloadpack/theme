@@ -3,7 +3,7 @@
 import { useNav, usePreferences, useWindowInfo } from '@payloadcms/ui'
 import { createContext, type ReactNode, use, useEffect, useLayoutEffect, useMemo, useState, useSyncExternalStore } from 'react'
 
-import type { Character, Option, OptionValue } from '../characters/index.js'
+import { type Character, type Option, type OptionValue, options } from '../characters/index.js'
 import { useMonacoFontSize } from '../hooks/use-monaco-font-size.js'
 import { type Choices, normalize, parseChoices, preferenceKey, resolve, type Settings, setupOf } from '../lib/appearance.js'
 import { type Palette, payloadBlue } from '../palettes/index.js'
@@ -13,6 +13,8 @@ const ONE_YEAR_IN_SECONDS = 60 * 60 * 24 * 365
 const ACCENT_PROPERTY = '--payloadpack-accent'
 
 const GEIST_PROPERTY = '--payloadpack-font-geist'
+
+const ATTRIBUTE_KEYS = ['character', 'palette', 'accent', 'rail', ...Object.keys(options)]
 
 const inline = (value: unknown) => JSON.stringify(value).replace(/</g, '\\u003c')
 
@@ -68,7 +70,7 @@ export function AppearanceProvider({
   const { accent, character, palette, values } = resolved
   const hasRail = values.nav === 'icons'
   const attributes = useMemo(
-    () => ({
+    (): Record<string, string> => ({
       character,
       ...values,
       ...(hasRail && rail ? { rail: '' } : {}),
@@ -90,17 +92,15 @@ export function AppearanceProvider({
 
   useLayoutEffect(() => {
     const { dataset, style } = document.documentElement
-    Object.assign(dataset, attributes)
-    style.setProperty(ACCENT_PROPERTY, accent)
-    style.setProperty(GEIST_PROPERTY, geist)
-
-    return () => {
-      for (const key of Object.keys(attributes)) {
+    for (const key of ATTRIBUTE_KEYS) {
+      if (key in attributes) {
+        dataset[key] = attributes[key]
+      } else {
         delete dataset[key]
       }
-      style.removeProperty(ACCENT_PROPERTY)
-      style.removeProperty(GEIST_PROPERTY)
     }
+    style.setProperty(ACCENT_PROPERTY, accent)
+    style.setProperty(GEIST_PROPERTY, geist)
   }, [accent, attributes, geist])
 
   useEffect(() => {
