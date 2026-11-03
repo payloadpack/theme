@@ -30,7 +30,9 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 const isOptionValue = (option: string, value: unknown) =>
   Object.hasOwn(options, option) && (options[option as Option] as readonly unknown[]).includes(value)
 
-const isHex = (_: string, value: unknown) => typeof value === 'string' && /^#[0-9a-f]{6}$/.test(value)
+export const hexPattern = /^#[0-9a-f]{6}$/
+
+const isHex = (_: string, value: unknown) => typeof value === 'string' && hexPattern.test(value)
 
 const pick = (allowed: object, fallback: string, value: unknown) =>
   typeof value === 'string' && value !== fallback && Object.hasOwn(allowed, value) ? value : undefined

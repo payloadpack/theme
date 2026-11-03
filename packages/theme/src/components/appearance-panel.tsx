@@ -4,22 +4,29 @@ import { useConfig, useTheme, useTranslation, XIcon } from '@payloadcms/ui'
 import { type ReactNode, useId, useState } from 'react'
 
 import { characters as registry, type Option, options } from '../characters/index.js'
+import { hexPattern } from '../lib/appearance.js'
+import { palettes as paletteRegistry } from '../palettes/index.js'
 import type { TranslationKey } from '../translations.js'
 import { useAppearance } from './appearance-provider.js'
 
 const colorModes = ['light', 'dark', 'auto'] as const
 
+const halves = ['light', 'dark'] as const
+
+const swatches = ['#0d99ff', '#c2410c', '#b45309', '#4d7c0f', '#0f766e', '#1d4ed8', '#7c3aed', '#be185d']
+
 const capitalize = (text: string) => `${text[0].toUpperCase()}${text.slice(1)}`
 
 type ChoicesProps<V extends string> = {
-  choices: { label: ReactNode; value: V }[]
+  children?: ReactNode
+  choices: { label: ReactNode; name?: string; value: V }[]
   className: string
   label: string
   onChange: (value: V) => void
   selected: V | undefined
 }
 
-function Choices<V extends string>({ choices, className, label, onChange, selected }: ChoicesProps<V>) {
+function Choices<V extends string>({ children, choices, className, label, onChange, selected }: ChoicesProps<V>) {
   const id = useId()
 
   return (
@@ -28,6 +35,7 @@ function Choices<V extends string>({ choices, className, label, onChange, select
       <div aria-labelledby={id} className={className} role="group">
         {choices.map((choice) => (
           <button
+            aria-label={choice.name}
             aria-pressed={choice.value === selected}
             key={choice.value}
             onClick={() => onChange(choice.value)}
@@ -36,20 +44,43 @@ function Choices<V extends string>({ choices, className, label, onChange, select
           </button>
         ))}
       </div>
+      {children}
     </section>
   )
 }
 
 export function AppearancePanel() {
   const id = useId()
-  const { character, characters, paste, reset, setCharacter, setOption, setup, values } = useAppearance()
+  const {
+    accent,
+    character,
+    characters,
+    palette,
+    palettes,
+    paste,
+    reset,
+    setAccent,
+    setCharacter,
+    setOption,
+    setPalette,
+    setup,
+    values
+  } = useAppearance()
   const { autoMode, setTheme, theme } = useTheme()
   const { config } = useConfig()
   const { t } = useTranslation<object, TranslationKey>()
   const [copied, setCopied] = useState<string>()
   const [draft, setDraft] = useState<{ isInvalid: boolean; text: string }>()
+  const [hex, setHex] = useState<string>()
   const json = JSON.stringify(setup, null, 2)
   const supported = Object.keys(registry[character].defaults) as Option[]
+
+  const typeHex = (text: string) => {
+    setHex(text)
+    if (hexPattern.test(text.toLowerCase())) {
+      setAccent(text.toLowerCase())
+    }
+  }
 
   const copy = async () => {
     await navigator.clipboard.writeText(json)
@@ -117,7 +148,7 @@ export function AppearancePanel() {
                 ),
                 value: name
               }))}
-              className="payloadpack-appearance-panel__characters"
+              className="payloadpack-appearance-panel__cards"
               label={t('payloadpack:character')}
               onChange={setCharacter}
               selected={character}
@@ -140,6 +171,54 @@ export function AppearancePanel() {
           ) : (
             <p className="payloadpack-appearance-panel__note">{t('payloadpack:stockNote')}</p>
           )}
+          {palettes.length > 1 && (
+            <Choices
+              choices={palettes.map((name) => ({
+                label: (
+                  <>
+                    <span aria-hidden="true" className="payloadpack-appearance-panel__halves">
+                      {halves.map((half) => (
+                        <span
+                          key={half}
+                          style={{
+                            backgroundColor: paletteRegistry[name].preview[half].background,
+                            color: paletteRegistry[name].preview[half].text
+                          }}>
+                          <span />
+                          <span />
+                        </span>
+                      ))}
+                    </span>
+                    {capitalize(name)}
+                  </>
+                ),
+                value: name
+              }))}
+              className="payloadpack-appearance-panel__cards"
+              label={t('payloadpack:palette')}
+              onChange={setPalette}
+              selected={palette}
+            />
+          )}
+          <Choices
+            choices={swatches.map((swatch) => ({
+              label: <span style={{ backgroundColor: swatch }} />,
+              name: swatch,
+              value: swatch
+            }))}
+            className="payloadpack-appearance-panel__swatches"
+            label={t('payloadpack:accent')}
+            onChange={setAccent}
+            selected={accent}>
+            <input
+              aria-label={t('payloadpack:accentHex')}
+              className="payloadpack-appearance-panel__hex"
+              onBlur={() => setHex(undefined)}
+              onChange={(event) => typeHex(event.target.value)}
+              spellCheck={false}
+              value={hex ?? accent}
+            />
+          </Choices>
           {config.admin.theme === 'all' && (
             <Choices
               choices={colorModes.map((mode) => ({ label: t(`payloadpack:${mode}`), value: mode }))}

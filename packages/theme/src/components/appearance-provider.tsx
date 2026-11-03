@@ -6,7 +6,7 @@ import { createContext, type ReactNode, use, useLayoutEffect, useMemo, useState,
 import type { Character, Option, OptionValue } from '../characters/index.js'
 import { useMonacoFontSize } from '../hooks/use-monaco-font-size.js'
 import { type Choices, normalize, parseChoices, preferenceKey, resolve, type Settings, setupOf } from '../lib/appearance.js'
-import { payloadBlue } from '../palettes/index.js'
+import { type Palette, payloadBlue } from '../palettes/index.js'
 
 const ONE_YEAR_IN_SECONDS = 60 * 60 * 24 * 365
 
@@ -16,10 +16,13 @@ const inline = (value: unknown) => JSON.stringify(value).replace(/</g, '\\u003c'
 
 type AppearanceContextValue = ReturnType<typeof resolve> & {
   characters: Character[]
+  palettes: Palette[]
   paste: (text: string) => boolean
   reset: () => void
+  setAccent: (accent: string) => void
   setCharacter: (character: Character) => void
   setOption: <O extends Option>(option: O, value: OptionValue<O>) => void
+  setPalette: (palette: Palette) => void
   setup: Choices
 }
 
@@ -78,6 +81,7 @@ export function AppearanceProvider({ children, codeEditorFontSize, cookieName, i
     return {
       ...look,
       characters: Object.keys(settings.options) as Character[],
+      palettes: Object.keys(settings.accents) as Palette[],
       paste: (text: string) => {
         const pasted = parseChoices(settings, text)
         if (pasted) {
@@ -86,15 +90,17 @@ export function AppearanceProvider({ children, codeEditorFontSize, cookieName, i
         return pasted !== undefined
       },
       reset: () => update({}),
+      setAccent: (next: string) => update({ ...choices, accent: { ...choices.accent, [palette]: next } }),
       setCharacter: (next: Character) => update({ ...choices, character: next }),
       setOption: <O extends Option>(option: O, value: OptionValue<O>) =>
         update({
           ...choices,
           options: { ...choices.options, [character]: { ...choices.options?.[character], [option]: value } }
         }),
+      setPalette: (next: Palette) => update({ ...choices, palette: next }),
       setup: setupOf(look)
     }
-  }, [character, choices, cookieName, look, setPreference, settings])
+  }, [character, choices, cookieName, look, palette, setPreference, settings])
 
   return (
     <AppearanceContext value={context}>

@@ -99,8 +99,8 @@
       color: var(--color-text-secondary);
     }
 
-    /* 3. Characters */
-    .payloadpack-appearance-panel__characters {
+    /* 3. Cards */
+    .payloadpack-appearance-panel__cards {
       display: grid;
       grid-auto-columns: minmax(0, 1fr);
       grid-auto-flow: column;
@@ -186,6 +186,34 @@
       }
     }
 
+    .payloadpack-appearance-panel__halves {
+      display: flex;
+      height: 3.25rem;
+      overflow: hidden;
+      border: var(--stroke-width-small) solid var(--color-border);
+      border-radius: var(--radius-medium);
+
+      > * {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        gap: var(--spacer-1);
+        padding: var(--spacer-1-5);
+
+        > * {
+          height: 3px;
+          background-color: currentColor;
+          opacity: 0.25;
+        }
+
+        > :first-child {
+          width: 60%;
+          height: 4px;
+          opacity: 1;
+        }
+      }
+    }
+
     /* 4. Segments */
     .payloadpack-appearance-panel__segments {
       display: flex;
@@ -212,7 +240,40 @@
       }
     }
 
-    /* 5. Footer */
+    /* 5. Accent */
+    .payloadpack-appearance-panel__swatches {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      gap: var(--spacer-2);
+
+      button {
+        display: grid;
+        aspect-ratio: 1;
+        padding: 3px;
+        border-radius: var(--radius-full);
+        cursor: pointer;
+
+        &[aria-pressed='true'] {
+          box-shadow: inset 0 0 0 var(--stroke-width-medium) var(--color-text);
+        }
+      }
+
+      span {
+        border-radius: inherit;
+      }
+    }
+
+    .payloadpack-appearance-panel__hex {
+      height: var(--button-height);
+      padding-inline: var(--spacer-2-5);
+      border: var(--stroke-width-small) solid var(--field-color-border);
+      border-radius: var(--field-border-radius);
+      background-color: var(--field-color-bg);
+      color: var(--color-text);
+      font-family: var(--font-mono);
+    }
+
+    /* 6. Footer */
     .payloadpack-appearance-panel__footer {
       display: flex;
       flex-wrap: wrap;
@@ -237,7 +298,8 @@
       }
 
       > button {
-        flex: 1 1 0;
+        flex: 1 0 auto;
+        white-space: nowrap;
       }
     }
 

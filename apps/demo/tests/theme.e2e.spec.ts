@@ -141,7 +141,7 @@ test.describe('Appearance panel', () => {
     await pickAndSave(page, sheet.getByRole('button', { name: 'Stock' }))
 
     await expect(sheet.getByRole('button', { name: 'Stock' })).toHaveAttribute('aria-pressed', 'true')
-    await expect(sheet.getByText('It has no options, so only color mode applies')).toBeVisible()
+    await expect(sheet.getByText("Stock keeps Payload's own layout. It has no options.")).toBeVisible()
     await expect(sheet.getByRole('group', { name: 'Density' })).toHaveCount(0)
     await expect(page.locator('html')).toHaveAttribute('data-character', 'stock')
     await expect(page.locator('html')).not.toHaveAttribute('data-density')
@@ -718,10 +718,14 @@ test.describe('Payload palette', () => {
 })
 
 test.describe('Accent', () => {
-  test('recolors primary buttons in light and dark', async ({ page }) => {
-    await page.context().addCookies([appearance({ accent: { warm: '#c2410c' } })])
+  test('picking an accent recolors primary buttons in light and dark', async ({ page }) => {
     await page.goto('/admin/collections/showcase')
     const primary = page.locator('.btn--style-primary:visible').first()
+    await expect(primary).toHaveCSS('background-color', 'rgb(13, 153, 255)')
+
+    const sheet = await openAppearancePanel(page)
+    await pickAndSave(page, sheet.getByRole('button', { name: '#c2410c' }))
+    await page.keyboard.press('Escape')
 
     await expect(page.locator('html')).toHaveAttribute('data-accent', '#c2410c')
     await expect(primary).toHaveCSS('background-color', 'rgb(194, 65, 12)')
@@ -729,5 +733,28 @@ test.describe('Accent', () => {
     await page.context().addCookies([cookie('theme', 'dark')])
     await page.reload()
     await expect(primary).toHaveCSS('background-color', 'rgb(194, 65, 12)')
+  })
+
+  test('each palette keeps its own accent, and the hex field applies only valid colors', async ({ page }) => {
+    await page.goto('/admin')
+    const html = page.locator('html')
+    const sheet = await openAppearancePanel(page)
+    const palettes = sheet.getByRole('group', { name: 'Palette' })
+    const hex = sheet.getByRole('textbox', { name: 'Accent hex color' })
+
+    await palettes.getByRole('button', { name: 'Payload' }).click()
+    await hex.fill('#BE185D')
+    await expect(html).toHaveAttribute('data-accent', '#be185d')
+    await hex.fill('#be18')
+    await expect(html).toHaveAttribute('data-accent', '#be185d')
+
+    await palettes.getByRole('button', { name: 'Warm' }).click()
+    await expect(html).toHaveAttribute('data-palette', 'warm')
+    await expect(html).not.toHaveAttribute('data-accent')
+    await expect(hex).toHaveValue('#0d99ff')
+
+    await pickAndSave(page, palettes.getByRole('button', { name: 'Payload' }))
+    await expect(html).toHaveAttribute('data-palette', 'payload')
+    await expect(html).toHaveAttribute('data-accent', '#be185d')
   })
 })

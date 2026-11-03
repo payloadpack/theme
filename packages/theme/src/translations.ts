@@ -3,6 +3,8 @@ import type { Option, OptionValue } from './characters/index.js'
 type OptionKey = { [O in Option]: O | `${O}${Capitalize<OptionValue<O>>}` }[Option]
 
 const payloadpack = {
+  accent: 'Accent',
+  accentHex: 'Accent hex color',
   appearance: 'Appearance',
   appearanceDescription: 'Changes how the admin looks for you only.',
   apply: 'Apply',
@@ -21,9 +23,10 @@ const payloadpack = {
   iconsPayload: 'Payload',
   invalidSetup: 'This text is not a valid setup.',
   light: 'Light',
+  palette: 'Palette',
   pasteSetup: 'Paste setup',
   reset: 'Reset',
-  stockNote: 'Stock shows Payload exactly as it ships. It has no options, so only color mode applies.'
+  stockNote: "Stock keeps Payload's own layout. It has no options."
 } satisfies Record<OptionKey, string> & Record<string, string>
 
 export const translations = { payloadpack }
