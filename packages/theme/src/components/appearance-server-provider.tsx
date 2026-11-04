@@ -33,7 +33,7 @@ export async function AppearanceServerProvider(props: Props) {
       cookieName={cookieName}
       initialChoices={choices}
       initialRail={initialRail}
-      loadsOnSignIn={panel !== false}
+      loadsOnSignIn={panel === true}
       railCookieName={railCookieName}
       settings={settings}>
       {children}
