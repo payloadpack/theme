@@ -154,6 +154,10 @@
         transition-timing-function: step-end, ease-out, ease-out, ease-out, ease-out;
       }
 
+      &[data-rail] .sidebar-tabs__tabs {
+        transition-timing-function: step-start, ease-out, ease-out, ease-out, ease-out;
+      }
+
       .nav-group__toggle {
         transition-property: margin, opacity, filter, visibility;
       }

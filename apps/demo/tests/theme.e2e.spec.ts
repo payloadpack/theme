@@ -1392,6 +1392,23 @@ test.describe('Rail', () => {
     }
   })
 
+  test('keeps the hidden tab track at full width while the nav closes, so it never overflows', async ({ page }) => {
+    await page.goto('/admin')
+    const track = page.locator('.sidebar-tabs__tabs')
+    const open = await track.evaluate((element) => element.getBoundingClientRect().width)
+
+    const closing = await page.evaluate(
+      () =>
+        new Promise<number>((resolve) => {
+          document.querySelector<HTMLElement>('.payloadpack-rail-toggle')!.click()
+          requestAnimationFrame(() =>
+            requestAnimationFrame(() => resolve(document.querySelector('.sidebar-tabs__tabs')!.getBoundingClientRect().width))
+          )
+        })
+    )
+    expect(closing).toBeGreaterThanOrEqual(open)
+  })
+
   test('never scrolls the rail sideways', async ({ page }) => {
     await page.goto('/admin')
     await page.getByRole('button', { name: 'Hide sidebar' }).click()
