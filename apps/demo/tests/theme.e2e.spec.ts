@@ -284,6 +284,21 @@ test.describe('Appearance panel', () => {
     await elsewhere.close()
   })
 
+  test('says the setup is invalid when the clipboard refuses or is missing', async ({ page }) => {
+    await page.goto('/admin')
+    const sheet = await openAppearancePanel(page)
+    const pasteButton = sheet.getByRole('button', { name: 'Paste setup' })
+    const status = sheet.getByRole('status')
+
+    await pasteButton.click()
+    await expect(status).toHaveText('Invalid setup')
+    await expect(status).toBeEmpty()
+
+    await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', { value: undefined }))
+    await pasteButton.click()
+    await expect(status).toHaveText('Invalid setup')
+  })
+
   test('sits left of the nav toggle under Enhanced, right of it under Studio, and in the header when the nav is closed or Stock', async ({
     page
   }) => {

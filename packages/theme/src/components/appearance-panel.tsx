@@ -165,8 +165,8 @@ export function AppearanceSheet() {
   }
 
   const pasteFromClipboard = async () => {
-    const text = await navigator.clipboard.readText().catch(() => '')
-    setRejectedAt(paste(text) ? undefined : Date.now())
+    const text = await navigator.clipboard?.readText().catch(() => '')
+    setRejectedAt(paste(text ?? '') ? undefined : Date.now())
   }
 
   return (
