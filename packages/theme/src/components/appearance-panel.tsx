@@ -208,17 +208,25 @@ export function AppearanceSheet() {
   const css = custom && paletteCss(customPalette, custom)
   const supported = Object.keys(registry[character].defaults) as Option[]
 
-  const copy = async (text: string, message: string) => {
-    await navigator.clipboard.writeText(text)
-    setStatus({ message })
-  }
+  const blocked = () => setStatus({ message: t('payloadpack:clipboardBlocked'), tone: 'error' })
 
-  const pasteFromClipboard = async () => {
-    const text = await navigator.clipboard?.readText().catch(() => '')
-    setStatus(
-      paste(text ?? '') ? { message: t('payloadpack:setupPasted') } : { message: t('payloadpack:invalidSetup'), tone: 'error' }
-    )
-  }
+  const copy = (text: string, message: string) =>
+    navigator.clipboard ? void navigator.clipboard.writeText(text).then(() => setStatus({ message }), blocked) : blocked()
+
+  const pasteFromClipboard = () =>
+    navigator.clipboard
+      ? void navigator.clipboard
+          .readText()
+          .then(
+            (text) =>
+              setStatus(
+                paste(text)
+                  ? { message: t('payloadpack:setupPasted') }
+                  : { message: t('payloadpack:invalidSetup'), tone: 'error' }
+              ),
+            blocked
+          )
+      : blocked()
 
   const resetCharacter = () => setStatus({ message: t('payloadpack:resetDone', { character: characterName }), undo: reset() })
 

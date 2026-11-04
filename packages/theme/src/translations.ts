@@ -16,6 +16,7 @@ const payloadpack = {
   characterPayloadDescription: "Payload's own look. Nothing to fine-tune.",
   characterStudio: 'Studio',
   characterStudioDescription: 'Each view on a soft card, with a rail and Geist.',
+  clipboardBlocked: 'The browser blocked the clipboard.',
   close: 'Close',
   colorMode: 'Theme',
   copyCss: 'Copy as CSS',

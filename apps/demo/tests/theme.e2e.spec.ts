@@ -324,18 +324,22 @@ test.describe('Appearance panel', () => {
     await elsewhere.close()
   })
 
-  test('says there is no setup when the clipboard refuses or is missing', async ({ page }) => {
+  test('says the browser blocked the clipboard when it refuses or is missing', async ({ page }) => {
     await page.goto('/admin')
     const sheet = await openAppearancePanel(page)
     const status = sheet.getByRole('status')
 
     await (await share(sheet, 'Paste setup')).click()
-    await expect(status).toHaveText('There is no appearance setup on the clipboard.')
+    await expect(status).toHaveText('The browser blocked the clipboard.')
+    await expect(status).toHaveAttribute('data-tone', 'error')
     await expect(status).toBeEmpty()
 
     await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', { value: undefined }))
+    await (await share(sheet, 'Copy setup')).click()
+    await expect(status).toHaveText('The browser blocked the clipboard.')
+    await expect(status).toBeEmpty()
     await (await share(sheet, 'Paste setup')).click()
-    await expect(status).toHaveText('There is no appearance setup on the clipboard.')
+    await expect(status).toHaveText('The browser blocked the clipboard.')
   })
 
   test("shows a sample of each icon set, and Payload's stays Payload's while Lucide is on", async ({ page }) => {
