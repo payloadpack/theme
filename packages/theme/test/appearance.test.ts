@@ -121,8 +121,11 @@ it('ignores the cookie when the panel is off for the user, and never asks withou
   expect(isEditable(() => false, undefined)).toBe(true)
 })
 
-it('drops the custom palette when the developer allows a single palette', () => {
-  expect(normalize({ ...settings, palettes: ['neutral'] }, { custom, palette: 'custom' })).toEqual({})
+it('sets the custom palette aside while the developer allows a single palette', () => {
+  const single = normalize({ ...settings, palettes: ['neutral'] }, { custom, palette: 'custom' })
+
+  expect(single).toEqual({ custom })
+  expect(normalize(settings, single)).toEqual({ custom })
 })
 
 it('rejects text that is not a setup', () => {

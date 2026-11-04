@@ -69,12 +69,13 @@ export function normalize(settings: Settings, input: unknown): Choices {
     const values = changed(defaults, pickedOptions[character], isOptionValue)
     return values ? [[character, values]] : []
   })
-  const custom = settings.palettes.length > 1 ? customOf(raw.custom) : undefined
+  const custom = customOf(raw.custom)
+  const picksCustom = custom && settings.palettes.length > 1 && raw.palette === customPalette
   const choices = {
     character: pick(Object.keys(settings.options), settings.character, raw.character),
     custom,
     options: options.length ? Object.fromEntries(options) : undefined,
-    palette: custom && raw.palette === customPalette ? customPalette : pick(settings.palettes, settings.palette, raw.palette)
+    palette: picksCustom ? customPalette : pick(settings.palettes, settings.palette, raw.palette)
   }
 
   return Object.fromEntries(Object.entries(choices).filter(([, value]) => value !== undefined)) as Choices
