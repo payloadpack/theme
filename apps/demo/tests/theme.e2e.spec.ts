@@ -2029,7 +2029,7 @@ test.describe('Studio character', () => {
         () => undefined
       )
     )
-    test.skip(fallback === undefined, 'the fallback face needs Arial, which this machine does not have')
+    test.skip(fallback === undefined, 'the fallback face needs Arial, Arimo or Liberation Sans, which this machine does not have')
     expect(fallback).toBe(1)
 
     const [geist, metricFallback] = await page.evaluate(async () => {
