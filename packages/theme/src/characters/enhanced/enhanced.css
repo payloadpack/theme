@@ -84,6 +84,11 @@
       margin-inline-end: calc(var(--spacer-5) + var(--spacer-1));
     }
 
+    .nav-group__indicator {
+      inset-inline: auto var(--spacer-3);
+      transform: none;
+    }
+
     @media (min-width: 769px) {
       &[data-rail] {
         --payloadpack-nav-button-area: block-end;

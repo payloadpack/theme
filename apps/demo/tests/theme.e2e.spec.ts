@@ -542,6 +542,19 @@ test.describe('Theme values', () => {
     await expect(page.getByRole('link', { name: 'Toasts' })).toHaveAttribute('aria-current', 'page')
   })
 
+  for (const character of ['enhanced', 'studio']) {
+    test(`${character} keeps the nav group chevron inside the group's ring, as tall as a link's`, async ({ page }) => {
+      await page.context().addCookies([appearance({ character })])
+      await page.goto('/admin')
+      const group = page.locator('.nav-group__toggle').first()
+      await group.hover()
+      const [toggle, chevron] = [(await group.boundingBox())!, (await group.locator('.nav-group__indicator').boundingBox())!]
+
+      expect(toggle.x + toggle.width - (chevron.x + chevron.width)).toBe(16)
+      expect(await style(page, '.nav-group__toggle', 'inset', '::before')).toBe(await style(page, '.nav__link', 'inset', '::before'))
+    })
+  }
+
   test('vertical tabs from 768px wide', async ({ page }) => {
     await openShowcase(page)
     const tabs = page.locator(`.${VERTICAL_TABS}`)
@@ -800,6 +813,21 @@ test.describe('Motion', () => {
 
     await page.mouse.move(700, 700)
     await expect.poll(transitions).toEqual(['tooltip opacity', 'tooltip opacity', 'tooltip visibility'])
+  })
+
+  test('nav groups turn their chevron and open and close at once', async ({ page }) => {
+    await page.route('**/api/payload-preferences/nav*', (route) =>
+      route.request().method() === 'POST' ? route.fulfill({ json: {} }) : route.fallback()
+    )
+    const transitions = await recordTransitions(page, ['nav-group__content', 'icon--chevron'])
+    await page.goto('/admin')
+    const group = page.getByRole('button', { name: 'Previews' })
+
+    await group.click()
+    await expect.poll(transitions).toEqual(['icon--chevron transform'])
+
+    await group.click()
+    await expect.poll(transitions).toEqual(['icon--chevron transform', 'icon--chevron transform'])
   })
 })
 

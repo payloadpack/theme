@@ -274,7 +274,8 @@
     }
 
     /* 6. Navigation */
-    .nav__link::before {
+    .nav__link::before,
+    .nav-group__toggle::before {
       inset-block: 2px;
     }
 

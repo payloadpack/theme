@@ -171,6 +171,10 @@
           white-space 200ms step-end allow-discrete;
       }
 
+      .nav-group__indicator .icon--chevron {
+        transition: transform 200ms var(--payloadpack-ease-out);
+      }
+
       &[data-rail] :is(.nav__link-label, .nav-group__label) {
         transition:
           all 200ms step-end allow-discrete,

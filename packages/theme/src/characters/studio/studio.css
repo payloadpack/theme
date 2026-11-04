@@ -53,6 +53,11 @@
       margin: var(--spacer-2);
     }
 
+    .nav-group__indicator {
+      inset-inline: auto var(--spacer-3);
+      transform: none;
+    }
+
     .sidebar-tabs__tabs {
       gap: 2px;
       padding: 3px;

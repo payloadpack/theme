@@ -83,8 +83,8 @@ The panel opens as a sheet on the right and fills the screen on phones. Every ch
 | Motion        | Off, On                | On               | On             |
 | Collapsed nav | Icons, Hidden          | Icons            | Icons          |
 
-- **Enhanced** draws a 2px focus ring, rounds popups and toasts a little more, lifts the date picker and toasts like menus, and insets the sidebar tabs.
-- **Studio** keeps the nav on the field, puts the collapse button at its top left and moves the user menu to the bottom of it.
+- **Enhanced** draws a 2px focus ring, rounds popups and toasts a little more, lifts the date picker and toasts like menus, insets the sidebar tabs, and moves each nav group's chevron to the end of its row.
+- **Studio** keeps the nav on the field, puts the collapse button at its top left, moves the user menu to the bottom of it, and ends each nav group with its chevron like Enhanced.
 - Every palette except Payload's draws the focus ring in the text color, gives all fields one border color, fades disabled and read-only fields to half their colors, softens checkbox and radio rings, marks the selected nav link and the hovered menu item with a neutral fill instead of the accent, and raises the active sidebar tab like the panel's segments.
 - **Warm** gives dark mode a warm near-black palette and swaps Payload's blue selection for neutral greys. It fills checked checkboxes and selected radios with the text color instead of the accent.
 - **Studio**, the palette, mixes a faint share of the accent into a warm off-white field and nav, with white cards and lines tinted the same way. Dark mode mixes it into near-black. Selected items take a soft fill of the accent.
@@ -93,7 +93,7 @@ The panel opens as a sheet on the right and fills the screen on phones. Every ch
 - **Boxed** puts each view in a soft card with a border and rounded corners. **Flat** drops the card and keeps the nav's border.
 - **Comfortable** sets 14px body text, 36px fields and buttons, 32px menu items and 18px checkboxes and radios, gives dialogs more room, and fixes Payload components that hard-code their sizes.
 - **Lucide** replaces Payload's icons with [Lucide](https://lucide.dev) and adds icons to the nav and the document menu. The icons are bundled, so nothing loads from a CDN.
-- **Motion** brings back the transitions Payload 3 had: drawers fade and slide in, tooltips fade, and fields, buttons and cards ease between states. Popups, select menus and the date picker fade and scale in from their trigger, and the Appearance panel slides in like a drawer. It stays off when the operating system asks for reduced motion.
+- **Motion** brings back the transitions Payload 3 had: drawers fade and slide in, tooltips fade, and fields, buttons and cards ease between states. Popups, select menus and the date picker fade and scale in from their trigger, nav group chevrons turn, and the Appearance panel slides in like a drawer. It stays off when the operating system asks for reduced motion.
 - **Icons** as the collapsed nav turns the nav's collapse button into a 64px rail of Lucide icons, with each label as a tooltip. The rail is kept per browser in a `<cookiePrefix>-nav-rail` cookie, so Reset leaves it alone. Below 768px the nav is Payload's own drawer. **Hidden** keeps Payload's own collapse.
 
 A signed-in editor's setup is saved in Payload's own preferences, so it follows them to every browser. It is mirrored in one cookie, `<cookiePrefix>-appearance`, next to Payload's own theme cookie, which the server uses on the login page and until a setup is saved. The server renders the setup, so pages never flash.
