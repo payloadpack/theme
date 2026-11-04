@@ -1328,7 +1328,7 @@ test.describe('Neutral palette', () => {
 })
 
 test.describe('Every palette but Payload', () => {
-  for (const palette of ['neutral', 'studio']) {
+  for (const palette of ['neutral', 'warm']) {
     test.describe(palette, () => {
       test.beforeEach(({ page }) => page.context().addCookies([appearance({ palette })]))
 
