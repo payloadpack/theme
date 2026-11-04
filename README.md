@@ -66,7 +66,7 @@ Click the Appearance button, beside the collapse button at the top of the nav, o
 The panel opens as a sheet on the right and fills the screen on phones. Every change applies at once, so there is no Save button. Escape or a click outside closes it.
 
 - **Character** is how the whole admin panel is laid out and behaves. Stock is Payload's own layout and has no options. Enhanced touches up Payload's own design without changing its structure, and is the default. Studio puts each view in a soft card on a field. The section is hidden when only one character is allowed.
-- **Options** belong to a character. Enhanced has Corners, Density, Icons, Motion and Collapsed nav. Studio has the same five and adds Typeface, Frame and Content width. Each character keeps its own values, so switching to Stock and back keeps them.
+- **Options** belong to a character. Enhanced has Corners, Density, Icons, Motion and Collapsed nav. Studio has the same five and adds Typeface and Frame. Each character keeps its own values, so switching to Stock and back keeps them.
 - **Palette** is the colors, in a light and a dark version. Payload is Payload's own colors. Warm, the default, is Payload's light colors and a warm near-black dark mode. Studio tints the field and the nav with its accent, copper by default. Every palette works with every character. The section is hidden when only one palette is allowed.
 - **New palette** turns the current palette into your own: a background, surface and text color for light and for dark mode, and an accent for primary buttons, links and selected items. Each color applies as you pick it, and the rest of the colors are mixed from these. **Copy as CSS** copies your palette as the CSS block the theme renders for it. Switching to another palette keeps yours for later.
 - **Color mode** is Payload's own light and dark setting, the same one as Admin Theme on the account page. It is hidden when `admin.theme` is `'light'` or `'dark'`.
@@ -78,7 +78,6 @@ The panel opens as a sheet on the right and fills the screen on phones. Every ch
 | Corners       | None, S, M, L, Round   | M                | L              |
 | Typeface      | Payload, Geist, System |                  | Geist          |
 | Frame         | Boxed, Flat            |                  | Boxed          |
-| Content width | Centered, Full         |                  | Centered       |
 | Density       | Compact, Comfortable   | Comfortable      | Comfortable    |
 | Icons         | Payload, Lucide        | Lucide           | Lucide         |
 | Motion        | Off, On                | On               | On             |
@@ -92,7 +91,6 @@ The panel opens as a sheet on the right and fills the screen on phones. Every ch
 - **Corners** scales Payload's own corner sizes. M keeps them as they are, None squares every corner, S and L make them smaller or larger, and Round is L with pill-shaped buttons.
 - **Geist** loads [Geist](https://vercel.com/font) with `next/font`, the way Payload loads Inter, and only downloads it when an editor uses it. **Payload** keeps Inter. **System** uses the operating system's font.
 - **Boxed** puts each view in a soft card with a border and rounded corners. **Flat** drops the card and keeps the nav's border.
-- **Centered** caps every view at 880px and centers it. **Full** lets it fill the width.
 - **Comfortable** sets 14px body text, 36px fields and buttons, 32px menu items and 18px checkboxes and radios, gives dialogs more room, and fixes Payload components that hard-code their sizes.
 - **Lucide** replaces Payload's icons with [Lucide](https://lucide.dev) and adds icons to the nav and the document menu. The icons are bundled, so nothing loads from a CDN.
 - **Motion** brings back the transitions Payload 3 had: drawers fade and slide in, tooltips fade, and fields, buttons and cards ease between states. Popups, select menus and the date picker fade and scale in from their trigger, and the Appearance panel slides in like a drawer. It stays off when the operating system asks for reduced motion.

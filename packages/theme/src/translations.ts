@@ -49,9 +49,6 @@ const payloadpack = {
   stockNote: "Stock keeps Payload's own layout. It has no options.",
   surface: 'Surface',
   text: 'Text',
-  width: 'Content width',
-  widthCentered: 'Centered',
-  widthFull: 'Full'
 } satisfies Record<OptionKey, string> & Record<string, string>
 
 export const translations = { payloadpack }

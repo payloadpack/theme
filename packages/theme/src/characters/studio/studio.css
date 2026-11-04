@@ -35,14 +35,7 @@
       }
     }
 
-    /* 3. Width */
-    &[data-width='centered'] .template-default__wrap > :not(.app-header) {
-      width: 100%;
-      max-width: 55rem;
-      margin-inline: auto;
-    }
-
-    /* 4. Nav */
+    /* 3. Nav */
     --payloadpack-nav-button-area: inline-end;
 
     .nav__header {
@@ -73,7 +66,7 @@
       border-radius: var(--radius-medium);
     }
 
-    /* 5. Rail */
+    /* 4. Rail */
     @media (min-width: 769px) {
       &[data-rail] {
         --payloadpack-nav-button-area: block-end;

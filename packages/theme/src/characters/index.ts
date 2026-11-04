@@ -5,7 +5,6 @@ export const options = {
   radius: ['none', 'sm', 'md', 'lg', 'full'],
   font: ['payload', 'geist', 'system'],
   frame: ['boxed', 'flat'],
-  width: ['centered', 'full'],
   density: ['compact', 'comfortable'],
   icons: ['payload', 'lucide'],
   motion: ['off', 'on'],

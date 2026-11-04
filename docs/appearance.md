@@ -33,7 +33,6 @@ Each character declares which options it supports and their defaults. Option val
 | `radius`  | `none` `sm` `md` `lg` `full`                                               | yes      | yes    |
 | `font`    | `payload` (Inter, which Payload already loads), `geist` or `system`        |          | yes    |
 | `frame`   | `boxed` `flat`                                                             |          | yes    |
-| `width`   | `centered` `full`                                                          |          | yes    |
 | `density` | `compact` `comfortable`                                                    | yes      | yes    |
 | `icons`   | `payload` `lucide`                                                         | yes      | yes    |
 | `motion`  | `off` `on`: restores the transitions Payload 4 removed and animates popups | yes      | yes    |
@@ -60,7 +59,6 @@ Studio's defaults:
 | `radius`  | `lg`           |
 | `font`    | `geist`        |
 | `frame`   | `boxed`        |
-| `width`   | `centered`     |
 | `density` | `comfortable`  |
 | `icons`   | `lucide`       |
 | `motion`  | `on`           |
@@ -167,7 +165,6 @@ The provider renders the active character, its option values and the palette ont
   data-radius="lg"
   data-font="geist"
   data-frame="boxed"
-  data-width="centered"
   data-density="comfortable"
   data-icons="lucide"
   data-motion="on"
@@ -212,7 +209,6 @@ src/styles/fields/*
 The Studio character:
 
 - `frame: 'boxed'` puts each view in a soft card on the field; `flat` drops the card. The card's corners are `--radius-large` plus 6px, so they follow `radius`.
-- `width: 'centered'` caps the content width; `full` drops the cap.
 - The user menu moves to the bottom of the nav with CSS only: `.nav__header { display: contents }`, then `order` on the user menu. Payload's popover flips upward by itself.
 
 The Studio palette mixes its field, nav and card surfaces from the accent into Payload's light and dark surfaces with `color-mix`, so any hex gets matching surfaces. The tint is faint: Copper gives a field of about `#f0ebe6`.
@@ -238,7 +234,6 @@ From Payload 4.0.0-beta.6's CSS:
   - the small transitions on fields, buttons and cards
   - new in this theme: popups, select menus and the date picker fade in and scale up from 95% at their trigger, sliding in 8px from it when they open above or below, and scale back out on close. Submenus scale from their top edge without a slide, because Payload flips them to the other side without saying so. Payload 3 never animated them. Modals stay still.
   - Timing is fixed per kind of component, never measured: popovers, menus, the date picker and tooltips take 150ms in and 100ms out on a strong ease-out, `cubic-bezier(0.23, 1, 0.32, 1)`; drawers and the Appearance sheet take 300ms in on the drawer curve and 200ms out.
-- `width`: Payload has no content-width token. Only `admin.constrainWidth` caps the edit view. `centered` caps every view below the app header at 880px.
 
 ## Open
 

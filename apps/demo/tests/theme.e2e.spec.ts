@@ -1386,7 +1386,6 @@ test.describe('Studio character', () => {
       radius: 'lg',
       font: 'geist',
       frame: 'boxed',
-      width: 'centered',
       density: 'comfortable',
       icons: 'lucide',
       motion: 'on',
@@ -1456,26 +1455,6 @@ test.describe('Studio character', () => {
     await expect(card).toHaveCSS('border-radius', '0px')
     await expect(card).toHaveCSS('margin', '0px')
     await expect(page.locator('.nav')).toHaveCSS('border-right-width', '1px')
-  })
-
-  test('centered caps the content width and full does not', async ({ page }) => {
-    await page.context().addCookies([studio()])
-    await openList(page)
-
-    const insets = await page.locator('.collection-list').evaluate((list) => {
-      const inner = list.getBoundingClientRect()
-      const outer = list.parentElement!.getBoundingClientRect()
-      return { left: inner.left - outer.left, right: outer.right - inner.right, width: inner.width }
-    })
-    expect(insets.width).toBe(880)
-    expect(insets.left).toBeGreaterThan(0)
-    expect(insets.left).toBeCloseTo(insets.right, 0)
-
-    await page.context().addCookies([studio({ width: 'full' })])
-    await page.reload()
-    await page.locator('table').waitFor()
-    const wrapWidth = await page.locator('.template-default__wrap').evaluate((element) => element.clientWidth)
-    expect(await size(page, '.collection-list')).toMatchObject({ width: wrapWidth })
   })
 
   test('moves the user menu to the bottom of the nav and opens its menu upward', async ({ page }) => {

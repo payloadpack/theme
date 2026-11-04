@@ -3,7 +3,6 @@ export const studio = {
     radius: 'lg',
     font: 'geist',
     frame: 'boxed',
-    width: 'centered',
     density: 'comfortable',
     icons: 'lucide',
     motion: 'on',
