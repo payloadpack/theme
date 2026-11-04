@@ -1243,7 +1243,7 @@ test.describe('Neutral palette', () => {
       await nearColor(
         page,
         await computedColor(page, 'var(--accessibility-focus-color)'),
-        await computedColor(page, 'var(--payloadpack-text)')
+        await computedColor(page, 'var(--payloadpack-primary)')
       )
     ).toBe(true)
 
