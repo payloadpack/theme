@@ -46,7 +46,7 @@ const only = (values: object, keep: (option: string, value: unknown) => boolean)
   return kept.length ? (Object.fromEntries(kept) as Values) : undefined
 }
 
-const isHex = (value: unknown): value is string => typeof value === 'string' && /^#[0-9a-f]{6}$/.test(value)
+export const isHex = (value: unknown): value is string => typeof value === 'string' && /^#[0-9a-f]{6}$/.test(value)
 
 const baseOf = (value: unknown) =>
   isRecord(value) && bases.every((base) => isHex(value[base]))

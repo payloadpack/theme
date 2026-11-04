@@ -4,7 +4,7 @@ import { PeopleIcon, useConfig, useTheme, useTranslation, XIcon } from '@payload
 import { Fragment, type ReactNode, useEffect, useId, useRef, useState } from 'react'
 
 import { characters as registry, type Option, options } from '../characters/index.js'
-import { type Base, bases, type CustomPalette, customPalette, paletteCss } from '../lib/appearance.js'
+import { type Base, bases, type CustomPalette, customPalette, isHex, paletteCss } from '../lib/appearance.js'
 import type { TranslationKey } from '../translations.js'
 import { useAppearance } from './appearance-provider.js'
 
@@ -89,7 +89,7 @@ function ColorField({
 
   const commitHex = (field: HTMLInputElement) => {
     const typed = field.value.trim().toLowerCase().replace(/^#?/, '#')
-    if (/^#[0-9a-f]{6}$/.test(typed)) {
+    if (isHex(typed)) {
       onChange(typed)
     } else {
       field.value = value
@@ -221,11 +221,6 @@ export function AppearanceSheet() {
   }
 
   const resetCharacter = () => setStatus({ message: t('payloadpack:resetDone', { character: characterName }), undo: reset() })
-
-  const share = (action: () => Promise<void>) => (event: { currentTarget: HTMLElement }) => {
-    event.currentTarget.closest<HTMLElement>('[popover]')?.hidePopover()
-    void action()
-  }
 
   return (
     <div className="payloadpack-appearance-panel">
@@ -415,7 +410,10 @@ export function AppearanceSheet() {
           </Section>
         </div>
         <footer className="payloadpack-appearance-panel__footer">
-          <button className="payloadpack-appearance-panel__share" popoverTarget={SHARE_ID} type="button">
+          <button
+            className="payloadpack-appearance-panel__link payloadpack-appearance-panel__share"
+            popoverTarget={SHARE_ID}
+            type="button">
             {t('payloadpack:shareSetup')}
           </button>
           <p className="payloadpack-appearance-panel__status" data-tone={status?.tone} role="status">
@@ -432,10 +430,14 @@ export function AppearanceSheet() {
             )}
           </p>
           <div className="payloadpack-appearance-panel__menu" id={SHARE_ID} popover="auto">
-            <button onClick={share(() => copy(JSON.stringify(setup, null, 2), t('payloadpack:setupCopied')))} type="button">
+            <button
+              onClick={() => copy(JSON.stringify(setup, null, 2), t('payloadpack:setupCopied'))}
+              popoverTarget={SHARE_ID}
+              popoverTargetAction="hide"
+              type="button">
               {t('payloadpack:copySetup')}
             </button>
-            <button onClick={share(pasteFromClipboard)} type="button">
+            <button onClick={pasteFromClipboard} popoverTarget={SHARE_ID} popoverTargetAction="hide" type="button">
               {t('payloadpack:pasteSetup')}
             </button>
           </div>
@@ -480,7 +482,7 @@ function FineTuneRow<O extends Option>({
                 </span>
               </>
             ),
-          name: option === 'radius' ? t(`payloadpack:radius${capitalize(value)}Name` as TranslationKey) : undefined,
+          name: option === 'radius' ? t(`payloadpack:${option}${capitalize(value)}` as TranslationKey) : undefined,
           value
         }))}
         className="payloadpack-appearance-panel__segments"

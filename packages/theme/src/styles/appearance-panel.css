@@ -5,7 +5,7 @@
     --payloadpack-panel-inset: 3px;
     --payloadpack-panel-radius: calc(var(--button-radius) + min(var(--button-radius), var(--payloadpack-panel-inset)));
     --payloadpack-panel-control-height: 1.875rem;
-    --payloadpack-panel-selected-ring: 0 0 0 var(--stroke-width-small) var(--color-border-control-strong);
+    --payloadpack-panel-hover: color-mix(in oklab, var(--color-text) 4%, transparent);
     --payloadpack-panel-focus: var(--stroke-width-medium) solid var(--accessibility-focus-color);
 
     /* 2. Icon buttons */
@@ -387,14 +387,14 @@
         cursor: pointer;
 
         &:hover {
-          background-color: color-mix(in oklab, var(--color-text) 4%, transparent);
+          background-color: var(--payloadpack-panel-hover);
           color: var(--color-text);
         }
 
         &:has(:checked) {
           background-color: var(--color-bg-elevated);
           box-shadow:
-            var(--payloadpack-panel-selected-ring),
+            0 0 0 var(--stroke-width-small) var(--color-border-control-strong),
             0 1px 2px rgb(0 0 0 / 0.08);
           color: var(--color-text);
           font-weight: 600;
@@ -443,21 +443,12 @@
       mask: url('lucide-static/icons/users.svg') center / 0.875rem no-repeat;
     }
 
-    [data-font='inter'] {
-      font-family: var(--font-family-sans), system-ui, sans-serif;
-    }
-
     [data-font='geist'] {
-      font-family: payloadpack-geist, payloadpack-geist-fallback, system-ui, sans-serif;
+      font-family: var(--payloadpack-font-geist);
     }
 
     [data-font='system'] {
-      font-family:
-        system-ui,
-        -apple-system,
-        'Segoe UI',
-        Roboto,
-        sans-serif;
+      font-family: var(--payloadpack-font-system);
     }
 
     /* 6. Fine-tune */
@@ -566,7 +557,7 @@
       cursor: pointer;
 
       &:hover:not(:disabled) {
-        background-color: color-mix(in oklab, var(--color-text) 4%, transparent);
+        background-color: var(--payloadpack-panel-hover);
       }
 
       &:disabled {
@@ -721,12 +712,7 @@
       gap: var(--spacer-1-5);
       height: 2rem;
       padding-inline: var(--spacer-3) var(--spacer-2);
-      border: var(--stroke-width-small) solid var(--color-border);
-      border-radius: var(--button-radius);
-      color: var(--color-text);
-      font-weight: 500;
       anchor-name: --payloadpack-share;
-      cursor: pointer;
 
       &::after {
         content: '';
@@ -734,10 +720,6 @@
         height: 0.875rem;
         background-color: var(--color-icon-secondary);
         mask: url('lucide-static/icons/chevron-up.svg') center / contain no-repeat;
-      }
-
-      &:hover {
-        background-color: color-mix(in oklab, var(--color-text) 4%, transparent);
       }
     }
 
