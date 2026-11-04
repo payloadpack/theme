@@ -1374,6 +1374,7 @@ test.describe('Rail', () => {
     await page.goto('/admin')
     await page.getByRole('button', { name: 'Previews' }).click()
     await page.getByRole('button', { name: 'Hide sidebar' }).click()
+    await expect.poll(() => navWidth(page)).toBe(64)
 
     const group = page.getByRole('button', { name: 'Previews' })
     await group.hover()
