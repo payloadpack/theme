@@ -71,7 +71,7 @@ The panel opens as a sheet on the right and fills the screen on phones. Every ch
 - **New palette** turns the current palette into your own: a background, surface, text and primary color for light and for dark mode, and an accent. Primary fills what you press: primary buttons and checked checkboxes, radios and switches. The accent marks links, the active tab and selected items. Each color applies as you pick it, and the rest of the colors are mixed from these. **Copy as CSS** copies your palette as the CSS block the theme renders for it. Switching to another palette keeps yours for later.
 - **Color mode** is Payload's own light and dark setting, the same one as Admin Theme on the account page. It is hidden when `admin.theme` is `'light'` or `'dark'`.
 - **Reset** returns to the defaults in your plugin config. It leaves the color mode alone.
-- **Copy setup** copies your character, its options and your palette, with its colors when it is your own, as JSON. **Paste setup** applies the setup on your clipboard, for example one another editor copied, keeps your own palette, and says so when there isn't one. The JSON is also valid plugin config.
+- **Copy setup** copies your character, its options and your palette, with its colors when it is your own, as JSON. **Paste setup** applies the setup on your clipboard, for example one another editor copied, and says so when there isn't one. A setup with its own palette replaces yours. The JSON is also valid plugin config.
 
 | Option        | Values                 | Enhanced default | Studio default |
 | ------------- | ---------------------- | ---------------- | -------------- |
