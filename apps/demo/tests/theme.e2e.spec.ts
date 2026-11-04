@@ -324,6 +324,24 @@ test.describe('Appearance panel', () => {
     await elsewhere.close()
   })
 
+  test('keeps Share setup centred beside a status line that wraps', async ({ context, page }) => {
+    await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+    await page.goto('/admin')
+    const sheet = await openAppearancePanel(page)
+    const status = sheet.getByRole('status')
+    const middle = async (locator: Locator) => {
+      const box = (await locator.boundingBox())!
+      return box.y + box.height / 2
+    }
+
+    await (await share(sheet, 'Copy setup')).click()
+    await expect(status).toHaveText(/^Setup copied/)
+    await status.evaluate((element) => element.append(` ${element.textContent}`))
+
+    expect((await status.boundingBox())!.height).toBeGreaterThan(48)
+    expect(await middle(sheet.getByRole('button', { name: 'Share setup' }))).toBeCloseTo(await middle(status), 0)
+  })
+
   test('says the browser blocked the clipboard when it refuses or is missing', async ({ page }) => {
     await page.goto('/admin')
     const sheet = await openAppearancePanel(page)

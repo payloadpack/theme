@@ -121,6 +121,10 @@
         color: var(--color-text);
         font-weight: 600;
       }
+
+      > .payloadpack-appearance-panel__link {
+        align-self: flex-start;
+      }
     }
 
     .payloadpack-appearance-panel__description {
@@ -537,7 +541,6 @@
     }
 
     .payloadpack-appearance-panel__link {
-      align-self: flex-start;
       height: 1.75rem;
       padding-inline: var(--spacer-2-5);
       border: var(--stroke-width-small) solid var(--color-border);
@@ -698,7 +701,6 @@
 
     .payloadpack-appearance-panel__share {
       display: inline-flex;
-      align-self: auto;
       align-items: center;
       gap: var(--spacer-1-5);
       height: 2rem;
