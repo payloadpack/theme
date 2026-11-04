@@ -3,7 +3,7 @@
     --payloadpack-switch-size: 1.5rem;
     --payloadpack-switch-gap: 0.1;
     --payloadpack-switch-radius: 99rem;
-    --payloadpack-switch-thumb: var(--color-text);
+    --payloadpack-switch-thumb: var(--ramp-white-1000);
     --payloadpack-switch-padding: calc(var(--payloadpack-switch-size) * var(--payloadpack-switch-gap));
     --payloadpack-switch-width: calc(
       var(--payloadpack-switch-size) * 2 - (var(--stroke-width-small) + var(--payloadpack-switch-padding)) * 2

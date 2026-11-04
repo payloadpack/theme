@@ -414,7 +414,7 @@ test.describe('Theme values', () => {
     await expect(cards.first()).toHaveCSS('border-radius', await style(page, '.field-type.text input', 'border-radius'))
   })
 
-  test('switches slide the thumb and line the description up with the label', async ({ page }) => {
+  test('switches slide a light thumb and line the description up with the label', async ({ page }) => {
     await openShowcase(page)
     const field = page.locator(`.${SWITCH}`)
     const track = field.locator('.checkbox-input__visuals')
@@ -443,6 +443,10 @@ test.describe('Theme values', () => {
       }
     })
     expect(indent.description).toBeCloseTo(indent.label, 1)
+
+    await field.getByText('Notify subscribers').click()
+    await page.evaluate(() => (document.documentElement.dataset.theme = 'light'))
+    expect(await style(page, `.${SWITCH} .checkbox-input__visuals`, 'background-color', '::before')).toBe('rgb(255, 255, 255)')
   })
 
   test('Payload icons keep the Payload tick without its halo', async ({ page }) => {

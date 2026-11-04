@@ -277,7 +277,7 @@ Switches take their colors from the toggle tokens and their shape from these. Se
 | `--payloadpack-switch-size`   | Height, 1.5rem. The width follows                    |
 | `--payloadpack-switch-gap`    | Space around the thumb as a share of the height, 0.1 |
 | `--payloadpack-switch-radius` | Thumb corners, fully round. The track follows        |
-| `--payloadpack-switch-thumb`  | Thumb color while off                                |
+| `--payloadpack-switch-thumb`  | Thumb color while off, light in both modes           |
 
 ```css
 .payloadpack-switch {
