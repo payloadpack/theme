@@ -9,5 +9,6 @@ setup('log in as the demo user', async ({ page }) => {
   await page.fill('#field-password', demoUser.password)
   await page.click('button[type="submit"]')
   await page.waitForURL('/admin')
+  await page.request.delete('/api/payload-preferences/nav')
   await page.context().storageState({ path: authFile })
 })
