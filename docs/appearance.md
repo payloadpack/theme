@@ -40,7 +40,7 @@ Each character declares which options it supports and their defaults. Enhanced a
 
 - `density`, `motion` and `nav` are personal options: an editor's pick carries to every character. The other four keep a value per character, so Studio's radius and Enhanced's radius are separate.
 - `radius: 'md'` is Payload's own radius tiers; `none`, `sm`, `lg` and `full` scale them.
-- `motion: 'auto'` follows `prefers-reduced-motion`, and the panel says so while the system asks for less motion.
+- `motion: 'auto'` follows `prefers-reduced-motion`.
 - The `font` option will gain a heading font, `sans` or `serif`, so a character can pair a serif display face with a sans body.
 
 ## Palettes
@@ -98,6 +98,7 @@ A setup is what an editor picked: a character, that character's options, their p
 - Signed-in editors' setups are saved in Payload's own preferences (`payload-preferences`, key `payloadpack-appearance`), so a setup follows the editor to every browser. The server reads it with the page and renders the attributes, so there is no flash.
 - The same setup is mirrored into a `<cookiePrefix>-appearance` cookie, which the server uses on the login page and every other signed-out view. With no saved preference yet, the cookie applies for signed-in editors too.
 - `panel` is not called on signed-out views, which have no user. The cookie applies there unless `panel` is `false`.
+- After the login form, the provider loads the saved setup without a reload when `panel` is `true`. The client cannot call a `panel` function, so with one the setup applies from the next full page load.
 - Reset puts the active character's options and the personal options back to their defaults, and keeps the character, the palette and the editor's own colors. The footer offers Undo for a few seconds.
 - Sharing: the **Share setup** menu's **Copy setup** copies the setup as JSON, with the character and palette always included, so another editor gets the same look. **Paste setup** reads a copied setup from the clipboard, checks it like any other, and the footer says so for a moment when the clipboard holds no valid setup. A pasted setup replaces the character, its options, the personal options and the palette, and keeps your options for other characters. A setup that carries an editor's own palette replaces yours; one without keeps it. A developer can paste the same JSON into `themePlugin()` to make it the site default, unless it uses the editor's own palette.
 - The old `admin-theme`, `density` and `icons` cookies are left to expire. There are no shims for the old attributes, cookies or the `appearanceControls` export.
@@ -119,7 +120,7 @@ Theme is Payload's own light/dark preference: the panel calls `useTheme().setThe
   4. A footer with the Share setup menu and a status line, which says what Copy, Paste and Reset did instead of Payload's toasts, which would sit under the sheet in the top layer.
 - Every choice is a native radio inside its label, so each group is one Tab stop and the arrow keys move through it. The panel keeps its own control height and Inter, whatever the density and typeface.
 - The panel is styled with Payload's `--color-*` tokens, so it follows the active character, palette and theme.
-- Every label is a Payload i18n key under a `payloadpack` namespace. English ships; apps add languages through their own `i18n.translations`. Character and palette names stay untranslated.
+- Every label is a Payload i18n key under a `payloadpack` namespace. English ships; apps add languages through their own `i18n.translations`. Character and palette names are keys too, so an app can rename them.
 
 ## The rail
 
@@ -210,7 +211,7 @@ From Payload 4.0.0-beta.6's CSS:
   - A palette without an accent keeps Payload's exact ramp. A palette that sets `#0d99ff` gets mixed shades instead.
   - No component hard-codes a blue.
 - `radius`: `--radius-small`, `--radius-medium`, `--radius-large`, `--button-radius`, `--field-border-radius`, `--popup-radius` and `--popup-item-radius`. Components pick a tier directly, so the option sets the tiers. Menus and toasts take `--popup-radius`, the menu item's corner plus up to 4px, instead of Payload's card tier. `full` sets `--button-radius` and `--field-border-radius` to half the control height rather than 9999px: controls still draw as pills, and taller boxes that read the same token, such as collapsibles and the focus ring, keep plain corners.
-- `font`: `--font-body`, the body font Payload reads, so `--font-family-sans` and the panel keep Inter. Geist ships in the package as a variable woff2 under the SIL Open Font License, declared with `@font-face` in `styles/index.css` as `payloadpack-geist`, so builds need no network and the browser downloads it only when an editor uses it. Until it loads, text sets in `payloadpack-geist-fallback`, Arial resized to Geist's metrics with the values `next/font` computes, so nothing shifts when Geist arrives.
+- `font`: `--font-body`, the body font Payload reads, and the two body tokens Payload's dashboard widgets read, `--text-body-medium-font-family` and `--text-body-large-strong-font-family`, so `--font-family-sans` and the panel keep Inter. Geist ships in the package as a variable woff2 under the SIL Open Font License, declared with `@font-face` in `styles/index.css` as `payloadpack-geist`, so builds need no network and the browser downloads it only when an editor uses it. Until it loads, text sets in `payloadpack-geist-fallback`, Arial, or Arimo or Liberation Sans where Arial is missing, resized to Geist's metrics with the values `next/font` computes, so nothing shifts when Geist arrives.
 - `density`: what `density.css` already does.
 - `motion`: what Payload 3 animated and Payload 4 dropped:
   - not the drawer's fade and slide: Payload 4 unmounts a drawer on close, so only its opening could animate, and it opens at once instead. Select menus unmount too, but a menu that only animates in reads as quick, so they keep it.
