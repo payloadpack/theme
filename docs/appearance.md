@@ -78,7 +78,7 @@ A palette is CSS, the way Tailwind v4 defines design tokens: a block scoped to `
 | Palette | Light                               | Dark                                                              | Accent    |
 | ------- | ----------------------------------- | ----------------------------------------------------------------- | --------- |
 | Payload | Payload's own Figma UI3 colors      | Payload's own Figma UI3 colors                                    | `#0d99ff` |
-| Neutral | Payload's light colors              | near-black: `#0a0a09` nav, `#0f0f0e` page, `#f3f2ed` text         | `#0d99ff` |
+| Neutral | `#f3f4f1` field, white cards        | near-black: `#0a0a09` nav, `#0f0f0e` page, `#f3f2ed` text         | `#0d99ff` |
 | Studio  | a faintly tinted field, white cards | the same tint on near-black, cards a shade lighter than the field | `#c2410c` |
 
 - The Payload palette applies no overrides, so plain Payload is the Stock character with the Payload palette. Today's look is Enhanced with Neutral, the zero-config default.

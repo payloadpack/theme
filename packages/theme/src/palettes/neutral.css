@@ -1,9 +1,9 @@
 @layer payload {
   [data-palette='neutral'] {
     /* 1. Light palette */
-    --payloadpack-background: #ffffff;
+    --payloadpack-background: #f3f4f1;
     --payloadpack-surface: #ffffff;
-    --payloadpack-text: #1a1a1a;
+    --payloadpack-text: #111111;
 
     /* 2. Dark palette */
     &[data-theme='dark'],

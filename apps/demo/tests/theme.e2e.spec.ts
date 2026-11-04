@@ -1026,7 +1026,7 @@ test.describe('Neutral palette', () => {
 
     await expect(error).toHaveCSS('background-color', 'rgb(255, 255, 255)')
     await expect(error).toHaveCSS('border-radius', '9px')
-    await expect(error.locator('.payload-toast-close-button')).toHaveCSS('color', 'rgb(26, 26, 26)')
+    await expect(error.locator('.payload-toast-close-button')).toHaveCSS('color', 'rgb(17, 17, 17)')
     const lightTint = await computedColor(page, await style(page, '.toast-error', '--payloadpack-toast-icon'))
     await expect(error.locator('.toast-icon .icon')).toHaveCSS('color', lightTint)
     expect(await style(page, '.toast-error .toast-icon svg', '--payloadpack-icon')).toContain('octagon-x')
@@ -1217,7 +1217,7 @@ test.describe('Custom palette', () => {
       'aria-pressed',
       'true'
     )
-    await expect(field(sheet, 'Light', 'Background')).toHaveValue('#ffffff')
+    await expect(field(sheet, 'Light', 'Background')).toHaveValue('#f3f4f1')
     await expect(field(sheet, 'Dark', 'Background')).toHaveValue('#0a0a09')
     await expect(field(sheet, 'Dark', 'Text')).toHaveValue('#f3f2ed')
     await expect(sheet.getByLabel('Accent')).toHaveValue('#0d99ff')
