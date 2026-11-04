@@ -282,7 +282,7 @@ test.describe('Appearance panel', () => {
   })
 
   for (const theme of ['light', 'dark']) {
-    test(`the nav toggle, the Appearance button and nav links share one hover in ${theme} mode`, async ({ page }) => {
+    test(`the nav toggle, the Appearance button, nav links and group headings share one hover in ${theme} mode`, async ({ page }) => {
       await page.context().addCookies([cookie('theme', theme)])
       await page.goto('/admin')
       const hovered = async (locator: Locator, pseudo?: string) => {
@@ -300,6 +300,7 @@ test.describe('Appearance panel', () => {
       const hover = await hovered(toggle)
       expect(await hovered(button)).toEqual(hover)
       expect(await hovered(page.locator('a.nav__link:not(.nav__link--selected)').first(), '::before')).toEqual(hover)
+      expect(await hovered(page.locator('.nav-group__toggle').first(), '::before')).toEqual(hover)
     })
   }
 
