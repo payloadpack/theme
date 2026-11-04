@@ -2022,6 +2022,7 @@ test.describe('Studio character', () => {
     await page.context().addCookies([studio()])
     await openList(page)
     const body = page.locator('body')
+    const hydrated = () => expect(page.locator('.nav')).toHaveClass(/nav--nav-hydrated/)
 
     await expect(body).toHaveCSS('font-family', /^payloadpack-geist, payloadpack-geist-fallback,/)
     await page.goto('/admin')
@@ -2034,10 +2035,12 @@ test.describe('Studio character', () => {
     ).toBe(true)
     expect(fonts.every((hostname) => hostname === 'localhost')).toBe(true)
 
+    await hydrated()
     await page.context().addCookies([studio({ font: 'inter' })])
     await page.reload()
     await expect(body).toHaveCSS('font-family', /^Inter, "?Inter Fallback"?/)
 
+    await hydrated()
     await page.context().addCookies([studio({ font: 'system' })])
     await page.reload()
     await expect(body).toHaveCSS('font-family', /^system-ui,/)
