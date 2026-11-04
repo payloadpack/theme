@@ -3,12 +3,12 @@ import { renderToString } from 'react-dom/server'
 import { expect, it } from 'vitest'
 
 import { AppearanceProvider } from '../src/components/appearance-provider.js'
-import type { Choices, Settings } from '../src/lib/appearance.js'
+import { type Choices, type CustomPalette, paletteCss, type Settings } from '../src/lib/appearance.js'
 
 const geist = "'Geist', 'Geist Fallback'"
 
-const runScript = (settings: Settings, initialChoices: Choices = {}, initialRail = false) => {
-  const html = renderToString(
+const render = (settings: Settings, initialChoices: Choices = {}, initialRail = false) =>
+  renderToString(
     createElement(AppearanceProvider, {
       children: null,
       codeEditorFontSize: false,
@@ -20,7 +20,9 @@ const runScript = (settings: Settings, initialChoices: Choices = {}, initialRail
       settings
     })
   )
-  const script = html.match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? ''
+
+const runScript = (settings: Settings, initialChoices: Choices = {}, initialRail = false) => {
+  const script = render(settings, initialChoices, initialRail).match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? ''
   const dataset = {}
   const style: Record<string, string> = {}
 
@@ -29,6 +31,12 @@ const runScript = (settings: Settings, initialChoices: Choices = {}, initialRail
   })
 
   return { dataset, style }
+}
+
+const custom: CustomPalette = {
+  accent: '#c2410c',
+  dark: { background: '#131312', surface: '#1c1c1b', text: '#f2f1ec' },
+  light: { background: '#f1f0ec', surface: '#ffffff', text: '#1c1b18' }
 }
 
 const settings: Settings = {
@@ -54,10 +62,15 @@ it("sets the palette, its accent and the Geist family, and leaves Payload's blue
     dataset: { character: 'enhanced', density: 'comfortable', icons: 'lucide', palette: 'warm' },
     style: { '--payloadpack-accent': '#0d99ff', '--payloadpack-font-geist': geist }
   })
-  expect(runScript(settings, { accent: { payload: '#c2410c' }, palette: 'payload' })).toEqual({
-    dataset: { accent: '#c2410c', character: 'enhanced', density: 'comfortable', icons: 'lucide', palette: 'payload' },
+  expect(runScript(settings, { custom, palette: 'custom' })).toEqual({
+    dataset: { accent: '#c2410c', character: 'enhanced', density: 'comfortable', icons: 'lucide', palette: 'custom' },
     style: { '--payloadpack-accent': '#c2410c', '--payloadpack-font-geist': geist }
   })
+})
+
+it('renders the custom palette into the server HTML as the CSS block Copy as CSS copies', () => {
+  expect(render(settings, { custom })).toContain(`<style>${paletteCss('custom', custom)}</style>`)
+  expect(render(settings, {})).not.toContain('<style>')
 })
 
 it('renders the collapsed rail only while the nav option is icons', () => {

@@ -30,7 +30,7 @@
   </tr>
 </table>
 
-Each editor picks how their admin panel looks from the Appearance panel in the header: a character for the layout, a palette for the colors and an accent. The default is the Enhanced character, with a roomier density and Lucide icons, on the Warm palette. Stock on the Payload palette is plain Payload. Setups are rendered on the server, so pages never flash.
+Each editor picks how their admin panel looks from the Appearance panel in the header: a character for the layout and a palette for the colors. The default is the Enhanced character, with a roomier density and Lucide icons, on the Warm palette. Stock on the Payload palette is plain Payload. Setups are rendered on the server, so pages never flash.
 
 ## Install
 
@@ -59,7 +59,7 @@ Click the Appearance button in the header to open the Appearance panel:
 <p>
   <picture>
     <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/appearance-light.png">
-    <img width="360" alt="The Appearance panel with Stock, Enhanced and Studio cards, Corners, Density, Icons, Motion and Collapsed nav options, and Payload, Warm and Studio palette cards" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/appearance-dark.png">
+    <img width="360" alt="The Appearance panel with Stock, Enhanced and Studio cards, Corners, Density, Icons, Motion and Collapsed nav options, Payload, Warm and Studio palette cards and a New palette button" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/appearance-dark.png">
   </picture>
 </p>
 
@@ -68,10 +68,10 @@ The panel opens as a sheet on the right and fills the screen on phones. Every ch
 - **Character** is how the whole admin panel is laid out and behaves. Stock is Payload's own layout and has no options. Enhanced touches up Payload's own design without changing its structure, and is the default. Studio puts each view in a soft card on a field. The section is hidden when only one character is allowed.
 - **Options** belong to a character. Enhanced has Corners, Density, Icons, Motion and Collapsed nav. Studio has the same five and adds Typeface, Frame and Content width. Each character keeps its own values, so switching to Stock and back keeps them.
 - **Palette** is the colors, in a light and a dark version. Payload is Payload's own colors. Warm, the default, is Payload's light colors and a warm near-black dark mode. Studio tints the field and the nav with its accent, copper by default. Every palette works with every character. The section is hidden when only one palette is allowed.
-- **Accent** is the color of primary buttons, links and selected items: one of eight swatches or any `#rrggbb` color. Each palette keeps its own accent. Payload's blue, `#0d99ff`, keeps Payload's own shades, and any other accent gets matching shades for light and dark mode.
+- **New palette** turns the current palette into your own: a background, surface and text color for light and for dark mode, and an accent for primary buttons, links and selected items. Each color applies as you pick it, and the rest of the colors are mixed from these. **Copy as CSS** copies your palette as the CSS block the theme renders for it. Switching to another palette keeps yours for later.
 - **Color mode** is Payload's own light and dark setting, the same one as Admin Theme on the account page. It is hidden when `admin.theme` is `'light'` or `'dark'`.
 - **Reset** returns to the defaults in your plugin config. It leaves the color mode alone.
-- **Copy setup** copies your character, its options, your palette and its accent as JSON. **Paste setup** applies the setup on your clipboard, for example one another editor copied, and says so when there isn't one. The JSON is also valid plugin config.
+- **Copy setup** copies your character, its options and your palette, with its colors when it is your own, as JSON. **Paste setup** applies the setup on your clipboard, for example one another editor copied, and says so when there isn't one. The JSON is also valid plugin config.
 
 | Option        | Values                 | Enhanced default | Studio default |
 | ------------- | ---------------------- | ---------------- | -------------- |
@@ -134,7 +134,7 @@ themePlugin({
 | `options`            | Each character's defaults from the option table              | Option values per character, which editors start from and Reset returns to. Each character takes only its own options, so a typo is a type error. Stock has no options and no key.                                                                                   |
 | `palette`            | `'warm'`                                                     | The palette everyone starts with. It must be one of `palettes`.                                                                                                                                                                                                      |
 | `palettes`           | `['payload', 'warm', 'studio']`                              | The palettes editors may pick. An editor whose palette is no longer allowed gets `palette`.                                                                                                                                                                          |
-| `accent`             | `{ payload: '#0d99ff', warm: '#0d99ff', studio: '#c2410c' }` | The accent per palette, as `#rrggbb`, which editors start from and Reset returns to.                                                                                                                                                                                 |
+| `accent`             | `{ payload: '#0d99ff', warm: '#0d99ff', studio: '#c2410c' }` | The accent per palette, as `#rrggbb`.                                                                                                                                                                                 |
 | `panel`              | `true`                                                       | Who gets the Appearance panel: `true`, `false` or `({ user }) => boolean`. When it resolves to `false`, the editor gets no Appearance button and their saved setup is ignored. Signed-out views have no user, so there the cookie applies unless `panel` is `false`. |
 | `codeEditorFontSize` | `13`                                                         | Font size for code editors in Comfortable density. Payload's default is 11. Fields that set `admin.editorOptions.fontSize` keep their own size. `false` turns it off.                                                                                                |
 
@@ -143,10 +143,11 @@ A setup from Copy setup has the same shape, so pasting it into `themePlugin()` m
 ```ts
 themePlugin({
   character: 'stock',
-  palette: 'payload',
-  accent: { payload: '#be185d' }
+  palette: 'payload'
 })
 ```
+
+A setup on an editor's own palette also carries that palette's colors, which the plugin config does not take.
 
 ## Vertical tabs
 

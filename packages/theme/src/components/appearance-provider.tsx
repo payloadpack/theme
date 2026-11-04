@@ -5,7 +5,18 @@ import { createContext, type ReactNode, use, useEffect, useLayoutEffect, useMemo
 
 import { type Character, type Option, type OptionValue, options } from '../characters/index.js'
 import { useMonacoFontSize } from '../hooks/use-monaco-font-size.js'
-import { type Choices, normalize, parseChoices, preferenceKey, resolve, type Settings, setupOf } from '../lib/appearance.js'
+import {
+  type Choices,
+  type CustomPalette,
+  customPalette,
+  normalize,
+  paletteCss,
+  parseChoices,
+  preferenceKey,
+  resolve,
+  type Settings,
+  setupOf
+} from '../lib/appearance.js'
 import { type Palette, payloadBlue } from '../palettes/index.js'
 
 const ONE_YEAR_IN_SECONDS = 60 * 60 * 24 * 365
@@ -30,10 +41,10 @@ type AppearanceContextValue = ReturnType<typeof resolve> & {
   paste: (text: string) => boolean
   rail: boolean
   reset: () => void
-  setAccent: (accent: string) => void
+  setCustom: (custom: CustomPalette) => void
   setCharacter: (character: Character) => void
   setOption: <O extends Option>(option: O, value: OptionValue<O>) => void
-  setPalette: (palette: Palette) => void
+  setPalette: (palette: Palette | typeof customPalette) => void
   setup: Choices
   toggleRail: () => void
 }
@@ -67,7 +78,7 @@ export function AppearanceProvider({
   const [rail, setRail] = useState(initialRail)
   const { setPreference } = usePreferences()
   const resolved = useMemo(() => resolve(settings, choices), [settings, choices])
-  const { accent, character, palette, values } = resolved
+  const { accent, character, custom, palette, values } = resolved
   const hasRail = values.nav === 'icons'
   const attributes = useMemo(
     (): Record<string, string> => ({
@@ -120,7 +131,7 @@ export function AppearanceProvider({
   const context = useMemo(() => {
     const update = (next: Choices) => {
       const normalized = normalize(settings, next)
-      void setPreference(preferenceKey, normalized)
+      void setPreference(preferenceKey, () => normalized)
       setChoices(normalized)
     }
 
@@ -137,18 +148,18 @@ export function AppearanceProvider({
       },
       rail,
       reset: () => update({}),
-      setAccent: (next: string) => update({ ...choices, accent: { ...choices.accent, [palette]: next } }),
       setCharacter: (next: Character) => update({ ...choices, character: next }),
+      setCustom: (next: CustomPalette) => update({ ...choices, custom: next, palette: customPalette }),
       setOption: <O extends Option>(option: O, value: OptionValue<O>) =>
         update({
           ...choices,
           options: { ...choices.options, [character]: { ...choices.options?.[character], [option]: value } }
         }),
-      setPalette: (next: Palette) => update({ ...choices, palette: next }),
+      setPalette: (next: Palette | typeof customPalette) => update({ ...choices, palette: next }),
       setup: setupOf(resolved),
       toggleRail: () => setRail(!rail)
     }
-  }, [character, choices, resolved, palette, rail, setPreference, settings])
+  }, [character, choices, resolved, rail, setPreference, settings])
 
   return (
     <AppearanceContext value={context}>
@@ -160,6 +171,7 @@ export function AppearanceProvider({
           }}
         />
       )}
+      {custom && <style>{paletteCss(customPalette, custom)}</style>}
       {children}
     </AppearanceContext>
   )

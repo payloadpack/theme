@@ -8,7 +8,9 @@ An editor's look is two independent choices: a **character** (how the admin is l
 
 Built: the three characters with every option below, the Payload, Warm and Studio palettes defined from base colors in CSS with an accent each, setups with Copy setup and Paste setup, the Appearance panel and the rail.
 
-Planned, not built: custom palettes, **New palette**, **Copy as CSS** and a heading font. The accent's shades still come from their own stylesheet, `accent.css`, and only when the accent isn't Payload's blue.
+Built since: an editor's own palette with **New palette** and **Copy as CSS**. The accent is part of a palette: the panel has no accent picker.
+
+Planned, not built: palettes a developer defines in CSS and lists by name in `palettes`, and a heading font. A CSS palette's accent needs its shades without the provider's inline accent: the accent's shades still come from their own stylesheet, `accent.css`, and only when the provider sets `data-accent`, which it does for an accent other than Payload's blue from the registry, the `accent` option or the editor's own palette.
 
 ## Characters
 
@@ -82,9 +84,9 @@ A palette is CSS, the way Tailwind v4 defines design tokens: a block scoped to `
 | Studio  | a faintly tinted field, white cards | the same tint on near-black, cards a shade lighter than the field | `#c2410c` |
 
 - The Payload palette applies no overrides, so plain Payload is the Stock character with the Payload palette. Today's look is Enhanced with Warm, the zero-config default.
-- Editors override a palette's accent with 8 swatches or a hex field, and each palette remembers its own accent. One accent serves both versions: the theme mixes the shades itself. Selected items get a light tint and darker accent text in light mode, and a tint mixed into the palette's own background in dark mode, so even a white accent stays visible.
-- Planned: editors create a palette with **New palette** in the panel: it starts from the current palette and shows the three color fields for each mode and the accent. The provider renders it as the same CSS block and saves into their setup, so Copy setup shares it with colleagues.
-- Planned: **Copy as CSS** exports an editor's palette as a CSS block. Developers paste it into their admin stylesheet (Payload's `custom.scss`) and list its name in `themePlugin({ palettes: [...] })` to offer it to everyone.
+- A palette's accent comes from the palette: the registry, the `accent` option, or the editor's own palette. One accent serves both versions: the theme mixes the shades itself. Selected items get a light tint and darker accent text in light mode, and a tint mixed into the palette's own background in dark mode, so even a white accent stays visible.
+- Editors create a palette with **New palette** in the panel: it starts from the current palette's colors, read from the browser so any CSS palette works, and shows the three color fields for each mode and the accent. Every color is a lowercase `#rrggbb`, checked on the server like every other choice. The provider renders it as the same CSS block, named `custom`, in a `<style>` element in the server HTML, and saves it into their setup, so Copy setup shares it with colleagues. Picking another palette keeps it in the setup; Reset drops it.
+- **Copy as CSS** copies an editor's palette as the CSS block the page renders. Planned: developers paste it into their admin stylesheet (Payload's `custom.scss`) under their own name and list that name in `themePlugin({ palettes: [...] })` to offer it to everyone.
 - The package ships no palette named after another company or product.
 
 ## Plugin config
@@ -110,7 +112,7 @@ themePlugin({
 
 ## Setups
 
-A setup is what an editor picked: a character, that character's options, a palette and that palette's accent. It has the same shape as the plugin config above, minus `characters`, `palettes` and `panel`.
+A setup is what an editor picked: a character, that character's options, a palette and, when they made one, their own palette's colors. On a built-in palette it has the same shape as the plugin config above, minus `characters`, `palettes`, `accent` and `panel`.
 
 - Priority, lowest to highest: built-in defaults, the developer's config, the editor's setup.
 - A setup holds only what differs from the defaults below it, kept per character and per palette, so switching back and forth keeps each one's tweaks.
@@ -119,7 +121,7 @@ A setup is what an editor picked: a character, that character's options, a palet
 - The same setup is mirrored into a `<cookiePrefix>-appearance` cookie, which the server uses on the login page and every other signed-out view. With no saved preference yet, the cookie applies for signed-in editors too.
 - `panel` is not called on signed-out views, which have no user. The cookie applies there unless `panel` is `false`.
 - Reset clears the setup: the preference and the cookie.
-- Sharing: **Copy setup** copies the setup as JSON, with the character and palette always included, so another editor gets the same look. **Paste setup** reads a copied setup from the clipboard, checks it like any other, and says so for a moment when the clipboard holds no valid setup. A developer can paste the same JSON into `themePlugin()` to make it the site default.
+- Sharing: **Copy setup** copies the setup as JSON, with the character and palette always included, so another editor gets the same look. **Paste setup** reads a copied setup from the clipboard, checks it like any other, and says so for a moment when the clipboard holds no valid setup. A developer can paste the same JSON into `themePlugin()` to make it the site default, unless it uses the editor's own palette.
 - The old `admin-theme`, `density` and `icons` cookies are left to expire. There are no shims for the old attributes, cookies or the `appearanceControls` export.
 
 ## Color mode
@@ -136,7 +138,7 @@ Color mode is Payload's own light/dark preference: the panel calls `useTheme().s
   1. Character: one card per allowed character, each a small preview. Hidden when only one character is allowed.
   2. The active character's options, as segmented buttons. Under Stock, a note says Stock has no options.
   3. Palette: one card per allowed palette, showing its light and dark halves side by side. Hidden when only one palette is allowed.
-  4. Accent: 8 swatches and a hex field.
+  4. New palette under the palette cards, and, while the editor's own palette is picked, its color fields for each mode, its accent and Copy as CSS.
   5. Color mode: Light, Dark, Auto.
   6. Reset, Copy setup and Paste setup.
 - The panel is styled with Payload's `--color-*` tokens, so it follows the active character, palette and color mode.

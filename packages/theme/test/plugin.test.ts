@@ -10,12 +10,11 @@ const settingsOf = async (pluginConfig: ThemePluginConfig) => {
   return providers[0].serverProps.settings
 }
 
-it('takes the accent from the palette, then the developer, then the editor', async () => {
+it("takes the accent from the palette, then the developer's accent option", async () => {
   const settings = await settingsOf({ accent: { warm: '#c2410c' } })
 
   expect(resolve(settings, { palette: 'payload' }).accent).toBe('#0d99ff')
   expect(resolve(settings, {}).accent).toBe('#c2410c')
-  expect(resolve(settings, { accent: { warm: '#1d4ed8' } }).accent).toBe('#1d4ed8')
 })
 
 it('gives every supported language the English panel labels, and lets the app override them', async () => {

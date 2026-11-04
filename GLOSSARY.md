@@ -25,15 +25,15 @@ A setting inside a character, such as radius or density, with values and a defau
 _Avoid_: control, appearance control, knob
 
 **Palette**:
-A named set of colors, in a light and a dark version, plus one accent. Payload's own light/dark setting picks the version. Palettes work with every character. The plan is to build every palette from three base colors (background, surface, text) and let editors and developers create their own.
+A named set of colors, in a light and a dark version, plus one accent. Payload's own light/dark setting picks the version. Palettes work with every character. Every palette is built from three base colors (background, surface, text) per version, and an editor can make their own with New palette.
 _Avoid_: theme, preset, color scheme, colorway
 
 **Accent**:
-The one color a palette builds its brand and selected states from, in both versions. Each palette remembers its own.
+The one color a palette builds its brand and selected states from, in both versions. It belongs to the palette: editors change it by making their own palette.
 _Avoid_: primary, brand color
 
 **Setup**:
-What one editor picked: a character, its options, a palette and its accent. It can be copied and pasted between editors, and pasted into the plugin config as the site default.
+What one editor picked: a character, its options, a palette and, when they made one, their own palette's colors. It can be copied and pasted between editors, and, on a built-in palette, pasted into the plugin config as the site default.
 _Avoid_: preset, config, profile
 
 **Rail**:

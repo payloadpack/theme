@@ -12,11 +12,16 @@ const setupPreference = '/api/payload-preferences/payloadpack-appearance'
 
 export const clearSetup = (page: Page) => page.request.delete(setupPreference)
 
-export const pickAndSave = (page: Page, control: Locator) =>
-  Promise.all([
-    page.waitForResponse((response) => response.url().endsWith(setupPreference) && response.request().method() === 'POST'),
-    control.click()
-  ])
+export const saved = (page: Page) =>
+  page.waitForResponse((response) => response.url().endsWith(setupPreference) && response.request().method() === 'POST')
+
+export const pickAndSave = (page: Page, control: Locator) => Promise.all([saved(page), control.click()])
+
+export const customPalette = (accent: string) => ({
+  accent,
+  dark: { background: '#0a0a09', surface: '#0f0f0e', text: '#f3f2ed' },
+  light: { background: '#ffffff', surface: '#ffffff', text: '#1a1a1a' }
+})
 
 export const settled = (locator: Locator) =>
   locator.evaluate((element) => Promise.all(element.getAnimations({ subtree: true }).map((animation) => animation.finished)))

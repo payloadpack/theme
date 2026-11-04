@@ -4,16 +4,13 @@ import { Button, useConfig, useTheme, useTranslation, XIcon } from '@payloadcms/
 import { type ReactNode, useEffect, useId, useState } from 'react'
 
 import { characters as registry, type Option, options } from '../characters/index.js'
-import { hexPattern } from '../lib/appearance.js'
-import { payloadBlue } from '../palettes/index.js'
+import { type Base, bases, type CustomPalette, customPalette, paletteCss } from '../lib/appearance.js'
 import type { TranslationKey } from '../translations.js'
 import { useAppearance } from './appearance-provider.js'
 
 const colorModes = ['light', 'dark', 'auto'] as const
 
 const halves = ['light', 'dark'] as const
-
-const swatches = [payloadBlue, '#c2410c', '#b45309', '#4d7c0f', '#0f766e', '#1d4ed8', '#7c3aed', '#be185d']
 
 const FEEDBACK_MS = 2000
 
@@ -26,6 +23,42 @@ type ChoiceGroupProps<V extends string> = {
   label: string
   onChange: (value: V) => void
   selected: V | undefined
+}
+
+const toHex = (color: string) => {
+  const context = document.createElement('canvas').getContext('2d', { willReadFrequently: true })
+  if (!context) {
+    throw new Error('A 2D canvas is needed to read palette colors')
+  }
+  context.fillStyle = color
+  context.fillRect(0, 0, 1, 1)
+  return `#${[...context.getImageData(0, 0, 1, 1).data.slice(0, 3)].map((channel) => channel.toString(16).padStart(2, '0')).join('')}`
+}
+
+const readPalette = (cards: Element, name: string, accent: string): CustomPalette => {
+  const read = (half: (typeof halves)[number]) => {
+    const probe = document.createElement('span')
+    Object.assign(probe.dataset, { palette: name, theme: half })
+    cards.append(probe)
+    const base = Object.fromEntries(
+      bases.map((key) => {
+        probe.style.color = `var(--payloadpack-${key})`
+        return [key, toHex(getComputedStyle(probe).color)]
+      })
+    ) as Base
+    probe.remove()
+    return base
+  }
+  return { accent, dark: read('dark'), light: read('light') }
+}
+
+function ColorField({ label, onChange, value }: { label: string; onChange: (value: string) => void; value: string }) {
+  return (
+    <label className="payloadpack-appearance-panel__color">
+      <input onChange={(event) => onChange(event.target.value)} type="color" value={value} />
+      {label}
+    </label>
+  )
 }
 
 function ChoiceGroup<V extends string>({ children, choices, className, label, onChange, selected }: ChoiceGroupProps<V>) {
@@ -57,12 +90,13 @@ export function AppearancePanel() {
     accent,
     character,
     characters,
+    custom,
     palette,
     palettes,
     paste,
     reset,
-    setAccent,
     setCharacter,
+    setCustom,
     setOption,
     setPalette,
     setup,
@@ -73,21 +107,14 @@ export function AppearancePanel() {
   const { t } = useTranslation<object, TranslationKey>()
   const [copied, setCopied] = useState<string>()
   const [rejectedAt, setRejectedAt] = useState<number>()
-  const [hex, setHex] = useState<string>()
   const json = JSON.stringify(setup, null, 2)
+  const css = custom && paletteCss(customPalette, custom)
   const isRejected = rejectedAt !== undefined
   const supported = Object.keys(registry[character].defaults) as Option[]
 
-  const typeHex = (text: string) => {
-    setHex(text)
-    if (hexPattern.test(text.toLowerCase())) {
-      setAccent(text.toLowerCase())
-    }
-  }
-
-  const copy = async () => {
-    await navigator.clipboard.writeText(json)
-    setCopied(json)
+  const copy = async (text: string) => {
+    await navigator.clipboard.writeText(text)
+    setCopied(text)
   }
 
   const pasteFromClipboard = async () => {
@@ -177,7 +204,7 @@ export function AppearancePanel() {
           )}
           {palettes.length > 1 && (
             <ChoiceGroup
-              choices={palettes.map((name) => ({
+              choices={[...palettes, ...(custom ? [customPalette] : [])].map((name) => ({
                 label: (
                   <>
                     <span aria-hidden="true" className="payloadpack-appearance-panel__halves">
@@ -197,31 +224,47 @@ export function AppearancePanel() {
               className="payloadpack-appearance-panel__cards"
               label={t('payloadpack:palette')}
               onChange={setPalette}
-              selected={palette}
-            />
+              selected={palette}>
+              {!custom && (
+                <Button
+                  buttonStyle="secondary"
+                  onClick={(event) => {
+                    const cards = event.currentTarget.closest('section')?.querySelector('.payloadpack-appearance-panel__halves')
+                    if (cards) {
+                      setCustom(readPalette(cards, palette, accent))
+                    }
+                  }}
+                  size="medium">
+                  {t('payloadpack:newPalette')}
+                </Button>
+              )}
+              {palette === customPalette && custom && css && (
+                <div className="payloadpack-appearance-panel__editor">
+                  {halves.map((half) => (
+                    <fieldset key={half}>
+                      <legend>{t(`payloadpack:${half}`)}</legend>
+                      {bases.map((base) => (
+                        <ColorField
+                          key={base}
+                          label={t(`payloadpack:${base}`)}
+                          onChange={(value) => setCustom({ ...custom, [half]: { ...custom[half], [base]: value } })}
+                          value={custom[half][base]}
+                        />
+                      ))}
+                    </fieldset>
+                  ))}
+                  <ColorField
+                    label={t('payloadpack:accent')}
+                    onChange={(value) => setCustom({ ...custom, accent: value })}
+                    value={custom.accent}
+                  />
+                  <Button buttonStyle="secondary" onClick={() => copy(css)} size="medium">
+                    {t(copied === css ? 'payloadpack:copied' : 'payloadpack:copyCss')}
+                  </Button>
+                </div>
+              )}
+            </ChoiceGroup>
           )}
-          <ChoiceGroup
-            choices={swatches.map((swatch) => ({
-              label: <span style={{ backgroundColor: swatch }} />,
-              name: swatch,
-              value: swatch
-            }))}
-            className="payloadpack-appearance-panel__swatches"
-            label={t('payloadpack:accent')}
-            onChange={setAccent}
-            selected={accent}>
-            <label className="payloadpack-appearance-panel__hex">
-              <span aria-hidden="true" />
-              {t('payloadpack:hex')}
-              <input
-                aria-label={t('payloadpack:accentHex')}
-                onBlur={() => setHex(undefined)}
-                onChange={(event) => typeHex(event.target.value)}
-                spellCheck={false}
-                value={hex ?? accent}
-              />
-            </label>
-          </ChoiceGroup>
           {config.admin.theme === 'all' && (
             <ChoiceGroup
               choices={colorModes.map((mode) => ({ label: t(`payloadpack:${mode}`), value: mode }))}
@@ -236,7 +279,7 @@ export function AppearancePanel() {
           <Button buttonStyle="secondary" onClick={reset} size="large">
             {t('payloadpack:reset')}
           </Button>
-          <Button buttonStyle="secondary" onClick={copy} size="large">
+          <Button buttonStyle="secondary" onClick={() => copy(json)} size="large">
             {t(copied === json ? 'payloadpack:copied' : 'payloadpack:copySetup')}
           </Button>
           <Button buttonStyle="secondary" onClick={pasteFromClipboard} size="large">

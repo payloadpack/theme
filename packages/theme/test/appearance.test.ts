@@ -2,13 +2,28 @@ import { expect, it } from 'vitest'
 
 import type { User } from 'payload'
 
-import { isEditable, normalize, parseChoices, resolve, type Settings, setupOf } from '../src/lib/appearance.js'
+import {
+  type CustomPalette,
+  isEditable,
+  normalize,
+  paletteCss,
+  parseChoices,
+  resolve,
+  type Settings,
+  setupOf
+} from '../src/lib/appearance.js'
 
 const settings: Settings = {
   accents: { payload: '#0d99ff', warm: '#0d99ff' },
   character: 'enhanced',
   options: { enhanced: { density: 'compact', icons: 'lucide' }, stock: {} },
   palette: 'warm'
+}
+
+const custom: CustomPalette = {
+  accent: '#c2410c',
+  dark: { background: '#131312', surface: '#1c1c1b', text: '#f2f1ec' },
+  light: { background: '#f1f0ec', surface: '#ffffff', text: '#1c1b18' }
 }
 
 it('layers the editor choices over the developer defaults', () => {
@@ -32,12 +47,9 @@ it('layers the editor choices over the developer defaults', () => {
   })
 })
 
-it('keeps each palette its own accent across switches', () => {
-  const accent = { payload: '#be185d', warm: '#7c3aed' }
-
-  expect(resolve(settings, { accent, palette: 'payload' }).accent).toBe('#be185d')
-  expect(resolve(settings, { accent }).accent).toBe('#7c3aed')
-  expect(resolve(settings, { accent: { payload: '#be185d' } }).accent).toBe('#0d99ff')
+it("takes the custom palette's accent while it is picked, and keeps the palette across switches", () => {
+  expect(resolve(settings, { custom, palette: 'custom' }).accent).toBe('#c2410c')
+  expect(resolve(settings, { custom, palette: 'payload' })).toMatchObject({ accent: '#0d99ff', custom, palette: 'payload' })
 })
 
 it('drops characters, palettes, options and values the settings do not allow', () => {
@@ -56,20 +68,42 @@ it('drops characters, palettes, options and values the settings do not allow', (
   ).toEqual({})
 })
 
-it('keeps only lowercase #rrggbb accents', () => {
-  expect(normalize(settings, { accent: { neon: '#123456', payload: '#BE185D', warm: 'red' } })).toEqual({})
-  expect(normalize(settings, { accent: { payload: '#be185d', warm: '#7c3aed80' } })).toEqual({ accent: { payload: '#be185d' } })
+it('keeps a custom palette only when every color is a lowercase #rrggbb, and picks it only when it exists', () => {
+  expect(normalize(settings, { custom: { ...custom, extra: true, light: { ...custom.light, glow: '#000000' } } })).toEqual({ custom })
+  expect(normalize(settings, { custom: { ...custom, accent: '#C2410C' }, palette: 'custom' })).toEqual({})
+  expect(normalize(settings, { custom: { ...custom, dark: { ...custom.dark, text: 'white' } } })).toEqual({})
+  expect(normalize(settings, { palette: 'custom' })).toEqual({})
+})
+
+it('writes the custom palette as the same CSS block a built-in palette is', () => {
+  expect(paletteCss('custom', custom)).toBe(
+    [
+      "[data-palette='custom'] {",
+      '  --payloadpack-background: #f1f0ec;',
+      '  --payloadpack-surface: #ffffff;',
+      '  --payloadpack-text: #1c1b18;',
+      '  --payloadpack-accent: #c2410c;',
+      '',
+      "  &[data-theme='dark'],",
+      "  [data-theme='dark']:not([data-palette]) {",
+      '    --payloadpack-background: #131312;',
+      '    --payloadpack-surface: #1c1c1b;',
+      '    --payloadpack-text: #f2f1ec;',
+      '  }',
+      '}',
+      ''
+    ].join('\n')
+  )
 })
 
 it('keeps only choices that differ from the defaults, per character and palette', () => {
   expect(
     normalize(settings, {
-      accent: { payload: '#be185d', warm: '#0d99ff' },
       character: 'enhanced',
       options: { enhanced: { density: 'compact', icons: 'payload' }, stock: {} },
       palette: 'warm'
     })
-  ).toEqual({ accent: { payload: '#be185d' }, options: { enhanced: { icons: 'payload' } } })
+  ).toEqual({ options: { enhanced: { icons: 'payload' } } })
   expect(normalize(settings, { character: 'stock', options: { enhanced: { icons: 'payload' } }, palette: 'payload' })).toEqual({
     character: 'stock',
     options: { enhanced: { icons: 'payload' } },
@@ -98,14 +132,10 @@ it('rejects text that is not a JSON object', () => {
 })
 
 it('pastes a copied setup into the same resolved', () => {
-  const other: Settings = {
-    ...settings,
-    accents: { payload: '#be185d', warm: '#0d99ff' },
-    character: 'stock',
-    palette: 'payload'
-  }
+  const other: Settings = { ...settings, character: 'stock', palette: 'payload' }
   const cases = [
-    resolve(settings, { accent: { payload: '#c2410c' }, options: { enhanced: { icons: 'payload' } }, palette: 'payload' }),
+    resolve(settings, { custom, options: { enhanced: { icons: 'payload' } }, palette: 'custom' }),
+    resolve(settings, { options: { enhanced: { icons: 'payload' } }, palette: 'payload' }),
     resolve(settings, { character: 'stock' }),
     resolve(settings, {})
   ]
@@ -118,14 +148,14 @@ it('pastes a copied setup into the same resolved', () => {
 
 it('copies a setup in the shape of the plugin config', () => {
   expect(setupOf(resolve(settings, {}))).toEqual({
-    accent: { warm: '#0d99ff' },
     character: 'enhanced',
     options: { enhanced: { density: 'compact', icons: 'lucide' } },
     palette: 'warm'
   })
-  expect(setupOf(resolve(settings, { character: 'stock' }))).toEqual({
-    accent: { warm: '#0d99ff' },
+  expect(setupOf(resolve(settings, { character: 'stock', custom }))).toEqual({ character: 'stock', palette: 'warm' })
+  expect(setupOf(resolve(settings, { character: 'stock', custom, palette: 'custom' }))).toEqual({
     character: 'stock',
-    palette: 'warm'
+    custom,
+    palette: 'custom'
   })
 })

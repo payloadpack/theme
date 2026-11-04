@@ -1,5 +1,5 @@
 import { RADIO_CARDS, SWITCH, VERTICAL_TABS } from '@payloadpack/theme'
-import { expect, type Page, test } from '@playwright/test'
+import { expect, type Locator, type Page, test } from '@playwright/test'
 
 import {
   appearance,
@@ -7,9 +7,11 @@ import {
   baseURL,
   clearSetup,
   cookie,
+  customPalette,
   findShowcase,
   openAppearancePanel,
   pickAndSave,
+  saved,
   settled
 } from './demo'
 
@@ -220,7 +222,7 @@ test.describe('Appearance panel', () => {
 
   test('copies the setup in one browser and pastes it in another', async ({ browser, context, page }) => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write'])
-    await page.context().addCookies([appearance({ accent: { payload: '#be185d' }, character: 'stock', palette: 'payload' })])
+    await page.context().addCookies([appearance({ character: 'stock', custom: customPalette('#be185d'), palette: 'custom' })])
     await page.goto('/admin')
     const sheet = await openAppearancePanel(page)
 
@@ -985,19 +987,73 @@ test.describe('Payload palette', () => {
   })
 })
 
-test.describe('Accent', () => {
-  test('picking an accent recolors primary buttons in light and dark', async ({ page }) => {
+test.describe('Custom palette', () => {
+  const field = (sheet: Locator, half: string, name: string) => sheet.getByRole('group', { name: half }).getByLabel(name)
+  const custom = (accent: string, theme = 'light') => [
+    appearance({ custom: customPalette(accent), palette: 'custom' }),
+    cookie('theme', theme)
+  ]
+
+  test('New palette starts from the current palette, applies each color at once and keeps it through a reload', async ({ page }) => {
+    await page.context().addCookies([cookie('theme', 'light')])
+    await page.goto('/admin/collections/showcase')
+    const html = page.locator('html')
+    const header = page.locator('.nav__header')
+    const sheet = await openAppearancePanel(page)
+
+    await pickAndSave(page, sheet.getByRole('button', { name: 'New palette' }))
+    await expect(html).toHaveAttribute('data-palette', 'custom')
+    await expect(sheet.getByRole('group', { name: 'Palette' }).getByRole('button', { name: 'Custom' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
+    await expect(field(sheet, 'Light', 'Background')).toHaveValue('#ffffff')
+    await expect(field(sheet, 'Dark', 'Background')).toHaveValue('#0a0a09')
+    await expect(field(sheet, 'Dark', 'Text')).toHaveValue('#f3f2ed')
+    await expect(sheet.getByLabel('Accent')).toHaveValue('#0d99ff')
+
+    await Promise.all([saved(page), field(sheet, 'Light', 'Background').fill('#eae6df')])
+    await expect(header).toHaveCSS('background-color', 'rgb(234, 230, 223)')
+    await page.reload()
+    await expect(header).toHaveCSS('background-color', 'rgb(234, 230, 223)')
+  })
+
+  test('stays in the setup while another palette is picked', async ({ page }) => {
+    await page.context().addCookies(custom('#c2410c'))
+    await page.goto('/admin')
+    const sheet = await openAppearancePanel(page)
+    const palettes = sheet.getByRole('group', { name: 'Palette' })
+
+    await pickAndSave(page, palettes.getByRole('button', { name: 'Warm' }))
+    await expect(page.locator('html')).toHaveAttribute('data-palette', 'warm')
+    await expect(sheet.getByRole('button', { name: 'New palette' })).toHaveCount(0)
+    await pickAndSave(page, palettes.getByRole('button', { name: 'Custom' }))
+    await expect(sheet.getByLabel('Accent')).toHaveValue('#c2410c')
+  })
+
+  test('Copy as CSS copies the same block the page renders', async ({ context, page }) => {
+    await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+    await page.context().addCookies(custom('#c2410c'))
+    await page.goto('/admin')
+    const sheet = await openAppearancePanel(page)
+
+    await sheet.getByRole('button', { name: 'Copy as CSS' }).click()
+    await expect(sheet.getByRole('button', { name: 'Copied' })).toBeVisible()
+    const css = await page.evaluate(() => navigator.clipboard.readText())
+    expect(css).toContain('--payloadpack-accent: #c2410c;')
+    const rendered = await page.evaluate(() =>
+      [...document.querySelectorAll('style')].map((element) => element.textContent).find((text) => text?.includes("[data-palette='custom']"))
+    )
+    expect(rendered).toBe(css)
+  })
+
+  test("the palette's accent recolors primary buttons in light and dark", async ({ page }) => {
+    await page.context().addCookies(custom('#c2410c'))
     await page.goto('/admin/collections/showcase')
     const primary = page.locator('.btn--style-primary:visible').first()
-    await expect(primary).toHaveCSS('background-color', 'rgb(13, 153, 255)')
-
-    const sheet = await openAppearancePanel(page)
-    await pickAndSave(page, sheet.getByRole('button', { name: '#c2410c' }))
-    await page.keyboard.press('Escape')
 
     await expect(page.locator('html')).toHaveAttribute('data-accent', '#c2410c')
     await expect(primary).toHaveCSS('background-color', 'rgb(194, 65, 12)')
-
     await page.context().addCookies([cookie('theme', 'dark')])
     await page.reload()
     await expect(primary).toHaveCSS('background-color', 'rgb(194, 65, 12)')
@@ -1006,17 +1062,17 @@ test.describe('Accent', () => {
   test('text on the accent stays readable, dark on a light accent and white on a dark one', async ({ page }) => {
     const primary = page.locator('.btn--style-primary:visible').first()
 
-    await page.context().addCookies([appearance({ accent: { warm: '#ffffff' } })])
+    await page.context().addCookies(custom('#ffffff'))
     await page.goto('/admin/collections/showcase')
     await expect(primary).toHaveCSS('color', 'oklch(0 0 0)')
 
-    await page.context().addCookies([appearance({ accent: { warm: '#c2410c' } })])
+    await page.context().addCookies(custom('#c2410c'))
     await page.reload()
     await expect(primary).toHaveCSS('color', 'oklch(1 0 0)')
   })
 
   test('selected nav links take an ink of the accent in light mode and keep the text color in dark mode', async ({ page }) => {
-    await page.context().addCookies([appearance({ accent: { warm: '#c2410c' } }), cookie('theme', 'light')])
+    await page.context().addCookies(custom('#c2410c'))
     await page.goto('/admin/collections/showcase')
     const [, , accentHue] = await channels(page, 'oklch', '#c2410c')
     const [inkLightness, , inkHue] = await channels(page, 'oklch', await style(page, '.nav__link--selected', 'color'))
@@ -1030,9 +1086,7 @@ test.describe('Accent', () => {
   })
 
   test('a white accent keeps selected items and primary buttons visible in light mode', async ({ page }) => {
-    await page
-      .context()
-      .addCookies([appearance({ accent: { payload: '#ffffff' }, palette: 'payload' }), cookie('theme', 'light')])
+    await page.context().addCookies(custom('#ffffff'))
     await page.goto('/admin/collections/showcase')
     const oklab = async (selector: string, property: string, pseudo?: string) =>
       channels(page, 'oklab', await style(page, selector, property, pseudo))
@@ -1043,7 +1097,7 @@ test.describe('Accent', () => {
   })
 
   test('dark selection mixes the accent into the palette background', async ({ page }) => {
-    await page.context().addCookies([appearance({ accent: { payload: '#c2410c' }, palette: 'payload' }), cookie('theme', 'dark')])
+    await page.context().addCookies(custom('#c2410c', 'dark'))
     await page.goto('/admin/collections/showcase')
     const surface = await channels(page, 'oklab', await style(page, 'html', 'background-color'))
     const fill = await channels(page, 'oklab', await style(page, '.nav__link--selected', 'background-color', '::before'))
@@ -1055,29 +1109,6 @@ test.describe('Accent', () => {
     for (const channel of [1, 2]) {
       expect(fill[channel]).toBeCloseTo(surface[channel] + share * (accent[channel] - surface[channel]), 2)
     }
-  })
-
-  test('each palette keeps its own accent, and the hex field applies only valid colors', async ({ page }) => {
-    await page.goto('/admin')
-    const html = page.locator('html')
-    const sheet = await openAppearancePanel(page)
-    const palettes = sheet.getByRole('group', { name: 'Palette' })
-    const hex = sheet.getByRole('textbox', { name: 'Accent hex color' })
-
-    await palettes.getByRole('button', { name: 'Payload' }).click()
-    await hex.fill('#BE185D')
-    await expect(html).toHaveAttribute('data-accent', '#be185d')
-    await hex.fill('#be18')
-    await expect(html).toHaveAttribute('data-accent', '#be185d')
-
-    await palettes.getByRole('button', { name: 'Warm' }).click()
-    await expect(html).toHaveAttribute('data-palette', 'warm')
-    await expect(html).not.toHaveAttribute('data-accent')
-    await expect(hex).toHaveValue('#0d99ff')
-
-    await pickAndSave(page, palettes.getByRole('button', { name: 'Payload' }))
-    await expect(html).toHaveAttribute('data-palette', 'payload')
-    await expect(html).toHaveAttribute('data-accent', '#be185d')
   })
 })
 
@@ -1417,10 +1448,6 @@ test.describe('Studio palette', () => {
     await expect(field).toHaveCSS('background-color', await computedColor(page, 'color-mix(in oklab, #c2410c 3%, #f1f0ec)'))
     await expect(card).toHaveCSS('background-color', 'rgb(255, 255, 255)')
     await expect(page.locator('.nav')).toHaveCSS('background-color', await computedColor(page, 'color-mix(in oklab, #c2410c 3%, #f1f0ec)'))
-
-    await page.context().addCookies([appearance({ accent: { studio: '#1d4ed8' }, character: 'studio', palette: 'studio' })])
-    await page.reload()
-    await expect(field).toHaveCSS('background-color', await computedColor(page, 'color-mix(in oklab, #1d4ed8 3%, #f1f0ec)'))
 
     await page.context().addCookies([appearance({ character: 'studio', palette: 'studio' }), cookie('theme', 'dark')])
     await page.reload()

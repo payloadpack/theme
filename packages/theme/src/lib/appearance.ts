@@ -17,11 +17,19 @@ export type Settings = {
   palette: Palette
 }
 
+export const customPalette = 'custom' as const
+
+export const bases = ['background', 'surface', 'text'] as const
+
+export type Base = Record<(typeof bases)[number], string>
+
+export type CustomPalette = { accent: string; dark: Base; light: Base }
+
 export type Choices = {
-  accent?: Partial<Record<Palette, string>>
   character?: Character
+  custom?: CustomPalette
   options?: Partial<Record<Character, Values>>
-  palette?: Palette
+  palette?: Palette | typeof customPalette
 }
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -32,7 +40,20 @@ const isOptionValue = (option: string, value: unknown) =>
 
 export const hexPattern = /^#[0-9a-f]{6}$/
 
-const isHex = (_: string, value: unknown) => typeof value === 'string' && hexPattern.test(value)
+const isHex = (_: string, value: unknown): value is string => typeof value === 'string' && hexPattern.test(value)
+
+const baseOf = (value: unknown) =>
+  isRecord(value) && bases.every((base) => isHex(base, value[base]))
+    ? (Object.fromEntries(bases.map((base) => [base, value[base]])) as Base)
+    : undefined
+
+const customOf = (value: unknown): CustomPalette | undefined => {
+  if (!isRecord(value) || !isHex('accent', value.accent)) {
+    return undefined
+  }
+  const [dark, light] = [baseOf(value.dark), baseOf(value.light)]
+  return dark && light ? { accent: value.accent, dark, light } : undefined
+}
 
 const pick = (allowed: object, fallback: string, value: unknown) =>
   typeof value === 'string' && value !== fallback && Object.hasOwn(allowed, value) ? value : undefined
@@ -50,11 +71,12 @@ export function normalize(settings: Settings, input: unknown): Choices {
     const values = changed(defaults, pickedOptions[character], isOptionValue)
     return values ? [[character, values]] : []
   })
+  const custom = customOf(raw.custom)
   const choices = {
     character: pick(settings.options, settings.character, raw.character),
+    custom,
     options: options.length ? Object.fromEntries(options) : undefined,
-    palette: pick(settings.accents, settings.palette, raw.palette),
-    accent: changed(settings.accents, raw.accent, isHex)
+    palette: custom && raw.palette === customPalette ? customPalette : pick(settings.accents, settings.palette, raw.palette)
   }
 
   return Object.fromEntries(Object.entries(choices).filter(([, value]) => value !== undefined)) as Choices
@@ -64,19 +86,26 @@ export function resolve(settings: Settings, choices: Choices) {
   const character = choices.character ?? settings.character
   const palette = choices.palette ?? settings.palette
   return {
-    accent: choices.accent?.[palette] ?? settings.accents[palette],
+    accent: palette === customPalette && choices.custom ? choices.custom.accent : settings.accents[palette],
     character,
+    custom: choices.custom,
     palette,
     values: { ...settings.options[character], ...choices.options?.[character] }
   }
 }
 
-export const setupOf = ({ accent, character, palette, values }: ReturnType<typeof resolve>): Choices => ({
+export const setupOf = ({ character, custom, palette, values }: ReturnType<typeof resolve>): Choices => ({
   character,
   ...(Object.keys(values).length ? { options: { [character]: values } } : {}),
   palette,
-  accent: { [palette]: accent }
+  ...(palette === customPalette ? { custom } : {})
 })
+
+const declarations = (base: Base, indent: string) =>
+  bases.map((name) => `${indent}--payloadpack-${name}: ${base[name]};\n`).join('')
+
+export const paletteCss = (name: string, { accent, dark, light }: CustomPalette) =>
+  `[data-palette='${name}'] {\n${declarations(light, '  ')}  --payloadpack-accent: ${accent};\n\n  &[data-theme='dark'],\n  [data-theme='dark']:not([data-palette]) {\n${declarations(dark, '    ')}  }\n}\n`
 
 export function parseChoices(settings: Settings, text: string | undefined): Choices | undefined {
   if (!text) {
