@@ -22,7 +22,7 @@ import {
   isPersonal,
   normalize,
   paletteCss,
-  parseChoices,
+  pasteSetup,
   preferenceKey,
   resolve,
   type Settings,
@@ -166,18 +166,11 @@ export function AppearanceProvider({
       characters: Object.keys(settings.options) as Character[],
       palettes: settings.palettes,
       paste: (text: string) => {
-        const pasted = parseChoices(settings, text)
-        if (pasted) {
-          const pastedCharacter = pasted.character ?? settings.character
-          update({
-            character: pasted.character,
-            custom: pasted.custom ?? choices.custom,
-            options: { ...choices.options, [pastedCharacter]: pasted.options?.[pastedCharacter] },
-            palette: pasted.palette,
-            personal: pasted.personal
-          })
+        const next = pasteSetup(settings, choices, text)
+        if (next) {
+          update(next)
         }
-        return pasted !== undefined
+        return next !== undefined
       },
       rail,
       removeCustom: () =>

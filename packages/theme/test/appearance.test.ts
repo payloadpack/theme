@@ -8,6 +8,7 @@ import {
   normalize,
   paletteCss,
   parseChoices,
+  pasteSetup,
   resolve,
   type Settings,
   setupOf
@@ -77,6 +78,23 @@ it("forgets a personal pick that matches every style's default, so the editor fo
 
   expect(normalize(both, { personal: { density: 'comfortable' } })).toEqual({})
   expect(normalize(split, { personal: { density: 'comfortable' } })).toEqual({ personal: { density: 'comfortable' } })
+})
+
+it('pasting a setup replaces the personal options its style declares and keeps the rest of yours', () => {
+  const both: Settings = {
+    ...settings,
+    options: { enhanced: { density: 'comfortable', nav: 'rail' }, payload: {}, studio: { density: 'comfortable', nav: 'rail' } }
+  }
+  const mine = { personal: { density: 'compact', nav: 'hidden' } } as const
+
+  expect(pasteSetup(both, mine, JSON.stringify({ character: 'payload', palette: 'neutral' }))?.personal).toEqual(mine.personal)
+  const studio = pasteSetup(
+    both,
+    mine,
+    JSON.stringify({ character: 'studio', options: { studio: { density: 'compact', nav: 'rail' } } })
+  )
+  expect(resolve(both, studio ?? {}).values).toEqual({ density: 'compact', nav: 'rail' })
+  expect(pasteSetup(both, mine, 'not a setup')).toBeUndefined()
 })
 
 it('reads a cookie that holds only personal choices', () => {

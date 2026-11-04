@@ -128,6 +128,22 @@ export const setupOf = ({ character, custom, palette, values }: ReturnType<typeo
   ...(palette === customPalette ? { custom } : {})
 })
 
+export function pasteSetup(settings: Settings, choices: Choices, text: string): Choices | undefined {
+  const pasted = parseChoices(settings, text)
+  if (!pasted) {
+    return undefined
+  }
+  const character = pasted.character ?? settings.character
+  const declared = settings.options[character] ?? {}
+  return {
+    character: pasted.character,
+    custom: pasted.custom ?? choices.custom,
+    options: { ...choices.options, [character]: pasted.options?.[character] },
+    palette: pasted.palette,
+    personal: { ...only(choices.personal ?? {}, (option) => !Object.hasOwn(declared, option)), ...pasted.personal }
+  }
+}
+
 const declarations = (base: Base, indent: string) =>
   bases.map((name) => `${indent}--payloadpack-${name}: ${base[name]};\n`).join('')
 
