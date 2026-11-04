@@ -281,6 +281,28 @@ test.describe('Appearance panel', () => {
     await expect(page.locator('.app-header').getByRole('button', { name: 'Appearance' })).toBeVisible()
   })
 
+  for (const theme of ['light', 'dark']) {
+    test(`the nav toggle, the Appearance button and nav links share one hover in ${theme} mode`, async ({ page }) => {
+      await page.context().addCookies([cookie('theme', theme)])
+      await page.goto('/admin')
+      const hovered = async (locator: Locator, pseudo?: string) => {
+        await locator.hover()
+        return locator.evaluate((element, pseudoElement) => {
+          const style = getComputedStyle(element, pseudoElement)
+          return { background: style.backgroundColor, radius: style.borderTopLeftRadius }
+        }, pseudo)
+      }
+      const toggle = page.locator('.payloadpack-rail-toggle .sidebar-toggle')
+      const button = page.locator('.payloadpack-appearance-panel--nav .payloadpack-appearance-panel__trigger')
+      const iconColor = (locator: Locator) => locator.evaluate((element) => getComputedStyle(element).color)
+
+      expect(await iconColor(button)).toBe(await iconColor(toggle))
+      const hover = await hovered(toggle)
+      expect(await hovered(button)).toEqual(hover)
+      expect(await hovered(page.locator('a.nav__link:not(.nav__link--selected)').first(), '::before')).toEqual(hover)
+    })
+  }
+
   test('draws the bundled Lucide palette icon on the header button', async ({ page }) => {
     await page.goto('/admin')
 

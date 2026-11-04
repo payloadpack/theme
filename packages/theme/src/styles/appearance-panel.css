@@ -432,6 +432,15 @@
             width: var(--spacer-5);
             height: var(--spacer-5);
             border: 0;
+            color: var(--color-icon);
+
+            &:hover {
+              background-color: var(--color-bg-hover);
+            }
+
+            &:active {
+              background-color: var(--color-bg-pressed);
+            }
           }
         }
       }
