@@ -569,14 +569,27 @@ test.describe('Theme values', () => {
   })
 
   for (const character of ['enhanced', 'studio']) {
-    test(`${character} keeps the nav group chevron inside the group's ring, as tall as a link's`, async ({ page }) => {
+    test(`${character} widens the nav and lines it up on one gutter, with the group chevron inside its ring`, async ({ page }) => {
       await page.context().addCookies([appearance({ character })])
       await page.goto('/admin')
       const group = page.locator('.nav-group__toggle').first()
       await group.hover()
-      const [toggle, chevron] = [(await group.boundingBox())!, (await group.locator('.nav-group__indicator').boundingBox())!]
+      const nav = await page.evaluate(() => {
+        const box = (selector: string) => document.querySelector(selector)!.getBoundingClientRect()
+        const link = document.querySelector('.nav__link')!
+        const ring = getComputedStyle(link, '::before')
+        const [row, tabs, chevron, toggle] = [link.getBoundingClientRect(), box('.sidebar-tabs__tabs'), box('.nav-group__indicator'), box('.nav-group__toggle')]
+        return {
+          chevron: toggle.right - chevron.right,
+          highlight: [row.left + parseFloat(ring.left), row.right - parseFloat(ring.right)],
+          tabs: [tabs.left, tabs.right],
+          width: box('.nav').width
+        }
+      })
 
-      expect(toggle.x + toggle.width - (chevron.x + chevron.width)).toBe(16)
+      expect(nav.width).toBe(288)
+      expect(nav.highlight).toEqual(nav.tabs)
+      expect(nav.chevron).toBe(20)
       expect(await style(page, '.nav-group__toggle', 'inset', '::before')).toBe(await style(page, '.nav__link', 'inset', '::before'))
     })
   }
@@ -1499,7 +1512,7 @@ test.describe('Studio character', () => {
     )
     expect(nav.width).toBe(64)
     expect(card.x).toBe(64)
-    expect(open.x + open.width / 2).toBe(24)
+    expect(open.x + open.width / 2).toBe(28)
     expect(rail.x + rail.width / 2).toBe(32)
     expect(rail.y).toBe(open.y)
     expect((await page.locator('#nav-showcase').boundingBox())!.y).toBeGreaterThan(rail.y + rail.height)

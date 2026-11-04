@@ -83,7 +83,7 @@ The panel opens as a sheet on the right and fills the screen on phones. Every ch
 | Motion        | Off, On                | On               | On             |
 | Collapsed nav | Icons, Hidden          | Icons            | Icons          |
 
-- **Enhanced** and **Studio** both draw a 2px focus ring, inset the sidebar tabs and move each nav group's chevron to the end of its row.
+- **Enhanced** and **Studio** both draw a 2px focus ring, widen the nav to 288px and line its buttons, tabs and items up 12px from its edges, inset the sidebar tabs, and move each nav group's chevron to the end of its row.
 - **Enhanced** rounds popups and toasts a little more and lifts the date picker and toasts like menus.
 - **Studio** keeps the nav on the field, puts the collapse button at its top left, and moves the user menu to the bottom of it.
 - Every palette except Payload's draws the focus ring in the text color, gives all fields one border color, fades disabled and read-only fields to half their colors, softens checkbox and radio rings, marks the selected nav link and the hovered menu item with a neutral fill instead of the accent, fills a hovered nav group heading like a link, and raises the active sidebar tab like the panel's segments.

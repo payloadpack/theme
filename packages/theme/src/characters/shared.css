@@ -34,9 +34,26 @@
       border-radius: var(--radius-medium);
     }
 
-    /* 3. Nav groups */
+    /* 3. Nav */
+    @media (min-width: 769px) {
+      --nav-width: 18rem;
+    }
+
+    .nav__header {
+      padding-inline: var(--spacer-2-5);
+    }
+
+    .nav__link,
+    .nav-group__toggle {
+      padding-inline: calc(var(--spacer-2-5) + var(--spacer-2));
+
+      &::before {
+        inset-inline: var(--spacer-2-5);
+      }
+    }
+
     .nav-group__indicator {
-      inset-inline: auto var(--spacer-3);
+      inset-inline: auto calc(var(--spacer-2-5) + var(--spacer-2));
       transform: none;
     }
   }

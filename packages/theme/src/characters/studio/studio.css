@@ -44,13 +44,13 @@
 
     .nav__close {
       align-self: flex-start;
-      margin: var(--spacer-2) var(--spacer-2) 0;
+      margin: var(--spacer-2) var(--spacer-2-5) 0;
       anchor-name: --payloadpack-nav-close;
     }
 
     .user-menu {
       order: 1;
-      margin: var(--spacer-2);
+      margin: var(--spacer-2) var(--spacer-2-5);
     }
 
     /* 4. Rail */
