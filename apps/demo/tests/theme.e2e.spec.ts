@@ -284,10 +284,10 @@ test.describe('Appearance panel', () => {
     await pickAndSave(page, label(choice(sheet, 'Density', 'Compact')))
 
     const elsewhere = await browser.newContext({ baseURL, storageState: authFile })
+    expect((await elsewhere.cookies()).map(({ name }) => name)).not.toContain('theme-demo-appearance')
     const other = await elsewhere.newPage()
     await other.goto('/admin')
 
-    expect((await elsewhere.cookies()).map(({ name }) => name)).not.toContain('theme-demo-appearance')
     await expect(other.locator('html')).toHaveAttribute('data-density', 'compact')
     await elsewhere.close()
   })

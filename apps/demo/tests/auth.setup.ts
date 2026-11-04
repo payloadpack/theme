@@ -1,9 +1,10 @@
 import { test as setup } from '@playwright/test'
 
-import { authFile, logIn } from './demo'
+import { demoUser } from '../src/seed'
+import { authFile } from './demo'
 
-setup('log in as the demo user', async ({ page }) => {
-  await logIn(page)
-  await page.request.delete('/api/payload-preferences/nav')
-  await page.context().storageState({ path: authFile })
+setup('log in as the demo user', async ({ request }) => {
+  await request.post('/api/users/login', { data: demoUser })
+  await request.delete('/api/payload-preferences/nav')
+  await request.storageState({ path: authFile })
 })
