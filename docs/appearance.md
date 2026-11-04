@@ -221,7 +221,7 @@ From Payload 4.0.0-beta.6's CSS:
 - `accent`: every brand and selected token (`--color-bg-brand*`, `--color-bg-selected*`, `--color-border-brand*`, `--color-border-selected*`, `--color-icon-brand`, `--color-icon-selected`, `--color-text-brand`, `--color-text-selected`, the focus ring) reads one of Payload's 11 `--ramp-blue-*` and `--ramp-pale-blue-*` steps, declared once on `:root`.
   - `accent.css` remaps those steps from `--payloadpack-accent` with `color-mix`. Payload's dark mode already picks the lighter steps, so one accent works in both versions.
   - Each step goes through its own variable, `--ramp-blue-200: var(--payloadpack-accent-200, #e5f4ff)`. Without an accent that variable is invalid, so the step falls back to Payload's exact value, and the contract test checks every fallback against Payload's tokens. No attribute or inline style switches it on.
-  - In light mode, brand and selected text and icons take a darker ink of the accent, and primary buttons get a faint edge when the accent is nearly white.
+  - In light mode, brand and selected text takes a darker ink of the accent. Brand and selected icons and marks, like the active tab's bar, take the accent itself, darkened only past an oklch lightness of 0.6 so a pale accent stays visible. Primary buttons get a faint edge when the accent is nearly white.
   - Text and icons on the accent turn black or white by the accent's lightness.
   - Payload's blue info backgrounds and presence badges take the accent too.
   - A palette without an accent keeps Payload's exact ramp. A palette that sets `#0d99ff` gets mixed shades instead.

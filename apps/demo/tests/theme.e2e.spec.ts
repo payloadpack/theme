@@ -1294,6 +1294,20 @@ test.describe('Custom palette', () => {
     )
   })
 
+  test('marks like the active tab bar take the accent itself, darkened only when it is too light', async ({ page }) => {
+    const bar = async (accent: string) => {
+      await page.context().addCookies(custom(accent))
+      await page.goto((await findShowcase(page)).path)
+      return page
+        .locator('.tabs__tab-button--active')
+        .first()
+        .evaluate((element) => getComputedStyle(element, '::after').backgroundColor)
+    }
+
+    expect(await nearColor(page, await bar('#c2410c'), '#c2410c')).toBe(true)
+    expect((await channels(page, 'oklch', await bar('#ffffff')))[0]).toBeCloseTo(0.6, 2)
+  })
+
   test('a white accent keeps selected items and primary buttons visible in light mode', async ({ page }) => {
     await page.context().addCookies(custom('#ffffff'))
     await page.goto('/admin/collections/showcase')
