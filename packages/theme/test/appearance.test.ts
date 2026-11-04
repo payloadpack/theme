@@ -71,6 +71,14 @@ it("keeps an editor's density, motion and nav through a style without options, a
   expect(resolve(both, { ...onPayload, character: 'studio' })).toMatchObject({ changed: 0, values: { density: 'compact' } })
 })
 
+it("forgets a personal pick that matches every style's default, so the editor follows later defaults", () => {
+  const both: Settings = { ...settings, options: { enhanced: { density: 'comfortable' }, studio: { density: 'comfortable' } } }
+  const split: Settings = { ...both, options: { ...both.options, studio: { density: 'compact' } } }
+
+  expect(normalize(both, { personal: { density: 'comfortable' } })).toEqual({})
+  expect(normalize(split, { personal: { density: 'comfortable' } })).toEqual({ personal: { density: 'comfortable' } })
+})
+
 it('reads a cookie that holds only personal choices', () => {
   expect(parseChoices(settings, JSON.stringify({ personal: { density: 'comfortable', radius: 'lg' } }))).toEqual({
     personal: { density: 'comfortable' }

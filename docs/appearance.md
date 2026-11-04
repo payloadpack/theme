@@ -93,7 +93,7 @@ themePlugin({
 A setup is what an editor picked: a character, that character's options, their personal options, a palette and, when they made one, their own palette's colors. On a built-in palette it has the same shape as the plugin config above, minus `characters`, `palettes` and `panel`.
 
 - Priority, lowest to highest: built-in defaults, the developer's config, the editor's setup.
-- A setup holds only what differs from the defaults below it. Options are kept per character, so switching back and forth keeps each one's tweaks; personal options are kept once. A copied setup puts every option under `options[character]`, the plugin config's shape, and reading it lifts the personal ones out.
+- A setup holds only what differs from the defaults below it. Options are kept per character, so switching back and forth keeps each one's tweaks; personal options are kept once, unless a pick matches every character's default, so the editor keeps following the defaults. A copied setup puts every option under `options[character]`, the plugin config's shape, and reading it lifts the personal ones out.
 - The server checks every value against the allowed characters, palettes and each option's values. Anything unknown falls back to its default.
 - Signed-in editors' setups are saved in Payload's own preferences (`payload-preferences`, key `payloadpack-appearance`), so a setup follows the editor to every browser. The server reads it with the page and renders the attributes, so there is no flash.
 - The same setup is mirrored into a `<cookiePrefix>-appearance` cookie, which the server uses on the login page and every other signed-out view. With no saved preference yet, the cookie applies for signed-in editors too.

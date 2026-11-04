@@ -41,6 +41,10 @@ export const isPersonal = (option: string) => (personalOptions as readonly strin
 const isOptionValue = (option: string, value: unknown) =>
   Object.hasOwn(options, option) && (options[option as Option] as readonly unknown[]).includes(value)
 
+const isCharacterValue = (option: string, value: unknown) => !isPersonal(option) && isOptionValue(option, value)
+
+const isPersonalValue = (option: string, value: unknown) => isPersonal(option) && isOptionValue(option, value)
+
 const only = (values: object, keep: (option: string, value: unknown) => boolean) => {
   const kept = Object.entries(values).filter(([option, value]) => keep(option, value))
   return kept.length ? (Object.fromEntries(kept) as Values) : undefined
@@ -75,13 +79,18 @@ export function normalize(settings: Settings, input: unknown): Choices {
   const pickedOptions = isRecord(raw.options) ? raw.options : {}
   const character = pick(Object.keys(settings.options), settings.character, raw.character)
   const options = Object.entries(settings.options).flatMap(([name, defaults]) => {
-    const values = changed(only(defaults, (option) => !isPersonal(option)) ?? {}, pickedOptions[name], isOptionValue)
+    const values = changed(defaults, pickedOptions[name], isCharacterValue)
     return values ? [[name, values]] : []
   })
   const defaults = settings.options[(character ?? settings.character) as Character] ?? {}
   const personal = isRecord(raw.personal)
-    ? only(raw.personal, (option, value) => isPersonal(option) && isOptionValue(option, value))
-    : changed(only(defaults, isPersonal) ?? {}, pickedOptions[character ?? settings.character], isOptionValue)
+    ? only(
+        raw.personal,
+        (option, value) =>
+          isPersonalValue(option, value) &&
+          Object.values(settings.options).some((values) => Object.hasOwn(values, option) && values[option as Option] !== value)
+      )
+    : changed(defaults, pickedOptions[character ?? settings.character], isPersonalValue)
   const custom = customOf(raw.custom)
   const picksCustom = custom && settings.palettes.length > 1 && raw.palette === customPalette
   const choices = {
