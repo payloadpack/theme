@@ -60,7 +60,11 @@ for (const theme of ['dark', 'light']) {
     }
 
     await openShowcase(page, looks.themed, theme)
-    await openAppearancePanel(page)
+    const sheet = await openAppearancePanel(page)
+    const height = await sheet.evaluate((element) =>
+      [...element.children].reduce((sum, child) => sum + Math.max(child.scrollHeight, (child as HTMLElement).offsetHeight), 0)
+    )
+    await page.setViewportSize({ height: Math.ceil(height), width: 1280 })
     await page.mouse.move(0, 0)
     await expect(page).toHaveScreenshot(`appearance-${theme}.png`, {
       clip: await box(page, '.payloadpack-appearance-panel__sheet')
