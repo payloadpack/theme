@@ -35,8 +35,8 @@ const runScript = (settings: Settings, initialChoices: Choices = {}, initialRail
 
 const custom: CustomPalette = {
   accent: '#c2410c',
-  dark: { background: '#131312', surface: '#1c1c1b', text: '#f2f1ec' },
-  light: { background: '#f1f0ec', surface: '#ffffff', text: '#1c1b18' }
+  dark: { background: '#131312', primary: '#f2f1ec', surface: '#1c1c1b', text: '#f2f1ec' },
+  light: { background: '#f1f0ec', primary: '#1c1b18', surface: '#ffffff', text: '#1c1b18' }
 }
 
 const settings: Settings = {

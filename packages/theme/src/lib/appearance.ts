@@ -19,7 +19,7 @@ export type Settings = {
 
 export const customPalette = 'custom' as const
 
-export const bases = ['background', 'surface', 'text'] as const
+export const bases = ['background', 'surface', 'text', 'primary'] as const
 
 export type Base = Record<(typeof bases)[number], string>
 

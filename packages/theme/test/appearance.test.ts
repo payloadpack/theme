@@ -22,8 +22,8 @@ const settings: Settings = {
 
 const custom: CustomPalette = {
   accent: '#c2410c',
-  dark: { background: '#131312', surface: '#1c1c1b', text: '#f2f1ec' },
-  light: { background: '#f1f0ec', surface: '#ffffff', text: '#1c1b18' }
+  dark: { background: '#131312', primary: '#f2f1ec', surface: '#1c1c1b', text: '#f2f1ec' },
+  light: { background: '#f1f0ec', primary: '#1c1b18', surface: '#ffffff', text: '#1c1b18' }
 }
 
 it('layers the editor choices over the developer defaults', () => {
@@ -77,6 +77,7 @@ it('writes the custom palette as the same CSS block a built-in palette is', () =
       '  --payloadpack-background: #f1f0ec;',
       '  --payloadpack-surface: #ffffff;',
       '  --payloadpack-text: #1c1b18;',
+      '  --payloadpack-primary: #1c1b18;',
       '  --payloadpack-accent: #c2410c;',
       '',
       "  &[data-theme='dark'],",
@@ -84,6 +85,7 @@ it('writes the custom palette as the same CSS block a built-in palette is', () =
       '    --payloadpack-background: #131312;',
       '    --payloadpack-surface: #1c1c1b;',
       '    --payloadpack-text: #f2f1ec;',
+      '    --payloadpack-primary: #f2f1ec;',
       '  }',
       '}',
       ''

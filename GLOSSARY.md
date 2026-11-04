@@ -25,7 +25,7 @@ A setting inside a character, such as radius or density, with values and a defau
 _Avoid_: control, appearance control, knob
 
 **Palette**:
-A named set of colors, in a light and a dark version, plus one accent. Payload's own light/dark setting picks the version. Palettes work with every character. Every palette is built from three base colors (background, surface, text) per version, and an editor can make their own with New palette.
+A named set of colors, in a light and a dark version, plus one accent. Payload's own light/dark setting picks the version. Palettes work with every character. Every palette is built from four base colors (background, surface, text, primary) per version, and an editor can make their own with New palette.
 _Avoid_: theme, preset, color scheme, colorway
 
 **Accent**:

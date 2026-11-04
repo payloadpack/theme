@@ -17,10 +17,10 @@ export const saved = (page: Page) =>
 
 export const pickAndSave = (page: Page, control: Locator) => Promise.all([saved(page), control.click()])
 
-export const customPalette = (accent: string) => ({
+export const customPalette = (accent: string, primary?: string) => ({
   accent,
-  dark: { background: '#0a0a09', surface: '#0f0f0e', text: '#f3f2ed' },
-  light: { background: '#ffffff', surface: '#ffffff', text: '#1a1a1a' }
+  dark: { background: '#0a0a09', primary: primary ?? '#f3f2ed', surface: '#0f0f0e', text: '#f3f2ed' },
+  light: { background: '#ffffff', primary: primary ?? '#1a1a1a', surface: '#ffffff', text: '#1a1a1a' }
 })
 
 export const settled = (locator: Locator) =>

@@ -282,5 +282,22 @@
       --popup-item-bg-hover: var(--color-bg-hover);
       --popup-item-color-hover: var(--color-text);
     }
+
+    /* 11. Primary */
+    &,
+    [data-theme] {
+      --color-bg-brand: var(--payloadpack-primary, var(--payloadpack-text));
+      --color-bg-brand-hover: color-mix(in oklab, var(--color-bg-brand) 88%, var(--payloadpack-surface));
+      --color-bg-brand-pressed: color-mix(in oklab, var(--color-bg-brand) 80%, var(--payloadpack-surface));
+      --payloadpack-on-primary: oklch(from var(--color-bg-brand) clamp(0, (0.72 - l) * 1000, 1) 0 0);
+      --color-text-onbrand: var(--payloadpack-on-primary);
+      --color-text-onbrand-secondary: rgb(from var(--payloadpack-on-primary) r g b / 0.8);
+      --color-icon-onbrand: var(--payloadpack-on-primary);
+      --color-icon-onbrand-secondary: rgb(from var(--payloadpack-on-primary) r g b / 0.8);
+    }
+
+    &:not([data-theme='dark']) .btn--style-primary {
+      border-color: oklch(from var(--color-bg-brand) 0 0 0 / clamp(0, (l - 0.9) * 2, 0.15));
+    }
   }
 }

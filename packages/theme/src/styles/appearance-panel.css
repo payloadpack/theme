@@ -293,6 +293,7 @@
       --payloadpack-background: #ffffff;
       --payloadpack-surface: #ffffff;
       --payloadpack-text: #1a1a1a;
+      --payloadpack-primary: #0d99ff;
 
       &[data-theme='dark'] {
         --payloadpack-background: #2c2c2c;

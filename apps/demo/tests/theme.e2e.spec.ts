@@ -453,7 +453,7 @@ test.describe('Theme values', () => {
     await expect(track).toHaveCSS('grid-template-columns', /^17\.\d+px 17\.\d+px 0px$/)
     await expect(track).toHaveCSS('border-top-color', 'rgba(0, 0, 0, 0)')
     await expect(track).toHaveCSS('background-color', 'rgb(243, 242, 237)')
-    expect(await style(page, `.${SWITCH} .checkbox-input__visuals`, 'background-color', '::before')).toBe('rgba(0, 0, 0, 0.9)')
+    expect(await style(page, `.${SWITCH} .checkbox-input__visuals`, 'background-color', '::before')).toBe('oklch(0 0 0)')
 
     const indent = await field.evaluate((root) => {
       const description = root.querySelector('.field-description') as HTMLElement
@@ -476,7 +476,7 @@ test.describe('Theme values', () => {
     const featured = page.locator('.field-type.checkbox').filter({ hasText: 'Featured' })
     await featured.getByRole('checkbox').check()
 
-    await expect(featured.locator('.checkbox-input__check .checkbox-input__mark')).toHaveCSS('stroke', 'rgba(0, 0, 0, 0.9)')
+    await expect(featured.locator('.checkbox-input__check .checkbox-input__mark')).toHaveCSS('stroke', 'oklch(0 0 0)')
     await expect(featured.locator('.checkbox-input__check .checkbox-input__mark-halo')).toBeHidden()
   })
 
@@ -917,7 +917,7 @@ test.describe('Neutral palette', () => {
     await page.mouse.move(0, 0)
 
     await expect(featured.locator('.checkbox-input__visuals')).toHaveCSS('background-color', 'rgb(243, 242, 237)')
-    await expect(featured.locator('.checkbox-input__check')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0.9)')
+    await expect(featured.locator('.checkbox-input__check')).toHaveCSS('background-color', 'oklch(0 0 0)')
     expect(await style(page, '.field-type.checkbox .checkbox-input__check', 'mask-image')).toContain('data:image/svg+xml')
     expect(await size(page, '.field-type.checkbox .checkbox-input__input')).toEqual({ height: 18, width: 18 })
     expect(await size(page, '.field-type.checkbox .checkbox-input__check')).toEqual({ height: 18, width: 18 })
@@ -966,7 +966,7 @@ test.describe('Neutral palette', () => {
     await radio('m').click()
     await expect(radio('m')).toHaveCSS('background-color', 'rgb(243, 242, 237)')
     expect(await radio('m').evaluate((element) => getComputedStyle(element, '::before').backgroundColor)).toBe(
-      'rgba(0, 0, 0, 0.9)'
+      'oklch(0 0 0)'
     )
     expect(await radio('m').boundingBox()).toMatchObject({ height: 18, width: 18 })
 
@@ -1219,8 +1219,8 @@ test.describe('Payload palette', () => {
 
 test.describe('Custom palette', () => {
   const field = (sheet: Locator, half: string, name: string) => sheet.getByRole('group', { name: half }).getByLabel(name)
-  const custom = (accent: string, theme = 'light') => [
-    appearance({ custom: customPalette(accent), palette: 'custom' }),
+  const custom = (accent: string, { primary, theme = 'light' }: { primary?: string; theme?: string } = {}) => [
+    appearance({ custom: customPalette(accent, primary), palette: 'custom' }),
     cookie('theme', theme)
   ]
 
@@ -1238,6 +1238,8 @@ test.describe('Custom palette', () => {
       'true'
     )
     await expect(field(sheet, 'Light', 'Background')).toHaveValue('#f3f4f1')
+    await expect(field(sheet, 'Light', 'Primary')).toHaveValue('#111111')
+    await expect(field(sheet, 'Dark', 'Primary')).toHaveValue('#f3f2ed')
     await expect(field(sheet, 'Dark', 'Background')).toHaveValue('#0a0a09')
     await expect(field(sheet, 'Dark', 'Text')).toHaveValue('#f3f2ed')
     await expect(sheet.getByLabel('Accent')).toHaveValue('#0d99ff')
@@ -1277,25 +1279,28 @@ test.describe('Custom palette', () => {
     expect(rendered).toBe(css)
   })
 
-  test("the palette's accent recolors primary buttons in light and dark", async ({ page }) => {
-    await page.context().addCookies(custom('#c2410c'))
+  test("the palette's primary fills primary buttons and checked toggles in light and dark, apart from the accent", async ({ page }) => {
+    await page.context().addCookies(custom('#c2410c', { primary: '#2563eb' }))
     await page.goto('/admin/collections/showcase')
     const primary = page.locator('.btn--style-primary:visible').first()
 
-    await expect(primary).toHaveCSS('background-color', 'rgb(194, 65, 12)')
-    await page.context().addCookies([cookie('theme', 'dark')])
-    await page.reload()
-    await expect(primary).toHaveCSS('background-color', 'rgb(194, 65, 12)')
+    for (const theme of ['light', 'dark']) {
+      await page.context().addCookies([cookie('theme', theme)])
+      await page.reload()
+      await expect(primary).toHaveCSS('background-color', 'rgb(37, 99, 235)')
+      expect(await computedColor(page, 'var(--payloadpack-toggle-checked-bg)')).toBe('rgb(37, 99, 235)')
+      expect(await computedColor(page, 'var(--ramp-blue-500)')).toBe('rgb(194, 65, 12)')
+    }
   })
 
-  test('text on the accent stays readable, dark on a light accent and white on a dark one', async ({ page }) => {
+  test('text on the primary stays readable, dark on a light primary and white on a dark one', async ({ page }) => {
     const primary = page.locator('.btn--style-primary:visible').first()
 
-    await page.context().addCookies(custom('#ffffff'))
+    await page.context().addCookies(custom('#c2410c', { primary: '#ffffff' }))
     await page.goto('/admin/collections/showcase')
     await expect(primary).toHaveCSS('color', 'oklch(0 0 0)')
 
-    await page.context().addCookies(custom('#c2410c'))
+    await page.context().addCookies(custom('#ffffff', { primary: '#c2410c' }))
     await page.reload()
     await expect(primary).toHaveCSS('color', 'oklch(1 0 0)')
   })
@@ -1328,7 +1333,7 @@ test.describe('Custom palette', () => {
     expect((await channels(page, 'oklch', await bar('#ffffff')))[0]).toBeCloseTo(0.6, 2)
   })
 
-  test('a white accent keeps selected items and primary buttons visible in light mode', async ({ page }) => {
+  test('a white accent keeps selected items visible, and a white primary keeps its button edge, in light mode', async ({ page }) => {
     await page.context().addCookies(custom('#ffffff'))
     await page.goto('/admin/collections/showcase')
     const oklab = async (selector: string, property: string, pseudo?: string) =>
@@ -1336,11 +1341,14 @@ test.describe('Custom palette', () => {
 
     expect((await channels(page, 'oklab', await computedColor(page, 'var(--color-bg-selected)')))[0]).toBeLessThan(0.95)
     expect((await channels(page, 'oklab', await computedColor(page, 'var(--color-text-selected)')))[0]).toBeLessThan(0.45)
+
+    await page.context().addCookies(custom('#c2410c', { primary: '#ffffff' }))
+    await page.reload()
     await expect.poll(async () => (await oklab('.btn--style-primary:visible', 'border-top-color'))[3]).toBeGreaterThan(0)
   })
 
   test('dark selection mixes the accent into the palette background', async ({ page }) => {
-    await page.context().addCookies(custom('#c2410c', 'dark'))
+    await page.context().addCookies(custom('#c2410c', { theme: 'dark' }))
     await page.goto('/admin/collections/showcase')
     const surface = await channels(page, 'oklab', await style(page, 'html', 'background-color'))
     const fill = await channels(page, 'oklab', await computedColor(page, 'var(--color-bg-selected)'))
@@ -1661,6 +1669,18 @@ test.describe('Studio character', () => {
 })
 
 test.describe('Studio palette', () => {
+  test('fills primary buttons with the text color and keeps the copper accent for marks', async ({ page }) => {
+    await page.context().addCookies([appearance({ character: 'studio', palette: 'studio' }), cookie('theme', 'light')])
+    await page.goto((await findShowcase(page)).path)
+
+    await expect(page.locator('.btn--style-primary:visible').first()).toHaveCSS('background-color', 'rgb(28, 27, 24)')
+    const bar = await page
+      .locator('.tabs__tab-button--active')
+      .first()
+      .evaluate((element) => getComputedStyle(element, '::after').backgroundColor)
+    expect(await nearColor(page, bar, '#c2410c')).toBe(true)
+  })
+
   test('tints the field from the accent in light and dark, with cards on top', async ({ page }) => {
     await page.context().addCookies([appearance({ character: 'studio', palette: 'studio' }), cookie('theme', 'light')])
     await page.goto('/admin/collections/showcase')

@@ -4,6 +4,7 @@
     --payloadpack-background: #f3f4f1;
     --payloadpack-surface: #ffffff;
     --payloadpack-text: #111111;
+    --payloadpack-primary: var(--payloadpack-text);
 
     /* 2. Dark palette */
     &[data-theme='dark'],
@@ -11,6 +12,7 @@
       --payloadpack-background: #0a0a09;
       --payloadpack-surface: #0f0f0e;
       --payloadpack-text: #f3f2ed;
+      --payloadpack-primary: var(--payloadpack-text);
       --ramp-grey-500: #72716b;
       --ramp-grey-600: #2a2a27;
       --color-icon-secondary: #a3a29b;
@@ -26,13 +28,6 @@
       --color-text-secondary: #a3a29b;
       --color-bg-selected-strong: var(--color-bg-tertiary);
       --color-text-ondisabled: var(--color-text-disabled);
-    }
-
-    /* 3. Checkbox and radio */
-    &,
-    [data-theme] {
-      --payloadpack-toggle-checked-bg: var(--color-text);
-      --payloadpack-toggle-mark: var(--color-icon-oninverse);
     }
   }
 }

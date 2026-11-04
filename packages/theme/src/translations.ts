@@ -39,6 +39,7 @@ const payloadpack = {
   newPalette: 'New palette',
   palette: 'Palette',
   pasteSetup: 'Paste setup',
+  primary: 'Primary',
   radius: 'Corners',
   radiusFull: 'Round',
   radiusLg: 'L',
