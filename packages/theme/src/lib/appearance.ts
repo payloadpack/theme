@@ -135,13 +135,13 @@ export function pasteSetup(settings: Settings, choices: Choices, text: string): 
   }
   const character = pasted.character ?? settings.character
   const declared = settings.options[character] ?? {}
-  return {
+  return normalize(settings, {
     character: pasted.character,
     custom: pasted.custom ?? choices.custom,
     options: { ...choices.options, [character]: pasted.options?.[character] },
     palette: pasted.palette,
     personal: { ...only(choices.personal ?? {}, (option) => !Object.hasOwn(declared, option)), ...pasted.personal }
-  }
+  })
 }
 
 const declarations = (base: Base, indent: string) =>
