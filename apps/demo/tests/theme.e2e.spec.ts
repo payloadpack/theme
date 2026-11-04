@@ -722,6 +722,7 @@ test.describe('Theme values', () => {
             'border-top-color',
             'border-top-left-radius',
             'background-color',
+            'box-shadow',
             'color'
           ]))
         })

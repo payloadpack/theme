@@ -397,9 +397,7 @@
 
         &:has(:checked) {
           background-color: var(--color-bg-elevated);
-          box-shadow:
-            0 0 0 var(--stroke-width-small) var(--color-border-control-strong),
-            0 1px 2px rgb(0 0 0 / 0.08);
+          box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
           color: var(--color-text);
           font-weight: 600;
         }
