@@ -10,11 +10,13 @@ import {
   cookie,
   customPalette,
   findShowcase,
+  hydrated,
   label,
   logIn,
   openAppearancePanel,
   openFineTune,
   pickAndSave,
+  reloadWith,
   saved,
   saveSetup,
   settled,
@@ -417,20 +419,17 @@ test.describe('Appearance panel', () => {
     await page.goto('/admin')
     expect(await beside()).toBe('left')
 
-    await page.context().addCookies([appearance({ character: 'studio' })])
-    await page.reload()
+    await reloadWith(page, [appearance({ character: 'studio' })])
     expect(await beside()).toBe('right')
 
     await page.route('**/api/payload-preferences/nav*', (route) =>
       route.request().method() === 'POST' ? route.fulfill({ json: {} }) : route.fallback()
     )
-    await page.context().addCookies([appearance({ options: { enhanced: { nav: 'hidden' } } })])
-    await page.reload()
+    await reloadWith(page, [appearance({ options: { enhanced: { nav: 'hidden' } } })])
     await page.getByRole('button', { name: 'Hide sidebar' }).click()
     await expect(page.locator('.app-header').getByRole('button', { name: 'Appearance' })).toBeVisible()
 
-    await page.context().addCookies([appearance({ character: 'payload' })])
-    await page.reload()
+    await reloadWith(page, [appearance({ character: 'payload' })])
     await expect(page.locator('.app-header').getByRole('button', { name: 'Appearance' })).toBeVisible()
   })
 
@@ -1097,8 +1096,7 @@ test.describe('Motion', () => {
     await openShowcase(page)
     expect(await ringDurations()).toEqual(fields.map(() => '0.1s'))
 
-    await page.context().addCookies([appearance({ options: { enhanced: { motion: 'off' } } })])
-    await page.reload()
+    await reloadWith(page, [appearance({ options: { enhanced: { motion: 'off' } } })])
     expect(await ringDurations()).toEqual(fields.map(() => 'none'))
     await expect(page.locator('.radio-input__styled-radio').first()).toHaveCSS('transition-duration', '0s')
   })
@@ -1645,8 +1643,7 @@ test.describe('Custom palette', () => {
     await page.goto('/admin/collections/showcase')
     await expect(primary).toHaveCSS('color', 'oklch(0 0 0)')
 
-    await page.context().addCookies(custom('#ffffff', { primary: '#c2410c' }))
-    await page.reload()
+    await reloadWith(page, custom('#ffffff', { primary: '#c2410c' }))
     await expect(primary).toHaveCSS('color', 'oklch(1 0 0)')
   })
 
@@ -1695,6 +1692,7 @@ test.describe('Custom palette', () => {
     }
 
     expect(await nearColor(page, await bar('#c2410c'), '#c2410c')).toBe(true)
+    await hydrated(page)
     expect((await channels(page, 'oklch', await bar('#ffffff')))[0]).toBeCloseTo(0.6, 2)
   })
 
@@ -1882,7 +1880,7 @@ test.describe('Rail', () => {
       await page.context().addCookies([appearance({ options: { enhanced: { nav } } })])
       await page.setViewportSize({ height: 900, width: 1500 })
       await page.goto('/admin')
-      await expect(page.locator('.nav')).toHaveClass(/nav--nav-hydrated/)
+      await hydrated(page)
       await expect(page.locator('.nav')).not.toHaveAttribute('inert')
 
       await page.setViewportSize({ height: 900, width: 1300 })
@@ -2021,7 +2019,6 @@ test.describe('Studio character', () => {
     await page.context().addCookies([studio()])
     await openList(page)
     const body = page.locator('body')
-    const hydrated = () => expect(page.locator('.nav')).toHaveClass(/nav--nav-hydrated/)
 
     await expect(body).toHaveCSS('font-family', /^payloadpack-geist, payloadpack-geist-fallback,/)
     await page.goto('/admin')
@@ -2034,14 +2031,10 @@ test.describe('Studio character', () => {
     ).toBe(true)
     expect(fonts.every((hostname) => hostname === 'localhost')).toBe(true)
 
-    await hydrated()
-    await page.context().addCookies([studio({ font: 'inter' })])
-    await page.reload()
+    await reloadWith(page, [studio({ font: 'inter' })])
     await expect(body).toHaveCSS('font-family', /^Inter, "?Inter Fallback"?/)
 
-    await hydrated()
-    await page.context().addCookies([studio({ font: 'system' })])
-    await page.reload()
+    await reloadWith(page, [studio({ font: 'system' })])
     await expect(body).toHaveCSS('font-family', /^system-ui,/)
   })
 

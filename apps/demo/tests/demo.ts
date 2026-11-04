@@ -1,4 +1,4 @@
-import type { APIRequestContext, Locator, Page } from '@playwright/test'
+import { type APIRequestContext, expect, type Locator, type Page } from '@playwright/test'
 
 import { demoUser } from '../src/seed'
 
@@ -22,6 +22,14 @@ export const logIn = async (page: Page) => {
   await page.fill('#field-password', demoUser.password)
   await page.click('button[type="submit"]')
   await page.waitForURL('/admin')
+}
+
+export const hydrated = (page: Page) => expect(page.locator('.nav')).toHaveClass(/nav--nav-hydrated/)
+
+export const reloadWith = async (page: Page, cookies: ReturnType<typeof cookie>[]) => {
+  await hydrated(page)
+  await page.context().addCookies(cookies)
+  await page.reload()
 }
 
 export const saved = (page: Page) =>
