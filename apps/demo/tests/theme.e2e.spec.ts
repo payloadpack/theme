@@ -375,6 +375,7 @@ test.describe('Appearance panel', () => {
 
     await expect(logo('Payload')).toHaveClass(/graphic-icon/)
     await expect(logo('Lucide')).toBeVisible()
+    await expect(logo('Lucide')).not.toHaveClass(/graphic-icon/)
   })
 
   test('moves through a group with the arrow keys, one Tab stop per group', async ({ page }) => {
