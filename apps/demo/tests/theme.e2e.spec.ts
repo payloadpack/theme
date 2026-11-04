@@ -1924,10 +1924,11 @@ test.describe('Studio character', () => {
     const fallback = await page.evaluate(() =>
       document.fonts.load('14px payloadpack-geist-fallback').then(
         (faces) => faces.length,
-        () => 0
+        () => undefined
       )
     )
-    test.skip(!fallback, 'the fallback face needs Arial, which this machine does not have')
+    test.skip(fallback === undefined, 'the fallback face needs Arial, which this machine does not have')
+    expect(fallback).toBe(1)
 
     const [geist, metricFallback] = await page.evaluate(async () => {
       await document.fonts.load('14px payloadpack-geist')
