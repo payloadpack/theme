@@ -590,6 +590,8 @@ test.describe('Theme values', () => {
       expect(nav.width).toBe(288)
       expect(nav.highlight).toEqual(nav.tabs)
       expect(nav.chevron).toBe(20)
+      expect(await style(page, '.nav-group__toggle', 'font-size')).toBe('12px')
+      expect(await style(page, '.nav-group:not(:first-child)', 'margin-left', '::before')).toBe('12px')
       expect(await style(page, '.nav-group__toggle', 'inset', '::before')).toBe(await style(page, '.nav__link', 'inset', '::before'))
     })
   }
@@ -1076,6 +1078,24 @@ test.describe('Every palette but Payload', () => {
         })
       }
 
+      test('the selected nav link is raised like the active sidebar tab, and the other links are muted', async ({ page }) => {
+        await page.context().addCookies([cookie('theme', 'light')])
+        await page.goto('/admin/collections/showcase')
+        const raised = (selector: string, pseudo?: string) =>
+          page
+            .locator(selector)
+            .first()
+            .evaluate((element, pseudoElement) => {
+              const { backgroundColor, boxShadow } = getComputedStyle(element, pseudoElement)
+              return { backgroundColor, boxShadow }
+            }, pseudo)
+
+        expect(await raised('.nav__link--selected', '::before')).toEqual(await raised('.sidebar-tabs__tab--active'))
+        expect(await style(page, '.nav__link:not(.nav__link--selected)', 'color')).toBe(
+          await computedColor(page, 'var(--color-text-secondary)')
+        )
+      })
+
       test('one toggle border token reaches checkboxes and radios', async ({ page }) => {
         await openShowcase(page)
         await page.addStyleTag({ content: 'html { --payloadpack-toggle-border: rgb(255, 0, 0); }' })
@@ -1280,7 +1300,7 @@ test.describe('Custom palette', () => {
     await expect(primary).toHaveCSS('color', 'oklch(1 0 0)')
   })
 
-  test('selected text takes an ink of the accent in light mode, and the selected nav link stays neutral', async ({ page }) => {
+  test('selected text takes an ink of the accent in light mode, and the selected nav link is a neutral raised pill', async ({ page }) => {
     await page.context().addCookies(custom('#c2410c'))
     await page.goto('/admin/collections/showcase')
     const [, , accentHue] = await channels(page, 'oklch', '#c2410c')
@@ -1290,7 +1310,7 @@ test.describe('Custom palette', () => {
     expect(Math.abs(inkHue - accentHue)).toBeLessThan(5)
     expect(await style(page, '.nav__link--selected', 'color')).toBe(await style(page, 'body', 'color'))
     expect(await style(page, '.nav__link--selected', 'background-color', '::before')).toBe(
-      await computedColor(page, 'var(--color-bg-tertiary)')
+      await computedColor(page, 'var(--color-bg-elevated)')
     )
   })
 

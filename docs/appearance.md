@@ -182,7 +182,7 @@ src/characters/enhanced/index.ts    defaults
 src/characters/enhanced/enhanced.css
 src/characters/studio/index.ts
 src/characters/studio/studio.css
-src/characters/shared.css           what Enhanced and Studio share: the 2px focus ring, the sidebar tabs, the 288px nav on a 12px gutter and the nav group chevron
+src/characters/shared.css           what Enhanced and Studio share: the 2px focus ring, the sidebar tabs, the 288px nav on a 12px gutter, inset group dividers and the nav group chevron
 src/palettes/index.ts               the names of the built-in palettes
 src/palettes/palette.css            derives Payload's colors from each palette's base colors, and what every palette but Payload's shares: focus ring, fields, toggles, date picker and toasts
 src/palettes/neutral.css

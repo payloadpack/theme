@@ -43,6 +43,21 @@
       padding-inline: var(--spacer-2-5);
     }
 
+    .nav-group {
+      border-block-start: 0;
+    }
+
+    .nav-group:not(:first-child)::before {
+      content: '';
+      display: block;
+      margin: calc(-1 * var(--spacer-2)) var(--spacer-2-5) var(--spacer-2);
+      border-block-start: var(--stroke-width-small) solid var(--color-border);
+    }
+
+    .nav__link--selected {
+      font-weight: var(--text-body-medium-bold-font-weight);
+    }
+
     .nav__link,
     .nav-group__toggle {
       padding-inline: calc(var(--spacer-2-5) + var(--spacer-2));

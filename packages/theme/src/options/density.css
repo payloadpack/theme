@@ -279,6 +279,11 @@
       inset-block: 2px;
     }
 
+    .nav-group__toggle {
+      font-size: var(--text-body-small-font-size);
+      line-height: var(--text-body-small-line-height);
+    }
+
     /* 7. Rich text */
     .LexicalEditorTheme {
       --lexical-h4-font-size: 1.125rem;
