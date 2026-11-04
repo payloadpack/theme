@@ -12,6 +12,8 @@ import {
   openAppearancePanel,
   pickAndSave,
   saved,
+  logIn,
+  saveSetup,
   settled
 } from './demo'
 
@@ -100,6 +102,21 @@ test.describe('Logged out', () => {
 
     await expect(page.locator('html')).toHaveAttribute('data-character', 'enhanced')
     await expect(page.locator('html')).toHaveAttribute('data-density', 'comfortable')
+  })
+
+  test('signing in brings back the saved appearance and its panel without a reload', async ({ page, playwright }) => {
+    const signedIn = await playwright.request.newContext({ baseURL, storageState: authFile })
+    await saveSetup(signedIn, { character: 'studio' })
+    await logIn(page)
+
+    await expect(page.locator('html')).toHaveAttribute('data-character', 'studio')
+    const sheet = await openAppearancePanel(page)
+    await expect(sheet.getByRole('group', { name: 'Character' }).getByRole('button', { name: 'Studio' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
+    await saveSetup(signedIn, {})
+    await signedIn.dispose()
   })
 })
 

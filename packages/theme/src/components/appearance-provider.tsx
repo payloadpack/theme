@@ -1,7 +1,17 @@
 'use client'
 
-import { useNav, usePreferences, useWindowInfo } from '@payloadcms/ui'
-import { createContext, type ReactNode, use, useEffect, useLayoutEffect, useMemo, useState, useSyncExternalStore } from 'react'
+import { useAuth, useNav, usePreferences, useWindowInfo } from '@payloadcms/ui'
+import {
+  createContext,
+  type ReactNode,
+  use,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore
+} from 'react'
 
 import { type Character, type Option, type OptionValue, options } from '../characters/index.js'
 import { useMonacoFontSize } from '../hooks/use-monaco-font-size.js'
@@ -70,7 +80,9 @@ export function AppearanceProvider({
 }: AppearanceProviderProps) {
   const [choices, setChoices] = useState(initialChoices)
   const [rail, setRail] = useState(initialRail)
-  const { setPreference } = usePreferences()
+  const { user } = useAuth()
+  const signedInAs = useRef(user?.id)
+  const { getPreference, setPreference } = usePreferences()
   const resolved = useMemo(() => resolve(settings, choices), [settings, choices])
   const { character, custom, palette, values } = resolved
   const hasRail = values.nav === 'icons'
@@ -104,6 +116,18 @@ export function AppearanceProvider({
       }
     }
   }, [attributes])
+
+  useEffect(() => {
+    if (!user || user.id === signedInAs.current) {
+      return
+    }
+    signedInAs.current = user.id
+    void getPreference<unknown>(preferenceKey).then((saved) => {
+      if (saved) {
+        setChoices(normalize(settings, saved))
+      }
+    })
+  }, [getPreference, settings, user])
 
   useEffect(() => {
     writeCookie(cookieName, Object.keys(choices).length ? encodeURIComponent(JSON.stringify(choices)) : undefined)

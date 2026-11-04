@@ -1,4 +1,6 @@
-import type { Locator, Page } from '@playwright/test'
+import type { APIRequestContext, Locator, Page } from '@playwright/test'
+
+import { demoUser } from '../src/seed'
 
 export const authFile = 'tests/.auth/demo.json'
 
@@ -11,6 +13,16 @@ export const appearance = (choices: object) => cookie('appearance', encodeURICom
 const setupPreference = '/api/payload-preferences/payloadpack-appearance'
 
 export const clearSetup = (page: Page) => page.request.delete(setupPreference)
+
+export const saveSetup = (request: APIRequestContext, value: object) => request.post(setupPreference, { data: { value } })
+
+export const logIn = async (page: Page) => {
+  await page.goto('/admin/login')
+  await page.fill('#field-email', demoUser.email)
+  await page.fill('#field-password', demoUser.password)
+  await page.click('button[type="submit"]')
+  await page.waitForURL('/admin')
+}
 
 export const saved = (page: Page) =>
   page.waitForResponse((response) => response.url().endsWith(setupPreference) && response.request().method() === 'POST')
