@@ -67,7 +67,7 @@ const backgrounds = (page: Page) =>
 test.describe('Logged out', () => {
   test.use({ storageState: { cookies: [], origins: [] } })
 
-  test('defaults to Enhanced and Warm with medium radius, comfortable density, Lucide icons and motion', async ({ page }) => {
+  test('defaults to Enhanced and Neutral with medium radius, comfortable density, Lucide icons and motion', async ({ page }) => {
     await page.context().addCookies([cookie('theme', 'dark')])
     await page.goto('/admin/login')
 
@@ -76,7 +76,7 @@ test.describe('Logged out', () => {
     await expect(page.locator('html')).toHaveAttribute('data-density', 'comfortable')
     await expect(page.locator('html')).toHaveAttribute('data-icons', 'lucide')
     await expect(page.locator('html')).toHaveAttribute('data-motion', 'on')
-    await expect(page.locator('html')).toHaveAttribute('data-palette', 'warm')
+    await expect(page.locator('html')).toHaveAttribute('data-palette', 'neutral')
     await expect(page.locator('html')).toHaveCSS('background-color', 'rgb(15, 15, 14)')
   })
 
@@ -117,7 +117,7 @@ test.describe('Theme plugin', () => {
 
     const html = await (await page.request.get('/admin')).text()
     expect(html).toContain(
-      `<script>Object.assign(document.documentElement.dataset,{"character":"stock","palette":"warm"});document.documentElement.style.setProperty('--payloadpack-font-geist',"'Geist', 'Geist Fallback'")</script>`
+      `<script>Object.assign(document.documentElement.dataset,{"character":"stock","palette":"neutral"});document.documentElement.style.setProperty('--payloadpack-font-geist',"'Geist', 'Geist Fallback'")</script>`
     )
 
     await page.goto('/admin')
@@ -836,7 +836,7 @@ test.describe('Motion', () => {
   })
 })
 
-test.describe('Warm palette', () => {
+test.describe('Neutral palette', () => {
   test("keeps Payload's own blue shades and the text color on selected nav links", async ({ page }) => {
     await page.context().addCookies([cookie('theme', 'light')])
     await page.goto('/admin/collections/showcase')
@@ -990,7 +990,7 @@ test.describe('Warm palette', () => {
 })
 
 test.describe('Every palette but Payload', () => {
-  for (const palette of ['warm', 'studio']) {
+  for (const palette of ['neutral', 'studio']) {
     test.describe(palette, () => {
       test.beforeEach(({ page }) => page.context().addCookies([appearance({ palette })]))
 
@@ -1177,8 +1177,8 @@ test.describe('Custom palette', () => {
     const sheet = await openAppearancePanel(page)
     const palettes = sheet.getByRole('group', { name: 'Palette' })
 
-    await pickAndSave(page, palettes.getByRole('button', { name: 'Warm' }))
-    await expect(page.locator('html')).toHaveAttribute('data-palette', 'warm')
+    await pickAndSave(page, palettes.getByRole('button', { name: 'Neutral' }))
+    await expect(page.locator('html')).toHaveAttribute('data-palette', 'neutral')
     await expect(sheet.getByRole('button', { name: 'New palette' })).toHaveCount(0)
     await pickAndSave(page, palettes.getByRole('button', { name: 'Custom' }))
     await expect(sheet.getByLabel('Accent')).toHaveValue('#c2410c')

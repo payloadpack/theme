@@ -24,13 +24,13 @@
     <td>
       <picture>
         <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/compare-themed-light.png">
-        <img alt="The same edit view with the Enhanced character, the Warm palette, Comfortable density and Lucide icons" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/compare-themed-dark.png">
+        <img alt="The same edit view with the Enhanced character, the Neutral palette, Comfortable density and Lucide icons" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/compare-themed-dark.png">
       </picture>
     </td>
   </tr>
 </table>
 
-Each editor picks how their admin panel looks from the Appearance panel: a character for the layout and a palette for the colors. The default is the Enhanced character, with a roomier density and Lucide icons, on the Warm palette. Stock on the Payload palette is plain Payload. Setups are rendered on the server, so pages never flash.
+Each editor picks how their admin panel looks from the Appearance panel: a character for the layout and a palette for the colors. The default is the Enhanced character, with a roomier density and Lucide icons, on the Neutral palette. Stock on the Payload palette is plain Payload. Setups are rendered on the server, so pages never flash.
 
 ## Install
 
@@ -59,7 +59,7 @@ Click the Appearance button, beside the collapse button at the top of the nav, o
 <p>
   <picture>
     <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/appearance-light.png">
-    <img width="360" alt="The Appearance panel with Stock, Enhanced and Studio cards, Corners, Density, Icons, Motion and Collapsed nav options, Payload, Warm and Studio palette cards and a New palette button" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/appearance-dark.png">
+    <img width="360" alt="The Appearance panel with Stock, Enhanced and Studio cards, Corners, Density, Icons, Motion and Collapsed nav options, Payload, Neutral and Studio palette cards and a New palette button" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/appearance-dark.png">
   </picture>
 </p>
 
@@ -67,7 +67,7 @@ The panel opens as a sheet on the right and fills the screen on phones. Every ch
 
 - **Character** is how the whole admin panel is laid out and behaves. Stock is Payload's own layout and has no options. Enhanced touches up Payload's own design without changing its structure, and is the default. Studio puts each view in a soft card on a field. The section is hidden when only one character is allowed.
 - **Options** belong to a character. Enhanced has Corners, Density, Icons, Motion and Collapsed nav. Studio has the same five and adds Typeface and Frame. Each character keeps its own values, so switching to Stock and back keeps them.
-- **Palette** is the colors, in a light and a dark version. Payload is Payload's own colors. Warm, the default, is Payload's light colors and a warm near-black dark mode. Studio tints the field and the nav with its accent, copper by default. Every palette works with every character. The section is hidden when only one palette is allowed.
+- **Palette** is the colors, in a light and a dark version. Payload is Payload's own colors. Neutral, the default, is Payload's light colors and a near-black dark mode. Studio tints the field and the nav with its accent, copper by default. Every palette works with every character. The section is hidden when only one palette is allowed.
 - **New palette** turns the current palette into your own: a background, surface and text color for light and for dark mode, and an accent for primary buttons, links and selected items. Each color applies as you pick it, and the rest of the colors are mixed from these. **Copy as CSS** copies your palette as the CSS block the theme renders for it. Switching to another palette keeps yours for later.
 - **Color mode** is Payload's own light and dark setting, the same one as Admin Theme on the account page. It is hidden when `admin.theme` is `'light'` or `'dark'`.
 - **Reset** returns to the defaults in your plugin config. It leaves the color mode alone.
@@ -86,7 +86,7 @@ The panel opens as a sheet on the right and fills the screen on phones. Every ch
 - **Enhanced** draws a 2px focus ring, rounds popups and toasts a little more, lifts the date picker and toasts like menus, insets the sidebar tabs, and moves each nav group's chevron to the end of its row.
 - **Studio** keeps the nav on the field, puts the collapse button at its top left, moves the user menu to the bottom of it, and ends each nav group with its chevron like Enhanced.
 - Every palette except Payload's draws the focus ring in the text color, gives all fields one border color, fades disabled and read-only fields to half their colors, softens checkbox and radio rings, marks the selected nav link and the hovered menu item with a neutral fill instead of the accent, fills a hovered nav group heading like a link, and raises the active sidebar tab like the panel's segments.
-- **Warm** gives dark mode a warm near-black palette and swaps Payload's blue selection for neutral greys. It fills checked checkboxes and selected radios with the text color instead of the accent.
+- **Neutral** gives dark mode a near-black palette and swaps Payload's blue selection for neutral greys. It fills checked checkboxes and selected radios with the text color instead of the accent.
 - **Studio**, the palette, mixes a faint share of the accent into a warm off-white field and nav, with white cards and lines tinted the same way. Dark mode mixes it into near-black. Selected items take a soft fill of the accent.
 - **Corners** scales Payload's own corner sizes. M keeps them as they are, None squares every corner, S and L make them smaller or larger, and Round is L with pill-shaped buttons.
 - **Geist** loads [Geist](https://vercel.com/font) with `next/font`, the way Payload loads Inter, and only downloads it when an editor uses it. **Payload** keeps Inter. **System** uses the operating system's font.
@@ -117,8 +117,8 @@ themePlugin({
   character: 'enhanced',
   characters: ['stock', 'enhanced', 'studio'],
   options: { enhanced: { density: 'compact', icons: 'lucide' }, studio: { frame: 'flat' } },
-  palette: 'warm',
-  palettes: ['payload', 'warm', 'studio'],
+  palette: 'neutral',
+  palettes: ['payload', 'neutral', 'studio'],
   panel: ({ user }) => user?.role === 'admin',
   codeEditorFontSize: 13
 })
@@ -129,8 +129,8 @@ themePlugin({
 | `character`          | `'enhanced'`                                                 | The character everyone starts with. It must be one of `characters`.                                                                                                                                                                                                  |
 | `characters`         | `['stock', 'enhanced', 'studio']`                            | The characters editors may pick. An editor whose character is no longer allowed gets `character`.                                                                                                                                                                    |
 | `options`            | Each character's defaults from the option table              | Option values per character, which editors start from and Reset returns to. Each character takes only its own options, so a typo is a type error. Stock has no options and no key.                                                                                   |
-| `palette`            | `'warm'`                                                     | The palette everyone starts with. It must be one of `palettes`.                                                                                                                                                                                                      |
-| `palettes`           | `['payload', 'warm', 'studio']`                              | The palettes editors may pick. An editor whose palette is no longer allowed gets `palette`.                                                                                                                                                                          |
+| `palette`            | `'neutral'`                                                  | The palette everyone starts with. It must be one of `palettes`.                                                                                                                                                                                                      |
+| `palettes`           | `['payload', 'neutral', 'studio']`                           | The palettes editors may pick. An editor whose palette is no longer allowed gets `palette`.                                                                                                                                                                          |
 | `panel`              | `true`                                                       | Who gets the Appearance panel: `true`, `false` or `({ user }) => boolean`. When it resolves to `false`, the editor gets no Appearance button and their saved setup is ignored. Signed-out views have no user, so there the cookie applies unless `panel` is `false`. |
 | `codeEditorFontSize` | `13`                                                         | Font size for code editors in Comfortable density. Payload's default is 11. Fields that set `admin.editorOptions.fontSize` keep their own size. `false` turns it off.                                                                                                |
 

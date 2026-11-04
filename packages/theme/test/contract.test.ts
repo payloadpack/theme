@@ -38,7 +38,7 @@ const scopes: Record<string, string> = {
   'options/radius.css': 'html[data-radius]',
   'palettes/palette.css': ":where([data-palette]:not([data-palette='payload']))",
   'palettes/studio.css': "[data-palette='studio']",
-  'palettes/warm.css': "[data-palette='warm']",
+  'palettes/neutral.css': "[data-palette='neutral']",
   'styles/appearance-panel.css': '.payloadpack-appearance-panel',
   'styles/rail.css': 'html[data-rail]',
   'styles/fields/radio-cards.css': `.${RADIO_CARDS}`,

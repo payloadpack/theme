@@ -1,5 +1,5 @@
 @layer payload {
-  [data-palette='warm'] {
+  [data-palette='neutral'] {
     /* 1. Light palette */
     --payloadpack-background: #ffffff;
     --payloadpack-surface: #ffffff;

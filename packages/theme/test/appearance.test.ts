@@ -16,8 +16,8 @@ import {
 const settings: Settings = {
   character: 'enhanced',
   options: { enhanced: { density: 'compact', icons: 'lucide' }, stock: {} },
-  palette: 'warm',
-  palettes: ['payload', 'warm']
+  palette: 'neutral',
+  palettes: ['payload', 'neutral']
 }
 
 const custom: CustomPalette = {
@@ -29,7 +29,7 @@ const custom: CustomPalette = {
 it('layers the editor choices over the developer defaults', () => {
   expect(resolve(settings, {})).toEqual({
     character: 'enhanced',
-    palette: 'warm',
+    palette: 'neutral',
     values: { density: 'compact', icons: 'lucide' }
   })
   expect(resolve(settings, { options: { enhanced: { icons: 'payload' } }, palette: 'payload' })).toEqual({
@@ -39,7 +39,7 @@ it('layers the editor choices over the developer defaults', () => {
   })
   expect(resolve(settings, { character: 'stock', options: { enhanced: { icons: 'payload' } } })).toEqual({
     character: 'stock',
-    palette: 'warm',
+    palette: 'neutral',
     values: {}
   })
 })
@@ -49,7 +49,7 @@ it('keeps the custom palette while another palette is picked', () => {
 })
 
 it('drops characters, palettes, options and values the settings do not allow', () => {
-  const onlyEnhanced: Settings = { ...settings, options: { enhanced: settings.options.enhanced }, palettes: ['warm'] }
+  const onlyEnhanced: Settings = { ...settings, options: { enhanced: settings.options.enhanced }, palettes: ['neutral'] }
 
   expect(
     normalize(onlyEnhanced, {
@@ -96,7 +96,7 @@ it('keeps only choices that differ from the defaults, per character and palette'
     normalize(settings, {
       character: 'enhanced',
       options: { enhanced: { density: 'compact', icons: 'payload' }, stock: {} },
-      palette: 'warm'
+      palette: 'neutral'
     })
   ).toEqual({ options: { enhanced: { icons: 'payload' } } })
   expect(normalize(settings, { character: 'stock', options: { enhanced: { icons: 'payload' } }, palette: 'payload' })).toEqual({
@@ -145,9 +145,9 @@ it('copies a setup in the shape of the plugin config', () => {
   expect(setupOf(resolve(settings, {}))).toEqual({
     character: 'enhanced',
     options: { enhanced: { density: 'compact', icons: 'lucide' } },
-    palette: 'warm'
+    palette: 'neutral'
   })
-  expect(setupOf(resolve(settings, { character: 'stock', custom }))).toEqual({ character: 'stock', palette: 'warm' })
+  expect(setupOf(resolve(settings, { character: 'stock', custom }))).toEqual({ character: 'stock', palette: 'neutral' })
   expect(setupOf(resolve(settings, { character: 'stock', custom, palette: 'custom' }))).toEqual({
     character: 'stock',
     custom,

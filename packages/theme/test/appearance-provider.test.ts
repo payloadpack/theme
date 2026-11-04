@@ -42,8 +42,8 @@ const custom: CustomPalette = {
 const settings: Settings = {
   character: 'enhanced',
   options: { enhanced: { density: 'comfortable', icons: 'lucide' } },
-  palette: 'warm',
-  palettes: ['payload', 'warm']
+  palette: 'neutral',
+  palettes: ['payload', 'neutral']
 }
 
 it('keeps the initial appearance inside its inline script', () => {
@@ -53,13 +53,13 @@ it('keeps the initial appearance inside its inline script', () => {
     character: 'enhanced',
     density,
     icons: 'lucide',
-    palette: 'warm'
+    palette: 'neutral'
   })
 })
 
 it('sets the palette and the Geist family, and leaves the accent to the palette CSS', () => {
   expect(runScript(settings)).toEqual({
-    dataset: { character: 'enhanced', density: 'comfortable', icons: 'lucide', palette: 'warm' },
+    dataset: { character: 'enhanced', density: 'comfortable', icons: 'lucide', palette: 'neutral' },
     style: { '--payloadpack-font-geist': geist }
   })
   expect(runScript(settings, { custom, palette: 'custom' }).dataset).toEqual({
@@ -78,10 +78,10 @@ it('renders the custom palette into the server HTML as the CSS block Copy as CSS
 it('renders the collapsed rail only while the nav option is icons', () => {
   const withNav: Settings = { ...settings, options: { enhanced: { nav: 'icons' } } }
 
-  expect(runScript(withNav, {}, true).dataset).toEqual({ character: 'enhanced', nav: 'icons', palette: 'warm', rail: '' })
+  expect(runScript(withNav, {}, true).dataset).toEqual({ character: 'enhanced', nav: 'icons', palette: 'neutral', rail: '' })
   expect(runScript(withNav, { options: { enhanced: { nav: 'hidden' } } }, true).dataset).toEqual({
     character: 'enhanced',
     nav: 'hidden',
-    palette: 'warm'
+    palette: 'neutral'
   })
 })

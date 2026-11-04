@@ -11,8 +11,8 @@ const settingsOf = async (pluginConfig: ThemePluginConfig) => {
 }
 
 it('offers editors the allowed palettes, every built-in one by default', async () => {
-  expect((await settingsOf({})).palettes).toEqual(['payload', 'warm', 'studio'])
-  expect((await settingsOf({ palette: 'studio', palettes: ['studio', 'warm'] })).palettes).toEqual(['studio', 'warm'])
+  expect((await settingsOf({})).palettes).toEqual(['payload', 'neutral', 'studio'])
+  expect((await settingsOf({ palette: 'studio', palettes: ['studio', 'neutral'] })).palettes).toEqual(['studio', 'neutral'])
 })
 
 it('gives every supported language the English panel labels, and lets the app override them', async () => {
@@ -44,5 +44,5 @@ it('throws when the default character is not allowed', () => {
 })
 
 it('throws when the default palette is not allowed', () => {
-  expect(() => themePlugin({ palettes: ['payload'] })).toThrow("palette 'warm'")
+  expect(() => themePlugin({ palettes: ['payload'] })).toThrow("palette 'neutral'")
 })
