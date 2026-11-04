@@ -1837,7 +1837,7 @@ test.describe('Studio character', () => {
 
     await page.context().addCookies([studio({ font: 'payload' })])
     await page.reload()
-    await expect(body).toHaveCSS('font-family', /^Inter, "Inter Fallback"/)
+    await expect(body).toHaveCSS('font-family', /^Inter, "?Inter Fallback"?/)
 
     await page.context().addCookies([studio({ font: 'system' })])
     await page.reload()
@@ -1854,7 +1854,7 @@ test.describe('Studio character', () => {
       await expect(page.locator('.template-default__wrap')).toHaveCSS('border-top-width', '0px')
       await expect(page.locator('.nav__header')).toHaveCSS('display', 'flex')
       expect((await page.locator('.user-menu').boundingBox())?.y).toBeLessThan(60)
-      await expect(page.locator('body')).toHaveCSS('font-family', /^Inter, "Inter Fallback"/)
+      await expect(page.locator('body')).toHaveCSS('font-family', /^Inter, "?Inter Fallback"?/)
     }
   })
 })
