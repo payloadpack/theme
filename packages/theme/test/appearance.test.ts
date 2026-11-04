@@ -64,7 +64,9 @@ it('drops characters, palettes, options and values the settings do not allow', (
 })
 
 it('keeps a custom palette only when every color is a lowercase #rrggbb, and picks it only when it exists', () => {
-  expect(normalize(settings, { custom: { ...custom, extra: true, light: { ...custom.light, glow: '#000000' } } })).toEqual({ custom })
+  expect(normalize(settings, { custom: { ...custom, extra: true, light: { ...custom.light, glow: '#000000' } } })).toEqual({
+    custom
+  })
   expect(normalize(settings, { custom: { ...custom, accent: '#C2410C' }, palette: 'custom' })).toEqual({})
   expect(normalize(settings, { custom: { ...custom, dark: { ...custom.dark, text: 'white' } } })).toEqual({})
   expect(normalize(settings, { palette: 'custom' })).toEqual({})
@@ -119,12 +121,18 @@ it('ignores the cookie when the panel is off for the user, and never asks withou
   expect(isEditable(() => false, undefined)).toBe(true)
 })
 
-it('rejects text that is not a JSON object', () => {
+it('drops the custom palette when the developer allows a single palette', () => {
+  expect(normalize({ ...settings, palettes: ['neutral'] }, { custom, palette: 'custom' })).toEqual({})
+})
+
+it('rejects text that is not a setup', () => {
   expect(parseChoices(settings, undefined)).toBeUndefined()
   expect(parseChoices(settings, '')).toBeUndefined()
   expect(parseChoices(settings, '{"character":')).toBeUndefined()
   expect(parseChoices(settings, '"stock"')).toBeUndefined()
   expect(parseChoices(settings, '["stock"]')).toBeUndefined()
+  expect(parseChoices(settings, '{}')).toBeUndefined()
+  expect(parseChoices(settings, '{"name":"stock"}')).toBeUndefined()
   expect(parseChoices(settings, '{"character":"stock"}')).toEqual({ character: 'stock' })
 })
 

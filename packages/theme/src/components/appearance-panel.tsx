@@ -1,7 +1,7 @@
 'use client'
 
 import { Button, useConfig, useTheme, useTranslation, XIcon } from '@payloadcms/ui'
-import { type ReactNode, useEffect, useId, useState } from 'react'
+import { type ReactNode, useEffect, useId, useRef, useState } from 'react'
 
 import { characters as registry, type Option, options } from '../characters/index.js'
 import { type Base, bases, type CustomPalette, customPalette, paletteCss } from '../lib/appearance.js'
@@ -20,7 +20,7 @@ const capitalize = (text: string) => `${text[0].toUpperCase()}${text.slice(1)}`
 
 type ChoiceGroupProps<V extends string> = {
   children?: ReactNode
-  choices: { label: ReactNode; name?: string; value: V }[]
+  choices: { label: ReactNode; value: V }[]
   className: string
   label: string
   onChange: (value: V) => void
@@ -71,10 +71,41 @@ export function AppearanceButton({ place }: { place?: 'nav' }) {
   )
 }
 
-function ColorField({ label, onChange, value }: { label: string; onChange: (value: string) => void; value: string }) {
+function useFeedback<T>() {
+  const [value, setValue] = useState<T>()
+
+  useEffect(() => {
+    if (value === undefined) {
+      return
+    }
+    const timeout = setTimeout(() => setValue(undefined), FEEDBACK_MS)
+    return () => clearTimeout(timeout)
+  }, [value])
+
+  return [value, setValue] as const
+}
+
+function ColorField({
+  label,
+  onChange,
+  value
+}: {
+  label: string
+  onChange: (value: string, persist?: boolean) => void
+  value: string
+}) {
+  const input = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    const element = input.current
+    const commit = () => element && onChange(element.value)
+    element?.addEventListener('change', commit)
+    return () => element?.removeEventListener('change', commit)
+  }, [onChange])
+
   return (
     <label className="payloadpack-appearance-panel__color">
-      <input onChange={(event) => onChange(event.target.value)} type="color" value={value} />
+      <input onChange={(event) => onChange(event.target.value, false)} ref={input} type="color" value={value} />
       {label}
     </label>
   )
@@ -89,7 +120,6 @@ function ChoiceGroup<V extends string>({ children, choices, className, label, on
       <div aria-labelledby={id} className={className} role="group">
         {choices.map((choice) => (
           <button
-            aria-label={choice.name}
             aria-pressed={choice.value === selected}
             key={choice.value}
             onClick={() => onChange(choice.value)}
@@ -122,8 +152,8 @@ export function AppearanceSheet() {
   const { autoMode, setTheme, theme } = useTheme()
   const { config } = useConfig()
   const { t } = useTranslation<object, TranslationKey>()
-  const [copied, setCopied] = useState<string>()
-  const [rejectedAt, setRejectedAt] = useState<number>()
+  const [copied, setCopied] = useFeedback<string>()
+  const [rejectedAt, setRejectedAt] = useFeedback<number>()
   const json = JSON.stringify(setup, null, 2)
   const css = custom && paletteCss(customPalette, custom)
   const isRejected = rejectedAt !== undefined
@@ -135,24 +165,13 @@ export function AppearanceSheet() {
   }
 
   const pasteFromClipboard = async () => {
-    setRejectedAt(paste(await navigator.clipboard.readText()) ? undefined : Date.now())
+    const text = await navigator.clipboard.readText().catch(() => '')
+    setRejectedAt(paste(text) ? undefined : Date.now())
   }
-
-  useEffect(() => {
-    if (rejectedAt === undefined) {
-      return
-    }
-    const timeout = setTimeout(() => setRejectedAt(undefined), FEEDBACK_MS)
-    return () => clearTimeout(timeout)
-  }, [rejectedAt])
 
   return (
     <div className="payloadpack-appearance-panel">
-      <dialog
-        aria-labelledby={`${SHEET_ID}-title`}
-        className="payloadpack-appearance-panel__sheet"
-        id={SHEET_ID}
-        popover="auto">
+      <dialog aria-labelledby={`${SHEET_ID}-title`} className="payloadpack-appearance-panel__sheet" id={SHEET_ID} popover="auto">
         <header className="payloadpack-appearance-panel__header">
           <div>
             <h2 id={`${SHEET_ID}-title`}>{t('payloadpack:appearance')}</h2>
@@ -261,7 +280,9 @@ export function AppearanceSheet() {
                         <ColorField
                           key={base}
                           label={t(`payloadpack:${base}`)}
-                          onChange={(value) => setCustom({ ...custom, [half]: { ...custom[half], [base]: value } })}
+                          onChange={(value, persist) =>
+                            setCustom({ ...custom, [half]: { ...custom[half], [base]: value } }, persist)
+                          }
                           value={custom[half][base]}
                         />
                       ))}
@@ -269,7 +290,7 @@ export function AppearanceSheet() {
                   ))}
                   <ColorField
                     label={t('payloadpack:accent')}
-                    onChange={(value) => setCustom({ ...custom, accent: value })}
+                    onChange={(value, persist) => setCustom({ ...custom, accent: value }, persist)}
                     value={custom.accent}
                   />
                   <Button buttonStyle="secondary" onClick={() => copy(css)} size="medium">

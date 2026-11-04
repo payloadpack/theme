@@ -184,7 +184,6 @@ const hardCodedByPayload = [
     declaration: '.popup-button { height: var(--spacer-4, 1.5rem); }'
   },
   { file: 'css/theme.css', selector: ':root', declaration: '--popup-radius: var(--radius-large);' },
-  { file: 'elements/Drawer/index.css', selector: '.drawer__content', declaration: 'transition: transform 100ms ease-out;' },
   { file: 'elements/Dialog/index.css', selector: '.dialog--small', declaration: '--dialog-width: 280px;' },
   {
     file: 'elements/Dialog/index.css',
@@ -463,7 +462,8 @@ describe('theme contract with Payload', () => {
       ...['css/colors.css', 'css/design-tokens.css'].flatMap((file) => declaredProperties(read(path.join(uiDist, file)))),
       ...paletteTokens
     ])
-    const literal = /#[\da-f]{3,8}\b|\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color|color-mix)\(|(?<![\w-])(?:transparent|white|black)(?![\w-])/i
+    const literal =
+      /#[\da-f]{3,8}\b|\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color|color-mix)\(|(?<![\w-])(?:transparent|white|black)(?![\w-])/i
     const colorProperty =
       /^(?:color|background(?:-color)?|border(?:-[a-z]+)*-color|outline-color|fill|stroke|caret-color|accent-color)$/
     const aliasesColor = (value: string) => colorTokens.has(value.match(/^\s*var\(\s*(--[\w-]+)\s*\)\s*$/)?.[1] ?? '')

@@ -37,7 +37,7 @@ type AppearanceContextValue = ReturnType<typeof resolve> & {
   paste: (text: string) => boolean
   rail: boolean
   reset: () => void
-  setCustom: (custom: CustomPalette) => void
+  setCustom: (custom: CustomPalette, persist?: boolean) => void
   setCharacter: (character: Character) => void
   setOption: <O extends Option>(option: O, value: OptionValue<O>) => void
   setPalette: (palette: Palette | typeof customPalette) => void
@@ -120,9 +120,11 @@ export function AppearanceProvider({
   }, [keepsNavOpen, navOpen, setNavOpen])
 
   const context = useMemo(() => {
-    const update = (next: Choices) => {
+    const update = (next: Choices, persist = true) => {
       const normalized = normalize(settings, next)
-      void setPreference(preferenceKey, () => normalized)
+      if (persist) {
+        void setPreference(preferenceKey, () => normalized)
+      }
       setChoices(normalized)
     }
 
@@ -133,14 +135,21 @@ export function AppearanceProvider({
       paste: (text: string) => {
         const pasted = parseChoices(settings, text)
         if (pasted) {
-          update(pasted)
+          const pastedCharacter = pasted.character ?? settings.character
+          update({
+            character: pasted.character,
+            custom: pasted.custom ?? choices.custom,
+            options: { ...choices.options, [pastedCharacter]: pasted.options?.[pastedCharacter] },
+            palette: pasted.palette
+          })
         }
         return pasted !== undefined
       },
       rail,
       reset: () => update({}),
       setCharacter: (next: Character) => update({ ...choices, character: next }),
-      setCustom: (next: CustomPalette) => update({ ...choices, custom: next, palette: customPalette }),
+      setCustom: (next: CustomPalette, persist?: boolean) =>
+        update({ ...choices, custom: next, palette: customPalette }, persist),
       setOption: <O extends Option>(option: O, value: OptionValue<O>) =>
         update({
           ...choices,

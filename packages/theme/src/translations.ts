@@ -49,7 +49,7 @@ const payloadpack = {
   reset: 'Reset',
   stockNote: "Stock keeps Payload's own layout. It has no options.",
   surface: 'Surface',
-  text: 'Text',
+  text: 'Text'
 } satisfies Record<OptionKey, string> & Record<string, string>
 
 export const translations = { payloadpack }

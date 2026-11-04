@@ -32,15 +32,27 @@ const size = async (page: Page, selector: string) => {
   return box && { height: box.height, width: box.width }
 }
 
-const computedColor = (page: Page, color: string) =>
-  page.evaluate((value) => {
-    const probe = document.createElement('div')
-    probe.style.color = value
-    document.body.append(probe)
-    const computed = getComputedStyle(probe).color
-    probe.remove()
-    return computed
-  }, color)
+const computedColor = (page: Page, color: string, theme?: string) =>
+  page.evaluate(
+    ([value, mode]) => {
+      const probe = document.createElement('div')
+      if (mode) {
+        probe.dataset.theme = mode
+      }
+      probe.style.color = value
+      document.body.append(probe)
+      const computed = getComputedStyle(probe).color
+      probe.remove()
+      return computed
+    },
+    [color, theme] as const
+  )
+
+const hex = (rgb: string) =>
+  `#${(rgb.match(/\d+/g) ?? [])
+    .slice(0, 3)
+    .map((channel) => Number(channel).toString(16).padStart(2, '0'))
+    .join('')}`
 
 const nearColor = async (page: Page, actual: string, expected: string) => {
   const [a, b] = [await channels(page, 'oklab', actual), await channels(page, 'oklab', expected)]
@@ -77,7 +89,7 @@ test.describe('Logged out', () => {
     await expect(page.locator('html')).toHaveAttribute('data-icons', 'lucide')
     await expect(page.locator('html')).toHaveAttribute('data-motion', 'on')
     await expect(page.locator('html')).toHaveAttribute('data-palette', 'neutral')
-    await expect(page.locator('html')).toHaveCSS('background-color', 'rgb(15, 15, 14)')
+    await expect(page.locator('html')).toHaveCSS('background-color', await computedColor(page, 'var(--payloadpack-surface)'))
   })
 
   test('ignores unknown cookie values', async ({ page }) => {
@@ -253,7 +265,9 @@ test.describe('Appearance panel', () => {
     await elsewhere.close()
   })
 
-  test('sits left of the nav toggle under Enhanced, right of it under Studio, and in the header when the nav is closed or Stock', async ({ page }) => {
+  test('sits left of the nav toggle under Enhanced, right of it under Studio, and in the header when the nav is closed or Stock', async ({
+    page
+  }) => {
     const button = page.getByRole('button', { name: 'Appearance' })
     const beside = async () => {
       const [trigger, toggle] = [(await button.boundingBox())!, (await page.locator('.payloadpack-rail-toggle').boundingBox())!]
@@ -282,7 +296,9 @@ test.describe('Appearance panel', () => {
   })
 
   for (const theme of ['light', 'dark']) {
-    test(`the nav toggle, the Appearance button, nav links and group headings share one hover in ${theme} mode`, async ({ page }) => {
+    test(`the nav toggle, the Appearance button, nav links and group headings share one hover in ${theme} mode`, async ({
+      page
+    }) => {
       await page.context().addCookies([cookie('theme', theme)])
       await page.goto('/admin')
       const hovered = async (locator: Locator, pseudo?: string) => {
@@ -435,7 +451,9 @@ test.describe('Theme values', () => {
     expect(layout[0].radioRight).toBe(layout[0].right - 17)
 
     await expect
-      .poll(async () => nearColor(page, await style(page, '.payloadpack-radio-cards .radio-input', 'background-color'), '#20201e'))
+      .poll(async () =>
+        nearColor(page, await style(page, '.payloadpack-radio-cards .radio-input', 'background-color'), '#20201e')
+      )
       .toBe(true)
     await expect(cards.nth(1)).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
     await expect(cards.first().locator('.radio-input__label > :last-child')).toHaveCSS('color', 'rgb(163, 162, 155)')
@@ -452,15 +470,19 @@ test.describe('Theme values', () => {
     expect(box?.width).toBeCloseTo(41.2, 1)
     await expect(track).toHaveCSS('grid-template-columns', /^0px 17\.\d+px 17\.\d+px$/)
     await expect(track).toHaveCSS('border-top-color', 'rgba(0, 0, 0, 0)')
-    await expect(track).toHaveCSS('background-color', await computedColor(page, 'color-mix(in srgb, #f3f2ed 20%, transparent)'))
-    expect(await style(page, `.${SWITCH} .checkbox-input__visuals`, 'background-color', '::before')).toBe('rgb(243, 242, 237)')
+    await expect(track).toHaveCSS('background-color', await computedColor(page, 'var(--payloadpack-toggle-border)'))
+    expect(await style(page, `.${SWITCH} .checkbox-input__visuals`, 'background-color', '::before')).toBe(
+      await computedColor(page, 'var(--ramp-white-1000)')
+    )
 
     await field.getByText('Notify subscribers').click()
     await expect(field.getByRole('checkbox')).toBeChecked()
     await expect(track).toHaveCSS('grid-template-columns', /^17\.\d+px 17\.\d+px 0px$/)
     await expect(track).toHaveCSS('border-top-color', 'rgba(0, 0, 0, 0)')
-    await expect(track).toHaveCSS('background-color', 'rgb(243, 242, 237)')
-    expect(await style(page, `.${SWITCH} .checkbox-input__visuals`, 'background-color', '::before')).toBe('oklch(0 0 0)')
+    await expect(track).toHaveCSS('background-color', await computedColor(page, 'var(--payloadpack-toggle-checked-bg)'))
+    expect(await style(page, `.${SWITCH} .checkbox-input__visuals`, 'background-color', '::before')).toBe(
+      await computedColor(page, 'var(--payloadpack-toggle-mark)')
+    )
 
     const indent = await field.evaluate((root) => {
       const description = root.querySelector('.field-description') as HTMLElement
@@ -536,7 +558,14 @@ test.describe('Theme values', () => {
         const look = (locator: Locator) =>
           locator.evaluate((element) => {
             const style = getComputedStyle(element)
-            const properties = ['padding-top', 'padding-left', 'gap', 'border-top-width', 'border-top-color', 'border-top-left-radius']
+            const properties = [
+              'padding-top',
+              'padding-left',
+              'gap',
+              'border-top-width',
+              'border-top-color',
+              'border-top-left-radius'
+            ]
             return {
               height: element.getBoundingClientRect().height,
               ...Object.fromEntries(
@@ -576,7 +605,9 @@ test.describe('Theme values', () => {
   })
 
   for (const character of ['enhanced', 'studio']) {
-    test(`${character} widens the nav and lines it up on one gutter, with the group chevron inside its ring`, async ({ page }) => {
+    test(`${character} widens the nav and lines it up on one gutter, with the group chevron inside its ring`, async ({
+      page
+    }) => {
       await page.context().addCookies([appearance({ character })])
       await page.goto('/admin')
       const group = page.locator('.nav-group__toggle').first()
@@ -585,7 +616,12 @@ test.describe('Theme values', () => {
         const box = (selector: string) => document.querySelector(selector)!.getBoundingClientRect()
         const link = document.querySelector('.nav__link')!
         const ring = getComputedStyle(link, '::before')
-        const [row, tabs, chevron, toggle] = [link.getBoundingClientRect(), box('.sidebar-tabs__tabs'), box('.nav-group__indicator'), box('.nav-group__toggle')]
+        const [row, tabs, chevron, toggle] = [
+          link.getBoundingClientRect(),
+          box('.sidebar-tabs__tabs'),
+          box('.nav-group__indicator'),
+          box('.nav-group__toggle')
+        ]
         return {
           chevron: toggle.right - chevron.right,
           highlight: [row.left + parseFloat(ring.left), row.right - parseFloat(ring.right)],
@@ -599,7 +635,9 @@ test.describe('Theme values', () => {
       expect(nav.chevron).toBe(20)
       expect(await style(page, '.nav-group__toggle', 'font-size')).toBe('12px')
       expect(await style(page, '.nav-group:not(:first-child)', 'margin-left', '::before')).toBe('12px')
-      expect(await style(page, '.nav-group__toggle', 'inset', '::before')).toBe(await style(page, '.nav__link', 'inset', '::before'))
+      expect(await style(page, '.nav-group__toggle', 'inset', '::before')).toBe(
+        await style(page, '.nav__link', 'inset', '::before')
+      )
     })
   }
 
@@ -777,9 +815,7 @@ test.describe('Motion', () => {
       )
 
     await select(page).click()
-    await expect
-      .poll(transitions)
-      .toEqual(expect.arrayContaining(['rs__menu opacity', 'rs__menu scale', 'rs__menu translate']))
+    await expect.poll(transitions).toEqual(expect.arrayContaining(['rs__menu opacity', 'rs__menu scale', 'rs__menu translate']))
   })
 
   test('loading a Studio page below 1440px runs no layout transitions', async ({ page }) => {
@@ -908,7 +944,13 @@ test.describe('Neutral palette', () => {
       await page.context().addCookies([cookie('theme', theme)])
       await page.goto('/admin/collections/showcase')
 
-      for (const token of ['--color-bg-selected', '--color-text-selected', '--color-icon-brand', '--color-text-brand', '--ramp-blue-500']) {
+      for (const token of [
+        '--color-bg-selected',
+        '--color-text-selected',
+        '--color-icon-brand',
+        '--color-text-brand',
+        '--ramp-blue-500'
+      ]) {
         const [, chroma] = await channels(page, 'oklch', await computedColor(page, `var(${token})`))
         expect(chroma, `${theme} ${token}`).toBeLessThan(0.02)
       }
@@ -922,8 +964,14 @@ test.describe('Neutral palette', () => {
     await featured.getByRole('checkbox').check()
     await page.mouse.move(0, 0)
 
-    await expect(featured.locator('.checkbox-input__visuals')).toHaveCSS('background-color', 'rgb(243, 242, 237)')
-    await expect(featured.locator('.checkbox-input__check')).toHaveCSS('background-color', 'oklch(0 0 0)')
+    await expect(featured.locator('.checkbox-input__visuals')).toHaveCSS(
+      'background-color',
+      await computedColor(page, 'var(--payloadpack-text)')
+    )
+    await expect(featured.locator('.checkbox-input__check')).toHaveCSS(
+      'background-color',
+      await computedColor(page, 'var(--payloadpack-toggle-mark)')
+    )
     expect(await style(page, '.field-type.checkbox .checkbox-input__check', 'mask-image')).toContain('data:image/svg+xml')
     expect(await size(page, '.field-type.checkbox .checkbox-input__input')).toEqual({ height: 18, width: 18 })
     expect(await size(page, '.field-type.checkbox .checkbox-input__check')).toEqual({ height: 18, width: 18 })
@@ -949,7 +997,7 @@ test.describe('Neutral palette', () => {
     await expect(visuals).toHaveCSS('background-color', hovered)
     await page.mouse.up()
 
-    await expect(visuals).toHaveCSS('background-color', 'rgb(243, 242, 237)')
+    await expect(visuals).toHaveCSS('background-color', await computedColor(page, 'var(--payloadpack-text)'))
   })
 
   test('radios share the checkbox look and focus ring', async ({ page }) => {
@@ -970,9 +1018,9 @@ test.describe('Neutral palette', () => {
     }
 
     await radio('m').click()
-    await expect(radio('m')).toHaveCSS('background-color', 'rgb(243, 242, 237)')
+    await expect(radio('m')).toHaveCSS('background-color', await computedColor(page, 'var(--payloadpack-text)'))
     expect(await radio('m').evaluate((element) => getComputedStyle(element, '::before').backgroundColor)).toBe(
-      'oklch(0 0 0)'
+      await computedColor(page, 'var(--payloadpack-toggle-mark)')
     )
     expect(await radio('m').boundingBox()).toMatchObject({ height: 18, width: 18 })
 
@@ -982,17 +1030,38 @@ test.describe('Neutral palette', () => {
     await expect(checkbox).toHaveCSS('box-shadow', /0px 0px 0px 3px/)
   })
 
-  test('near-black dark palette', async ({ page }) => {
+  test('near-black dark palette, with the nav a step below the page', async ({ page }) => {
     await openShowcase(page)
+    const [surface, background] = [
+      await computedColor(page, 'var(--payloadpack-surface)'),
+      await computedColor(page, 'var(--payloadpack-background)')
+    ]
+    const [[surfaceLightness], [backgroundLightness]] = [
+      await channels(page, 'oklab', surface),
+      await channels(page, 'oklab', background)
+    ]
 
-    await expect(page.locator('html')).toHaveCSS('background-color', 'rgb(15, 15, 14)')
-    await expect(page.locator('.nav')).toHaveCSS('background-color', 'rgb(10, 10, 9)')
-    await expect(page.locator('body')).toHaveCSS('color', 'rgb(243, 242, 237)')
+    expect(surfaceLightness).toBeLessThan(0.2)
+    expect(backgroundLightness).toBeLessThan(surfaceLightness)
+    await expect(page.locator('html')).toHaveCSS('background-color', surface)
+    await expect(page.locator('.nav')).toHaveCSS('background-color', background)
+    await expect(page.locator('body')).toHaveCSS('color', await computedColor(page, 'var(--payloadpack-text)'))
     await expect
-      .poll(async () => nearColor(page, await style(page, '.field-type.text input', 'background-color'), '#181817'))
+      .poll(async () =>
+        nearColor(
+          page,
+          await style(page, '.field-type.text input', 'background-color'),
+          await computedColor(page, 'var(--color-bg-elevated)')
+        )
+      )
       .toBe(true)
-    await expect(page.locator('.field-type.text input').first()).toHaveCSS('border-top-color', 'rgb(42, 42, 39)')
-    expect(await style(page, 'html', '--accessibility-focus-color')).toBe('#f3f2ed')
+    await expect(page.locator('.field-type.text input').first()).toHaveCSS(
+      'border-top-color',
+      await computedColor(page, 'var(--color-border)')
+    )
+    expect(await computedColor(page, 'var(--accessibility-focus-color)')).toBe(
+      await computedColor(page, 'var(--payloadpack-text)')
+    )
 
     await page.getByRole('button', { name: 'More options' }).first().click()
     const popup = page.locator('.popup__content:visible').first()
@@ -1032,9 +1101,12 @@ test.describe('Neutral palette', () => {
     await page.getByRole('button', { name: 'Error', exact: true }).click()
     const error = page.locator('.payload-toast-item[data-type="error"]')
 
-    await expect(error).toHaveCSS('background-color', 'rgb(255, 255, 255)')
+    await expect(error).toHaveCSS('background-color', await computedColor(page, 'var(--payloadpack-surface)'))
     await expect(error).toHaveCSS('border-radius', '9px')
-    await expect(error.locator('.payload-toast-close-button')).toHaveCSS('color', 'rgb(17, 17, 17)')
+    await expect(error.locator('.payload-toast-close-button')).toHaveCSS(
+      'color',
+      await computedColor(page, 'var(--payloadpack-text)')
+    )
     const lightTint = await computedColor(page, await style(page, '.toast-error', '--payloadpack-toast-icon'))
     await expect(error.locator('.toast-icon .icon')).toHaveCSS('color', lightTint)
     expect(await style(page, '.toast-error .toast-icon svg', '--payloadpack-icon')).toContain('octagon-x')
@@ -1060,7 +1132,9 @@ test.describe('Every palette but Payload', () => {
       test.beforeEach(({ page }) => page.context().addCookies([appearance({ palette })]))
 
       for (const theme of ['light', 'dark']) {
-        test(`menu items light up neutral and visible against the menu, icon and background at once, in ${theme} mode`, async ({ page }) => {
+        test(`menu items light up neutral and visible against the menu, icon and background at once, in ${theme} mode`, async ({
+          page
+        }) => {
           await page.context().addCookies([cookie('theme', theme)])
           await page.goto((await findShowcase(page)).path)
           await page.getByRole('button', { name: 'More options' }).first().click()
@@ -1068,7 +1142,11 @@ test.describe('Every palette but Payload', () => {
           await item.hover()
 
           const colors = await item.evaluate((element) => {
-            const [style, icon, menu] = [getComputedStyle(element), getComputedStyle(element, '::before'), getComputedStyle(element.closest('.popup__content')!)]
+            const [style, icon, menu] = [
+              getComputedStyle(element),
+              getComputedStyle(element, '::before'),
+              getComputedStyle(element.closest('.popup__content')!)
+            ]
             const probe = document.createElement('div')
             probe.style.color = 'var(--color-text)'
             element.append(probe)
@@ -1211,12 +1289,7 @@ test.describe('Payload palette', () => {
     })
 
     expect(total).toBeGreaterThan(0)
-    const ownClasses = [
-      `.${VERTICAL_TABS}`,
-      `.${RADIO_CARDS}`,
-      `.${SWITCH}`,
-      '.payloadpack-appearance-panel'
-    ]
+    const ownClasses = [`.${VERTICAL_TABS}`, `.${RADIO_CARDS}`, `.${SWITCH}`, '.payloadpack-appearance-panel']
     for (const scope of ownClasses) {
       expect(
         applied.some((selector) => selector.startsWith(scope)),
@@ -1234,12 +1307,23 @@ test.describe('Custom palette', () => {
     cookie('theme', theme)
   ]
 
-  test('New palette starts from the current palette, applies each color at once and keeps it through a reload', async ({ page }) => {
+  test('New palette starts from the current palette, applies each color at once and keeps it through a reload', async ({
+    page
+  }) => {
     await page.context().addCookies([cookie('theme', 'light')])
     await page.goto('/admin/collections/showcase')
     const html = page.locator('html')
     const header = page.locator('.nav__header')
     const sheet = await openAppearancePanel(page)
+    const neutral = async (token: string, theme: string) => hex(await computedColor(page, `var(${token})`, theme))
+    const expected = {
+      accent: await neutral('--payloadpack-accent', 'light'),
+      darkBackground: await neutral('--payloadpack-background', 'dark'),
+      darkPrimary: await neutral('--payloadpack-primary', 'dark'),
+      darkText: await neutral('--payloadpack-text', 'dark'),
+      lightBackground: await neutral('--payloadpack-background', 'light'),
+      lightPrimary: await neutral('--payloadpack-primary', 'light')
+    }
 
     await pickAndSave(page, sheet.getByRole('button', { name: 'New palette' }))
     await expect(html).toHaveAttribute('data-palette', 'custom')
@@ -1247,17 +1331,66 @@ test.describe('Custom palette', () => {
       'aria-pressed',
       'true'
     )
-    await expect(field(sheet, 'Light', 'Background')).toHaveValue('#f5f5f5')
-    await expect(field(sheet, 'Light', 'Primary')).toHaveValue('#111111')
-    await expect(field(sheet, 'Dark', 'Primary')).toHaveValue('#f3f2ed')
-    await expect(field(sheet, 'Dark', 'Background')).toHaveValue('#0a0a09')
-    await expect(field(sheet, 'Dark', 'Text')).toHaveValue('#f3f2ed')
-    await expect(sheet.getByLabel('Accent')).toHaveValue('#111111')
+    await expect(field(sheet, 'Light', 'Background')).toHaveValue(expected.lightBackground)
+    await expect(field(sheet, 'Light', 'Primary')).toHaveValue(expected.lightPrimary)
+    await expect(field(sheet, 'Dark', 'Primary')).toHaveValue(expected.darkPrimary)
+    await expect(field(sheet, 'Dark', 'Background')).toHaveValue(expected.darkBackground)
+    await expect(field(sheet, 'Dark', 'Text')).toHaveValue(expected.darkText)
+    await expect(sheet.getByLabel('Accent')).toHaveValue(expected.accent)
 
     await Promise.all([saved(page), field(sheet, 'Light', 'Background').fill('#eae6df')])
     await expect(header).toHaveCSS('background-color', 'rgb(234, 230, 223)')
     await page.reload()
     await expect(header).toHaveCSS('background-color', 'rgb(234, 230, 223)')
+  })
+
+  test('saves a dragged color once, when the picker commits', async ({ page }) => {
+    await page.context().addCookies(custom('#c2410c'))
+    await page.goto('/admin')
+    const sheet = await openAppearancePanel(page)
+    const saves: string[] = []
+    page.on('request', (request) => {
+      if (request.url().endsWith('/api/payload-preferences/payloadpack-appearance') && request.method() === 'POST') {
+        saves.push(request.url())
+      }
+    })
+
+    await field(sheet, 'Light', 'Background').evaluate((input: HTMLInputElement) => {
+      const setValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!
+      for (const value of ['#101010', '#202020', '#303030']) {
+        setValue.call(input, value)
+        input.dispatchEvent(new Event('input', { bubbles: true }))
+      }
+      input.dispatchEvent(new Event('change', { bubbles: true }))
+    })
+
+    await expect(page.locator('.nav__header')).toHaveCSS('background-color', 'rgb(48, 48, 48)')
+    await expect.poll(() => saves.length).toBe(1)
+    await page.waitForLoadState('networkidle')
+    expect(saves).toHaveLength(1)
+  })
+
+  test("pasting a setup keeps your own palette and your other characters' options", async ({ context, page }) => {
+    await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+    await page.context().addCookies([
+      appearance({
+        character: 'studio',
+        custom: customPalette('#be185d'),
+        options: { studio: { font: 'payload' } },
+        palette: 'neutral'
+      })
+    ])
+    await page.goto('/admin')
+    const sheet = await openAppearancePanel(page)
+
+    await page.evaluate(() => navigator.clipboard.writeText(JSON.stringify({ character: 'enhanced', palette: 'studio' })))
+    await pickAndSave(page, sheet.getByRole('button', { name: 'Paste setup' }))
+    await expect(page.locator('html')).toHaveAttribute('data-character', 'enhanced')
+    await expect(page.locator('html')).toHaveAttribute('data-palette', 'studio')
+    await expect(sheet.getByRole('group', { name: 'Palette' }).getByRole('button', { name: 'Custom' })).toBeVisible()
+
+    await pickAndSave(page, sheet.getByRole('group', { name: 'Character' }).getByRole('button', { name: 'Studio' }))
+    await expect(page.locator('html')).toHaveAttribute('data-font', 'payload')
   })
 
   test('stays in the setup while another palette is picked', async ({ page }) => {
@@ -1284,12 +1417,16 @@ test.describe('Custom palette', () => {
     const css = await page.evaluate(() => navigator.clipboard.readText())
     expect(css).toContain('--payloadpack-accent: #c2410c;')
     const rendered = await page.evaluate(() =>
-      [...document.querySelectorAll('style')].map((element) => element.textContent).find((text) => text?.includes("[data-palette='custom']"))
+      [...document.querySelectorAll('style')]
+        .map((element) => element.textContent)
+        .find((text) => text?.includes("[data-palette='custom']"))
     )
     expect(rendered).toBe(css)
   })
 
-  test("the palette's primary fills primary buttons and checked toggles in light and dark, apart from the accent", async ({ page }) => {
+  test("the palette's primary fills primary buttons and checked toggles in light and dark, apart from the accent", async ({
+    page
+  }) => {
     await page.context().addCookies(custom('#c2410c', { primary: '#2563eb' }))
     await page.goto('/admin/collections/showcase')
     const primary = page.locator('.btn--style-primary:visible').first()
@@ -1315,7 +1452,9 @@ test.describe('Custom palette', () => {
     await expect(primary).toHaveCSS('color', 'oklch(1 0 0)')
   })
 
-  test('selected text takes an ink of the accent in light mode, and the selected nav link is a neutral raised pill', async ({ page }) => {
+  test('selected text takes an ink of the accent in light mode, and the selected nav link is a neutral raised pill', async ({
+    page
+  }) => {
     await page.context().addCookies(custom('#c2410c'))
     await page.goto('/admin/collections/showcase')
     const [, , accentHue] = await channels(page, 'oklch', '#c2410c')
@@ -1343,7 +1482,9 @@ test.describe('Custom palette', () => {
     expect((await channels(page, 'oklch', await bar('#ffffff')))[0]).toBeCloseTo(0.6, 2)
   })
 
-  test('a white accent keeps selected items visible, and a white primary keeps its button edge, in light mode', async ({ page }) => {
+  test('a white accent keeps selected items visible, and a white primary keeps its button edge, in light mode', async ({
+    page
+  }) => {
     await page.context().addCookies(custom('#ffffff'))
     await page.goto('/admin/collections/showcase')
     const oklab = async (selector: string, property: string, pseudo?: string) =>
@@ -1493,9 +1634,12 @@ test.describe('Rail', () => {
     await page.mouse.wheel(0, 600)
     const showcase = page.locator('#nav-showcase')
     const label = showcase.locator('.nav__link-label')
-    await page.locator('.doc-controls').evaluate((controls, link) => {
-      controls.style.marginTop = `${link!.getBoundingClientRect().top - controls.getBoundingClientRect().top}px`
-    }, await showcase.elementHandle())
+    await page.locator('.doc-controls').evaluate(
+      (controls, link) => {
+        controls.style.marginTop = `${link!.getBoundingClientRect().top - controls.getBoundingClientRect().top}px`
+      },
+      await showcase.elementHandle()
+    )
     await page.addStyleTag({ content: '.nav__link-label { pointer-events: auto; }' })
     await showcase.hover()
 
@@ -1689,6 +1833,7 @@ test.describe('Studio character', () => {
         return [...document.fonts].some((font) => font.family === 'payloadpack-geist' && font.status === 'loaded')
       })
     ).toBe(true)
+    expect(fonts.every((hostname) => hostname === 'localhost')).toBe(true)
 
     await page.context().addCookies([studio({ font: 'payload' })])
     await page.reload()
@@ -1719,12 +1864,15 @@ test.describe('Studio palette', () => {
     await page.context().addCookies([appearance({ character: 'studio', palette: 'studio' }), cookie('theme', 'light')])
     await page.goto((await findShowcase(page)).path)
 
-    await expect(page.locator('.btn--style-primary:visible').first()).toHaveCSS('background-color', 'rgb(28, 27, 24)')
+    await expect(page.locator('.btn--style-primary:visible').first()).toHaveCSS(
+      'background-color',
+      await computedColor(page, 'var(--payloadpack-text)')
+    )
     const bar = await page
       .locator('.tabs__tab-button--active')
       .first()
       .evaluate((element) => getComputedStyle(element, '::after').backgroundColor)
-    expect(await nearColor(page, bar, '#c2410c')).toBe(true)
+    expect(await nearColor(page, bar, await computedColor(page, 'var(--payloadpack-accent)'))).toBe(true)
   })
 
   test('tints the field from the accent in light and dark, with cards on top', async ({ page }) => {
@@ -1732,18 +1880,29 @@ test.describe('Studio palette', () => {
     await page.goto('/admin/collections/showcase')
     const field = page.locator('.template-default')
     const card = page.locator('.template-default__wrap')
+    const followsAccent = async (read: () => Promise<string>) => {
+      const before = await read()
+      await page.evaluate(() => document.documentElement.style.setProperty('--payloadpack-accent', '#0057ff'))
+      const after = await read()
+      await page.evaluate(() => document.documentElement.style.removeProperty('--payloadpack-accent'))
+      return before !== after
+    }
 
-    await expect(field).toHaveCSS('background-color', await computedColor(page, 'color-mix(in oklab, #c2410c 2%, #f4f3ef)'))
-    await expect(card).toHaveCSS('background-color', 'rgb(255, 255, 255)')
-    await expect(page.locator('.nav')).toHaveCSS('background-color', await computedColor(page, 'color-mix(in oklab, #c2410c 2%, #f4f3ef)'))
+    for (const theme of ['light', 'dark']) {
+      await page.context().addCookies([appearance({ character: 'studio', palette: 'studio' }), cookie('theme', theme)])
+      await page.reload()
+      const [background, surface] = [
+        await computedColor(page, 'var(--payloadpack-background)'),
+        await computedColor(page, 'var(--payloadpack-surface)')
+      ]
 
-    await page.context().addCookies([appearance({ character: 'studio', palette: 'studio' }), cookie('theme', 'dark')])
-    await page.reload()
-    await expect(field).toHaveCSS('background-color', await computedColor(page, 'color-mix(in oklab, #c2410c 5%, #131312)'))
-    await expect(card).toHaveCSS('background-color', await computedColor(page, 'color-mix(in oklab, #c2410c 2%, #1c1c1b)'))
-    expect(await computedColor(page, 'var(--color-bg-selected)')).toBe(
-      await computedColor(page, 'color-mix(in oklab, #c2410c 40%, color-mix(in oklab, #c2410c 2%, #1c1c1b))')
-    )
+      await expect(field).toHaveCSS('background-color', background)
+      await expect(page.locator('.nav')).toHaveCSS('background-color', background)
+      await expect(card).toHaveCSS('background-color', surface)
+      expect(await followsAccent(() => style(page, '.template-default', 'background-color')), theme).toBe(true)
+      expect((await channels(page, 'oklab', surface))[0]).toBeGreaterThan((await channels(page, 'oklab', background))[0])
+    }
+    expect(await followsAccent(() => computedColor(page, 'var(--color-bg-selected)'))).toBe(true)
   })
 
   test('tints the nav under Enhanced too', async ({ page }) => {
@@ -1752,8 +1911,11 @@ test.describe('Studio palette', () => {
 
     await expect(page.locator('.nav__header')).toHaveCSS(
       'background-color',
-      await computedColor(page, 'color-mix(in oklab, #c2410c 2%, #f4f3ef)')
+      await computedColor(page, 'var(--payloadpack-background)')
     )
-    await expect(page.locator('.template-default__wrap')).toHaveCSS('background-color', 'rgb(255, 255, 255)')
+    await expect(page.locator('.template-default__wrap')).toHaveCSS(
+      'background-color',
+      await computedColor(page, 'var(--payloadpack-surface)')
+    )
   })
 })

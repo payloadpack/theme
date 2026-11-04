@@ -119,7 +119,7 @@ A setup is what an editor picked: a character, that character's options, a palet
 - The same setup is mirrored into a `<cookiePrefix>-appearance` cookie, which the server uses on the login page and every other signed-out view. With no saved preference yet, the cookie applies for signed-in editors too.
 - `panel` is not called on signed-out views, which have no user. The cookie applies there unless `panel` is `false`.
 - Reset clears the setup: the preference and the cookie.
-- Sharing: **Copy setup** copies the setup as JSON, with the character and palette always included, so another editor gets the same look. **Paste setup** reads a copied setup from the clipboard, checks it like any other, and says so for a moment when the clipboard holds no valid setup. A developer can paste the same JSON into `themePlugin()` to make it the site default, unless it uses the editor's own palette.
+- Sharing: **Copy setup** copies the setup as JSON, with the character and palette always included, so another editor gets the same look. **Paste setup** reads a copied setup from the clipboard, checks it like any other, and says so for a moment when the clipboard holds no valid setup. A pasted setup replaces the character, its options and the palette, and keeps your own palette and your options for other characters. A developer can paste the same JSON into `themePlugin()` to make it the site default, unless it uses the editor's own palette.
 - The old `admin-theme`, `density` and `icons` cookies are left to expire. There are no shims for the old attributes, cookies or the `appearanceControls` export.
 
 ## Color mode
@@ -128,7 +128,7 @@ Color mode is Payload's own light/dark preference: the panel calls `useTheme().s
 
 ## The Appearance panel
 
-- A Lucide `palette` icon button, on every Default-template view. Under Enhanced and Studio it sits in the nav beside the collapse button (`beforeNav`, placed with CSS anchor positioning): right of it under Studio, left of it under Enhanced, and under it in the rail. Under Stock, on phones and while a `hidden` nav is closed, it is in the header actions (`admin.components.actions`) instead, which also hold the sheet both buttons open. Signed-out views have no slot for it.
+- A Lucide `palette` icon button, on every Default-template view. Under Enhanced and Studio it sits in the nav beside the collapse button (`beforeNav`, placed with CSS anchor positioning): right of it under Studio, left of it under Enhanced, and under it in the rail. Under Stock, on phones and while a `hidden` nav is closed, it is in the header actions (`admin.components.actions`) instead. The sheet both buttons open renders once in the theme's provider, so it also opens on custom views, which render no header actions. Signed-out views have no slot for it.
 - It opens a side sheet docked to the right edge, full height, 360px wide, built on the native `popover` attribute: Escape and a click outside close it. The page stays visible beside it.
 - Below 768px the sheet fills the screen, with a close button in its header.
 - Every change applies at once. There is no Save button.
@@ -202,8 +202,8 @@ src/styles/fields/*
 
 - Each stylesheet stays one `@layer payload` block with one scope selector: `html[data-character='studio']`, `[data-palette='neutral']`, `html[data-density='comfortable']` and so on. A palette's dark version nests under `[data-theme='dark']`.
 - The Payload palette has no stylesheet: it is Payload's own colors.
-- Characters and options set only shapes, sizes, spacing and motion, which the contract test checks. Colors live in the palettes, `accent.css` and the `src/styles` sheets for the panel, the fields and the rail's tooltips.
-- Option stylesheets set Payload's own variables. `accent.css` remaps Payload's blue ramp from `--payloadpack-accent`; a palette's stylesheet builds on the same variable. Where Payload hard-codes a value, the fix goes in the option's stylesheet with a contract-test entry, as `density.css` and `motion.css` do.
+- Characters and options set only shapes, sizes, spacing and motion, which the contract test checks. A character may draw a line in Payload's own `--color-border`, which is Payload's line color rather than a palette color. Colors live in the palettes, `accent.css` and the `src/styles` sheets for the panel, the fields and the rail's tooltips.
+- Option stylesheets set Payload's own variables. `accent.css` remaps Payload's blue ramp from `--payloadpack-accent`; a palette's stylesheet builds on the same variable. Where Payload hard-codes a value, the fix goes in the option's stylesheet with a contract-test entry, as `density.css` does.
 - Characters and palettes are plain typed objects. The plugin config types are derived from the registries. There is no `defineCharacter()` helper.
 
 ## Studio

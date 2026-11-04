@@ -38,17 +38,15 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 const isOptionValue = (option: string, value: unknown) =>
   Object.hasOwn(options, option) && (options[option as Option] as readonly unknown[]).includes(value)
 
-export const hexPattern = /^#[0-9a-f]{6}$/
-
-const isHex = (_: string, value: unknown): value is string => typeof value === 'string' && hexPattern.test(value)
+const isHex = (value: unknown): value is string => typeof value === 'string' && /^#[0-9a-f]{6}$/.test(value)
 
 const baseOf = (value: unknown) =>
-  isRecord(value) && bases.every((base) => isHex(base, value[base]))
+  isRecord(value) && bases.every((base) => isHex(value[base]))
     ? (Object.fromEntries(bases.map((base) => [base, value[base]])) as Base)
     : undefined
 
 const customOf = (value: unknown): CustomPalette | undefined => {
-  if (!isRecord(value) || !isHex('accent', value.accent)) {
+  if (!isRecord(value) || !isHex(value.accent)) {
     return undefined
   }
   const [dark, light] = [baseOf(value.dark), baseOf(value.light)]
@@ -71,7 +69,7 @@ export function normalize(settings: Settings, input: unknown): Choices {
     const values = changed(defaults, pickedOptions[character], isOptionValue)
     return values ? [[character, values]] : []
   })
-  const custom = customOf(raw.custom)
+  const custom = settings.palettes.length > 1 ? customOf(raw.custom) : undefined
   const choices = {
     character: pick(Object.keys(settings.options), settings.character, raw.character),
     custom,
@@ -106,6 +104,8 @@ const declarations = (base: Base, indent: string) =>
 export const paletteCss = (name: string, { accent, dark, light }: CustomPalette) =>
   `[data-palette='${name}'] {\n${declarations(light, '  ')}  --payloadpack-accent: ${accent};\n\n  &[data-theme='dark'],\n  [data-theme='dark']:not([data-palette]) {\n${declarations(dark, '    ')}  }\n}\n`
 
+const setupKeys = ['character', 'custom', 'options', 'palette']
+
 export function parseChoices(settings: Settings, text: string | undefined): Choices | undefined {
   if (!text) {
     return undefined
@@ -113,7 +113,7 @@ export function parseChoices(settings: Settings, text: string | undefined): Choi
 
   try {
     const parsed: unknown = JSON.parse(text)
-    return isRecord(parsed) ? normalize(settings, parsed) : undefined
+    return isRecord(parsed) && setupKeys.some((key) => Object.hasOwn(parsed, key)) ? normalize(settings, parsed) : undefined
   } catch (error) {
     if (error instanceof SyntaxError) {
       return undefined
