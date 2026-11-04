@@ -1,6 +1,6 @@
 'use client'
 
-import { useConfig, useTheme, useTranslation, XIcon } from '@payloadcms/ui'
+import { PeopleIcon, useConfig, useTheme, useTranslation, XIcon } from '@payloadcms/ui'
 import { Fragment, type ReactNode, useEffect, useId, useRef, useState } from 'react'
 
 import { characters as registry, type Option, options } from '../characters/index.js'
@@ -474,9 +474,17 @@ function FineTuneRow<O extends Option>({
             option === 'radius' ? (
               <span aria-hidden="true" className="payloadpack-appearance-panel__corner" data-value={value} />
             ) : (
-              <span data-font={option === 'font' ? value : undefined}>
-                {t(`payloadpack:${option}${capitalize(value)}` as TranslationKey)}
-              </span>
+              <>
+                {option === 'icons' &&
+                  (value === 'payload' ? (
+                    <PeopleIcon className="payloadpack-appearance-panel__sample" size={16} />
+                  ) : (
+                    <span aria-hidden="true" className="payloadpack-appearance-panel__sample" />
+                  ))}
+                <span data-font={option === 'font' ? value : undefined}>
+                  {t(`payloadpack:${option}${capitalize(value)}` as TranslationKey)}
+                </span>
+              </>
             ),
           name: option === 'radius' ? t(`payloadpack:radius${capitalize(value)}Name` as TranslationKey) : undefined,
           value

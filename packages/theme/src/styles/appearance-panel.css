@@ -432,6 +432,17 @@
       }
     }
 
+    .payloadpack-appearance-panel__sample {
+      flex-shrink: 0;
+      width: 1rem;
+      height: 1rem;
+    }
+
+    span.payloadpack-appearance-panel__sample {
+      background-color: currentColor;
+      mask: url('lucide-static/icons/users.svg') center / 0.875rem no-repeat;
+    }
+
     [data-font='inter'] {
       font-family: var(--font-family-sans), system-ui, sans-serif;
     }
