@@ -1368,19 +1368,14 @@ test.describe('Every palette but Payload', () => {
         })
       }
 
-      test('the selected nav link is raised like the active sidebar tab, and the other links are muted', async ({ page }) => {
+      test('the selected nav link is a white pill lifted by a shadow, and the other links are muted', async ({ page }) => {
         await page.context().addCookies([cookie('theme', 'light')])
         await page.goto('/admin/collections/showcase')
-        const raised = (selector: string, pseudo?: string) =>
-          page
-            .locator(selector)
-            .first()
-            .evaluate((element, pseudoElement) => {
-              const { backgroundColor, boxShadow } = getComputedStyle(element, pseudoElement)
-              return { backgroundColor, boxShadow }
-            }, pseudo)
 
-        expect(await raised('.nav__link--selected', '::before')).toEqual(await raised('.sidebar-tabs__tab--active'))
+        expect(await style(page, '.nav__link--selected', 'background-color', '::before')).toBe(
+          await computedColor(page, 'var(--color-bg-elevated)')
+        )
+        expect(await style(page, '.nav__link--selected', 'box-shadow', '::before')).not.toBe('none')
         expect(await style(page, '.nav__link:not(.nav__link--selected)', 'color')).toBe(
           await computedColor(page, 'var(--color-text-secondary)')
         )

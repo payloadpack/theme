@@ -69,10 +69,11 @@
       }
     }
 
-    .nav__link--selected::before,
-    .sidebar-tabs__tab--active {
+    .nav__link--selected::before {
       background-color: var(--color-bg-elevated);
-      box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+      box-shadow:
+        0 1px 2px rgb(0 0 0 / 0.1),
+        0 2px 8px rgb(0 0 0 / 0.08);
     }
 
     &[data-theme='dark'] .nav__link--selected::before {
@@ -104,6 +105,8 @@
 
     .sidebar-tabs__tab--active {
       border-color: transparent;
+      background-color: var(--color-bg-elevated);
+      box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
       color: var(--color-text);
     }
 
