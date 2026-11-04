@@ -698,6 +698,7 @@
 
     .payloadpack-appearance-panel__share {
       display: inline-flex;
+      align-self: auto;
       align-items: center;
       gap: var(--spacer-1-5);
       height: 2rem;
