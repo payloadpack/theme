@@ -737,10 +737,12 @@ test.describe('Motion', () => {
   const moreOptions = (page: Page) => page.getByRole('button', { name: 'More options' }).first()
   const select = (page: Page) => page.locator('.field-type.select .rs__control').first()
 
-  test('drawers fade and slide in', async ({ page }) => {
+  test('drawers open at once, because Payload unmounts them on close', async ({ page }) => {
     const transitions = await openDrawer(page)
 
-    await expect.poll(transitions).toEqual(['drawer__blur-bg opacity', 'drawer__content opacity', 'drawer__content translate'])
+    await expect(page.locator('.drawer__blur-bg')).toHaveCSS('transition-duration', '0s')
+    await expect(page.locator('.drawer__content')).toHaveCSS('transition-property', 'transform')
+    expect(await transitions()).toEqual([])
   })
 
   test('popups scale in from their trigger and out, and select menus scale in', async ({ page }) => {
@@ -803,15 +805,6 @@ test.describe('Motion', () => {
     ['motion is off', (page: Page) => page.context().addCookies([appearance({ options: { enhanced: { motion: 'off' } } })])],
     ['the OS reduces motion', (page: Page) => page.emulateMedia({ reducedMotion: 'reduce' })]
   ] as const) {
-    test(`drawers open at once when ${name}`, async ({ page }) => {
-      await setup(page)
-      const transitions = await openDrawer(page)
-
-      await expect(page.locator('.drawer__blur-bg')).toHaveCSS('transition-duration', '0s')
-      await expect(page.locator('.drawer__content')).toHaveCSS('transition-property', 'transform')
-      expect(await transitions()).toEqual([])
-    })
-
     test(`popups and select menus open and close at once when ${name}`, async ({ page }) => {
       await setup(page)
       const transitions = await recordTransitions(page, menus)

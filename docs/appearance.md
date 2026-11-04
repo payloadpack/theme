@@ -230,12 +230,12 @@ From Payload 4.0.0-beta.6's CSS:
 - `font`: `--font-family-sans`. Payload loads Inter with `next/font` as an unlayered class on `<html>`, so the option needs a layered `!important` declaration. Geist loads with `next/font/google` in the server provider, with `preload: false` so only editors who use it download it, and the provider sets its family as `--payloadpack-font-geist` on `<html>`.
 - `density`: what `density.css` already does.
 - `motion`: what Payload 3 animated and Payload 4 dropped:
-  - the drawer's backdrop fade and panel slide, now 300ms on an iOS-style drawer curve, `cubic-bezier(0.32, 0.72, 0, 1)`
+  - not the drawer's fade and slide: Payload 4 unmounts a drawer on close, so only its opening could animate, and it opens at once instead. Select menus unmount too, but a menu that only animates in reads as quick, so they keep it.
   - the tooltip's fade, now 150ms in and 100ms out
   - the small transitions on fields, buttons and cards, now on every field's focus ring, checkboxes, radios and switches included, and the switch's 200ms slide. With motion off none of them animate.
   - new in this theme: popups and select menus fade in and scale up from 95% at their trigger, sliding in 8px from it when they open above or below, and scale back out on close. Submenus scale from their top edge without a slide, because Payload flips them to the other side without saying so. Payload 3 never animated them. Modals stay still. The date picker opens at once: react-datepicker unmounts it on close, so only its opening could animate, and floating-ui moves it with a `transform` that a scale would pull toward the page's top-left corner.
   - new in this theme: a nav group's chevron turns. Its links open and close at once, because Payload unmounts a closed group's links and an animation on open alone looks half done.
-  - Timing is fixed per kind of component, never measured: popovers, menus and tooltips take 150ms in and 100ms out on a strong ease-out, `cubic-bezier(0.23, 1, 0.32, 1)`; drawers and the Appearance sheet take 300ms in on the drawer curve and 200ms out; the nav group chevron takes 200ms. Menu items and nav links switch at once on hover, icon included.
+  - Timing is fixed per kind of component, never measured: popovers, menus and tooltips take 150ms in and 100ms out on a strong ease-out, `cubic-bezier(0.23, 1, 0.32, 1)`; the Appearance sheet takes 300ms in on an iOS-style drawer curve, `cubic-bezier(0.32, 0.72, 0, 1)`, and 200ms out; the nav group chevron takes 200ms. Menu items and nav links switch at once on hover, icon included.
 
 ## Open
 
