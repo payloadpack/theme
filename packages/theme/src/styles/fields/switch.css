@@ -26,7 +26,6 @@
       place-content: stretch;
       padding: var(--payloadpack-switch-padding);
       border-radius: calc(var(--payloadpack-switch-radius) + var(--payloadpack-switch-padding) + var(--stroke-width-small));
-      transition: grid-template-columns 200ms;
 
       &::before {
         content: '';

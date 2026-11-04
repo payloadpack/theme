@@ -43,10 +43,38 @@
       /* 3. Fields */
       .form-input,
       .form-input-group,
-      .react-select .rs__control {
+      .react-select .rs__control,
+      .code-editor,
+      .search-input,
+      .react-datepicker__input-container input {
         transition-property: border, box-shadow, background-color;
         transition-duration: 100ms, 100ms, 500ms;
         transition-timing-function: cubic-bezier(0, 0.2, 0.2, 1);
+      }
+
+      .checkbox-input__visuals,
+      .radio-input__styled-radio {
+        transition: box-shadow 100ms cubic-bezier(0, 0.2, 0.2, 1);
+      }
+
+      .checkbox-input__control:is(:checked, :indeterminate) + .checkbox-input__visuals,
+      .radio-input--is-selected .radio-input__styled-radio {
+        transition:
+          background-color 100ms cubic-bezier(0.645, 0.045, 0.355, 1),
+          box-shadow 100ms cubic-bezier(0, 0.2, 0.2, 1);
+      }
+
+      .payloadpack-switch .checkbox-input__visuals {
+        transition:
+          grid-template-columns 200ms,
+          box-shadow 100ms cubic-bezier(0, 0.2, 0.2, 1);
+      }
+
+      .payloadpack-switch .checkbox-input__control:is(:checked, :indeterminate) + .checkbox-input__visuals {
+        transition:
+          grid-template-columns 200ms,
+          background-color 100ms cubic-bezier(0.645, 0.045, 0.355, 1),
+          box-shadow 100ms cubic-bezier(0, 0.2, 0.2, 1);
       }
 
       /* 4. Buttons */

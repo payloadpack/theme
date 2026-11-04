@@ -854,6 +854,36 @@ test.describe('Motion', () => {
     await expect.poll(transitions).toEqual(['tooltip opacity', 'tooltip opacity', 'tooltip visibility'])
   })
 
+  test('every field eases its focus ring with motion on, and none does with it off', async ({ page }) => {
+    const fields = [
+      '.field-type.text .form-input',
+      '.field-type.checkbox:not(.payloadpack-switch) .checkbox-input__visuals',
+      '.radio-input__styled-radio',
+      `.${SWITCH} .checkbox-input__visuals`
+    ]
+    const ringDurations = () =>
+      Promise.all(
+        fields.map((selector) =>
+          page
+            .locator(selector)
+            .first()
+            .evaluate((element) => {
+              const style = getComputedStyle(element)
+              const [properties, durations] = [style.transitionProperty.split(', '), style.transitionDuration.split(', ')]
+              const index = properties.indexOf('box-shadow')
+              return index === -1 ? 'none' : durations[index % durations.length]
+            })
+        )
+      )
+
+    await openShowcase(page)
+    expect(await ringDurations()).toEqual(fields.map(() => '0.1s'))
+
+    await page.context().addCookies([appearance({ options: { enhanced: { motion: 'off' } } })])
+    await page.reload()
+    expect(await ringDurations()).toEqual(fields.map(() => 'none'))
+  })
+
   test('nav groups turn their chevron and open and close at once', async ({ page }) => {
     await page.route('**/api/payload-preferences/nav*', (route) =>
       route.request().method() === 'POST' ? route.fulfill({ json: {} }) : route.fallback()
