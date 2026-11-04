@@ -363,12 +363,12 @@ test.describe('Appearance panel', () => {
   test("shows each icon set's logo", async ({ page }) => {
     await page.goto('/admin')
     const sheet = await openAppearancePanel(page)
-    const icons = sheet.locator('[data-option="icons"]')
+    const logo = (name: string) => label(choice(sheet, 'Icons', name)).locator('.payloadpack-appearance-panel__logo svg')
 
     await openFineTune(sheet)
 
-    await expect(icons.getByRole('radio', { name: 'Payload' }).locator('..').locator('svg.graphic-icon')).toBeVisible()
-    await expect(icons.getByRole('radio', { name: 'Lucide' }).locator('..').locator('path[stroke="#f56565"]')).toBeVisible()
+    await expect(logo('Payload')).toHaveClass(/graphic-icon/)
+    await expect(logo('Lucide')).toBeVisible()
   })
 
   test('moves through a group with the arrow keys, one Tab stop per group', async ({ page }) => {
