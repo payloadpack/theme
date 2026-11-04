@@ -401,9 +401,6 @@ export function AppearanceSheet() {
                         selected={values[option]}
                       />
                     ))}
-                    {supported.includes('motion') && (
-                      <p className="payloadpack-appearance-panel__motion-note">{t('payloadpack:motionReduced')}</p>
-                    )}
                     <button
                       className="payloadpack-appearance-panel__link"
                       disabled={changed === 0}

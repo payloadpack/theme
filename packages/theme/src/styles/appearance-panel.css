@@ -535,17 +535,6 @@
       }
     }
 
-    .payloadpack-appearance-panel__motion-note {
-      display: none;
-      margin-bottom: var(--spacer-2);
-      color: var(--color-text-secondary);
-      line-height: 1.5;
-
-      @media (prefers-reduced-motion: reduce) {
-        display: block;
-      }
-    }
-
     .payloadpack-appearance-panel__link {
       align-self: flex-start;
       height: 1.75rem;

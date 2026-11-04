@@ -44,7 +44,6 @@ const payloadpack = {
   motion: 'Motion',
   motionAuto: 'Auto',
   motionOff: 'Off',
-  motionReduced: 'Your system asks for less motion right now, so Auto stays still.',
   nav: 'Nav',
   navHidden: 'Hidden',
   navRail: 'Rail',
