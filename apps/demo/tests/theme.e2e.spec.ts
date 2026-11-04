@@ -770,12 +770,16 @@ test.describe('Radius', () => {
     expect(await radii()).toEqual(payload)
   })
 
-  test('none squares buttons, fields and popups', async ({ page }) => {
+  test('none squares buttons, fields, the switch, the sidebar tabs and popups', async ({ page }) => {
     await page.context().addCookies([appearance({ options: { enhanced: { radius: 'none' } } })])
     await openShowcase(page)
+    const track = page.locator(`.${SWITCH} .checkbox-input__visuals`)
 
     await expect(page.locator(button).first()).toHaveCSS('border-radius', '0px')
     await expect(page.locator(field).first()).toHaveCSS('border-radius', '0px')
+    await expect(track).toHaveCSS('border-radius', '0px')
+    expect(await style(page, `.${SWITCH} .checkbox-input__visuals`, 'border-radius', '::before')).toBe('0px')
+    await expect(page.locator('.sidebar-tabs__tabs')).toHaveCSS('border-radius', '0px')
 
     await page.getByRole('button', { name: 'More options' }).first().click()
     await expect(page.locator('.popup__content:visible').first()).toHaveCSS('border-radius', '0px')

@@ -25,7 +25,10 @@
       grid-template-columns: 0fr 1fr 1fr;
       place-content: stretch;
       padding: var(--payloadpack-switch-padding);
-      border-radius: calc(var(--payloadpack-switch-radius) + var(--payloadpack-switch-padding) + var(--stroke-width-small));
+      border-radius: calc(
+        var(--payloadpack-switch-radius) +
+          min(var(--payloadpack-switch-radius), var(--payloadpack-switch-padding) + var(--stroke-width-small))
+      );
 
       &::before {
         content: '';

@@ -6,6 +6,10 @@
       --radius-chip: 0px;
       --radius-medium: 0px;
       --radius-large: 0px;
+
+      .payloadpack-switch {
+        --payloadpack-switch-radius: 0px;
+      }
     }
 
     /* 2. Small */
