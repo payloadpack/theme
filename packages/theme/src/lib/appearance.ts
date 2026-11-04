@@ -41,12 +41,10 @@ export const isPersonal = (option: string) => (personalOptions as readonly strin
 const isOptionValue = (option: string, value: unknown) =>
   Object.hasOwn(options, option) && (options[option as Option] as readonly unknown[]).includes(value)
 
-const isStyleValue = (option: string, value: unknown) => !isPersonal(option) && isOptionValue(option, value)
-
-const isPersonalValue = (option: string, value: unknown) => isPersonal(option) && isOptionValue(option, value)
-
-const only = (values: Values, keep: (option: string) => boolean) =>
-  Object.fromEntries(Object.entries(values).filter(([option]) => keep(option))) as Values
+const only = (values: object, keep: (option: string, value: unknown) => boolean) => {
+  const kept = Object.entries(values).filter(([option, value]) => keep(option, value))
+  return kept.length ? (Object.fromEntries(kept) as Values) : undefined
+}
 
 const isHex = (value: unknown): value is string => typeof value === 'string' && /^#[0-9a-f]{6}$/.test(value)
 
@@ -77,15 +75,13 @@ export function normalize(settings: Settings, input: unknown): Choices {
   const pickedOptions = isRecord(raw.options) ? raw.options : {}
   const character = pick(Object.keys(settings.options), settings.character, raw.character)
   const options = Object.entries(settings.options).flatMap(([name, defaults]) => {
-    const values = changed(defaults, pickedOptions[name], isStyleValue)
+    const values = changed(only(defaults, (option) => !isPersonal(option)) ?? {}, pickedOptions[name], isOptionValue)
     return values ? [[name, values]] : []
   })
   const defaults = settings.options[(character ?? settings.character) as Character] ?? {}
-  const personal = changed(
-    only(defaults, isPersonal),
-    raw.personal ?? pickedOptions[character ?? settings.character],
-    isPersonalValue
-  )
+  const personal = isRecord(raw.personal)
+    ? only(raw.personal, (option, value) => isPersonal(option) && isOptionValue(option, value))
+    : changed(only(defaults, isPersonal) ?? {}, pickedOptions[character ?? settings.character], isOptionValue)
   const custom = customOf(raw.custom)
   const picksCustom = custom && settings.palettes.length > 1 && raw.palette === customPalette
   const choices = {
@@ -103,7 +99,10 @@ export function resolve(settings: Settings, choices: Choices) {
   const character = choices.character ?? settings.character
   const palette = choices.palette ?? settings.palette
   const defaults = settings.options[character] ?? {}
-  const personal = only(choices.personal ?? {}, (option) => Object.hasOwn(defaults, option))
+  const personal = only(
+    choices.personal ?? {},
+    (option, value) => Object.hasOwn(defaults, option) && defaults[option as Option] !== value
+  )
   return {
     changed: Object.keys({ ...choices.options?.[character], ...personal }).length,
     character,
@@ -126,7 +125,7 @@ const declarations = (base: Base, indent: string) =>
 export const paletteCss = (name: string, { accent, dark, light }: CustomPalette) =>
   `[data-palette='${name}'] {\n${declarations(light, '  ')}  --payloadpack-accent: ${accent};\n\n  &[data-theme='dark'],\n  [data-theme='dark']:not([data-palette]) {\n${declarations(dark, '    ')}  }\n}\n`
 
-const setupKeys = ['character', 'custom', 'options', 'palette']
+const setupKeys = ['character', 'custom', 'options', 'palette', 'personal']
 
 export function parseChoices(settings: Settings, text: string | undefined): Choices | undefined {
   if (!text) {

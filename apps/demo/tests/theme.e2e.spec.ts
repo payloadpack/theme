@@ -237,9 +237,13 @@ test.describe('Appearance panel', () => {
 
     await label(choice(sheet, 'Style', 'Enhanced')).click()
     await expect(html).toHaveAttribute('data-radius', 'sm')
+
+    await label(choice(sheet, 'Style', 'Payload')).click()
+    await label(choice(sheet, 'Style', 'Enhanced')).click()
+    await expect(html).toHaveAttribute('data-density', 'compact')
   })
 
-  test('Fine-tune opens on demand and counts changes, Reset puts them back, and Undo restores them', async ({ page }) => {
+  test('Fine-tune opens on demand and counts changes, Reset puts them back, and Undo restores only those', async ({ page }) => {
     await page.goto('/admin')
     const sheet = await openAppearancePanel(page)
     const html = page.locator('html')

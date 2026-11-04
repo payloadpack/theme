@@ -59,6 +59,24 @@ it('carries density, motion and nav across styles, and keeps the rest of the loo
   expect(resolve(both, { ...choices, character: 'payload' }).values).toEqual({})
 })
 
+it("keeps an editor's density, motion and nav through a style without options, and when a style's default matches", () => {
+  const both: Settings = {
+    ...settings,
+    options: { enhanced: { density: 'comfortable' }, payload: {}, studio: { density: 'compact' } }
+  }
+  const onPayload = normalize(both, { character: 'payload', personal: { density: 'compact' } })
+
+  expect(onPayload).toEqual({ character: 'payload', personal: { density: 'compact' } })
+  expect(resolve(both, { ...onPayload, character: 'enhanced' })).toMatchObject({ changed: 1, values: { density: 'compact' } })
+  expect(resolve(both, { ...onPayload, character: 'studio' })).toMatchObject({ changed: 0, values: { density: 'compact' } })
+})
+
+it('reads a cookie that holds only personal choices', () => {
+  expect(parseChoices(settings, JSON.stringify({ personal: { density: 'comfortable', radius: 'lg' } }))).toEqual({
+    personal: { density: 'comfortable' }
+  })
+})
+
 it('keeps the custom palette while another palette is picked', () => {
   expect(resolve(settings, { custom, palette: 'payload' })).toMatchObject({ custom, palette: 'payload' })
 })
