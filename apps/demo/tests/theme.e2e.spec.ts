@@ -482,13 +482,12 @@ test.describe('Theme values', () => {
     expect(layout[1].top).toBeGreaterThan(layout[0].bottom)
     expect(layout[0].radioRight).toBe(layout[0].right - 17)
 
-    await expect
-      .poll(async () =>
-        nearColor(page, await style(page, '.payloadpack-radio-cards .radio-input', 'background-color'), '#20201e')
-      )
-      .toBe(true)
+    await expect(cards.first()).toHaveCSS('background-color', await computedColor(page, 'var(--color-bg-secondary)'))
     await expect(cards.nth(1)).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
-    await expect(cards.first().locator('.radio-input__label > :last-child')).toHaveCSS('color', 'rgb(163, 162, 155)')
+    await expect(cards.first().locator('.radio-input__label > :last-child')).toHaveCSS(
+      'color',
+      await computedColor(page, 'var(--color-text-secondary)')
+    )
     await expect(cards.first()).toHaveCSS('border-radius', await style(page, '.field-type.text input', 'border-radius'))
   })
 
@@ -528,7 +527,9 @@ test.describe('Theme values', () => {
 
     await field.getByText('Notify subscribers').click()
     await page.evaluate(() => (document.documentElement.dataset.theme = 'light'))
-    expect(await style(page, `.${SWITCH} .checkbox-input__visuals`, 'background-color', '::before')).toBe('rgb(255, 255, 255)')
+    expect(await style(page, `.${SWITCH} .checkbox-input__visuals`, 'background-color', '::before')).toBe(
+      await computedColor(page, 'var(--ramp-white-1000)')
+    )
   })
 
   test('Payload icons keep the Payload tick without its halo', async ({ page }) => {
@@ -974,6 +975,7 @@ test.describe('Motion', () => {
     await page.context().addCookies([appearance({ options: { enhanced: { motion: 'off' } } })])
     await page.reload()
     expect(await ringDurations()).toEqual(fields.map(() => 'none'))
+    await expect(page.locator('.radio-input__styled-radio').first()).toHaveCSS('transition-duration', '0s')
   })
 
   test('nav groups turn their chevron and open and close at once', async ({ page }) => {
@@ -1184,7 +1186,10 @@ test.describe('Neutral palette', () => {
     await page.getByRole('button', { name: 'Success', exact: true }).click()
     const success = page.locator('.payload-toast-item[data-type="success"]')
 
-    await expect.poll(async () => nearColor(page, await style(page, '.toast-success', 'background-color'), '#181817')).toBe(true)
+    await expect(page.locator('.toast-success')).toHaveCSS(
+      'background-color',
+      await computedColor(page, 'var(--color-bg-elevated)')
+    )
     const darkTint = await computedColor(page, await style(page, '.toast-success', '--payloadpack-toast-icon'))
     await expect(success.locator('.toast-icon .icon')).toHaveCSS('color', darkTint)
     expect(darkTint).not.toBe(lightTint)
