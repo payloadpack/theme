@@ -7,7 +7,6 @@
       --payloadpack-pressed-step: 10%;
       --color-bg: var(--payloadpack-surface);
       --color-bg-elevated: var(--payloadpack-surface);
-      --field-color-border-focus: color-mix(in srgb, var(--payloadpack-text) 40%, var(--payloadpack-surface));
       --ramp-grey-100: color-mix(in srgb, var(--payloadpack-text) 4.37%, var(--payloadpack-surface));
       --ramp-grey-200: color-mix(in srgb, var(--payloadpack-text) 10.92%, var(--payloadpack-surface));
       --ramp-grey-300: color-mix(in srgb, var(--payloadpack-text) 16.59%, var(--payloadpack-surface));
@@ -34,7 +33,6 @@
       --color-bg-menu: var(--color-bg-elevated);
       --color-bg-tooltip: var(--color-bg-elevated);
       --field-color-bg: var(--color-bg-elevated);
-      --field-color-border-focus: var(--ramp-grey-500);
       --ramp-grey-500: color-mix(in srgb, var(--payloadpack-text) 43%, var(--payloadpack-surface));
       --ramp-grey-600: color-mix(in srgb, var(--payloadpack-text) 12%, var(--payloadpack-surface));
       --ramp-grey-700: color-mix(in srgb, var(--payloadpack-text) 7.5%, var(--payloadpack-surface));
@@ -117,9 +115,16 @@
     }
 
     /* 5. Focus */
-    &,
-    [data-theme] {
-      --accessibility-focus-color: var(--color-text);
+    &:not([data-theme='dark']),
+    [data-theme='light'] {
+      --accessibility-focus-color: oklch(from var(--color-bg-brand) min(l, 0.6) c h);
+      --field-color-border-focus: oklch(from var(--color-bg-brand) 0.7 calc(c * 0.6) h);
+    }
+
+    &[data-theme='dark'],
+    [data-theme='dark'] {
+      --accessibility-focus-color: oklch(from var(--color-bg-brand) max(l, 0.6) c h);
+      --field-color-border-focus: oklch(from var(--color-bg-brand) 0.55 c h);
     }
 
     .form-input:focus:not(:read-only, .form-input-group *),
@@ -148,14 +153,6 @@
     /* 7. Date picker */
     .react-datepicker {
       background-color: var(--color-bg-elevated);
-    }
-
-    .react-datepicker__day--selected,
-    .react-datepicker__month-text--selected,
-    .react-datepicker__quarter-text--selected,
-    .react-datepicker__year-text--selected {
-      background-color: var(--color-bg-inverse);
-      color: var(--color-text-oninverse);
     }
 
     /* 8. Checkbox and radio */
@@ -293,9 +290,15 @@
     }
 
     /* 10. Menus */
-    .popup-button-list {
+    .popup-button-list,
+    .timezone-picker__menu {
       --popup-item-bg-hover: color-mix(in oklab, var(--color-text) var(--payloadpack-hover-step), var(--color-bg-menu));
       --popup-item-color-hover: var(--color-text);
+    }
+
+    .popup-button-list__submenu-trigger {
+      --color-bg-selected-strong: var(--popup-item-bg-hover);
+      --color-text-onselected-strong: var(--popup-item-color-hover);
     }
 
     .slash-menu-popup {
@@ -327,10 +330,24 @@
       --color-text-onbrand-secondary: rgb(from var(--payloadpack-on-primary) r g b / 0.8);
       --color-icon-onbrand: var(--payloadpack-on-primary);
       --color-icon-onbrand-secondary: rgb(from var(--payloadpack-on-primary) r g b / 0.8);
+      --color-bg-selected-strong: var(--color-bg-brand);
+      --color-bg-selected-strong-hover: var(--color-bg-brand-hover);
+      --color-bg-selected-strong-pressed: var(--color-bg-brand-pressed);
+      --color-text-onselected-strong: var(--color-text-onbrand);
     }
 
     &:not([data-theme='dark']) .btn--style-primary {
       border-color: oklch(from var(--color-bg-brand) 0 0 0 / clamp(0, (l - 0.9) * 2, 0.15));
+    }
+
+    /* 12. Selection */
+    &,
+    [data-theme] {
+      --color-bg-selected: var(--color-bg-tertiary);
+      --color-bg-selected-hover: var(--color-bg-tertiary);
+      --color-bg-selected-pressed: var(--color-bg-tertiary);
+      --color-text-selected: var(--color-text);
+      --color-icon-selected: var(--color-icon);
     }
   }
 }

@@ -32,9 +32,7 @@
       --payloadpack-accent-ink: oklch(from color-mix(in oklab, var(--payloadpack-accent) 80%, black) min(l, 0.42) c h);
       --payloadpack-accent-mark: oklch(from var(--payloadpack-accent) min(l, 0.6) c h);
       --color-text-brand: var(--payloadpack-accent-ink, var(--ramp-blue-600));
-      --color-text-selected: var(--payloadpack-accent-ink, var(--ramp-blue-600));
       --color-icon-brand: var(--payloadpack-accent-mark, var(--ramp-blue-600));
-      --color-icon-selected: var(--payloadpack-accent-mark, var(--ramp-blue-600));
     }
   }
 }

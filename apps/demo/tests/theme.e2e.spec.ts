@@ -1202,9 +1202,13 @@ test.describe('Neutral palette', () => {
       'border-top-color',
       await computedColor(page, 'var(--color-border)')
     )
-    expect(await computedColor(page, 'var(--accessibility-focus-color)')).toBe(
-      await computedColor(page, 'var(--payloadpack-text)')
-    )
+    expect(
+      await nearColor(
+        page,
+        await computedColor(page, 'var(--accessibility-focus-color)'),
+        await computedColor(page, 'var(--payloadpack-text)')
+      )
+    ).toBe(true)
 
     await page.getByRole('button', { name: 'More options' }).first().click()
     const popup = page.locator('.popup__content:visible').first()
@@ -1233,21 +1237,23 @@ test.describe('Neutral palette', () => {
   test('focused fields get a soft grey ring, lighter in light mode', async ({ page }) => {
     await openShowcase(page)
     const title = page.locator('#field-title')
-    await title.click()
+    const ring = async () => {
+      await title.click()
+      await settled(title)
+      await expect(title).toHaveCSS('box-shadow', /0px 0px 0px 3px/)
+      return channels(page, 'oklch', await style(page, '#field-title', 'border-top-color'))
+    }
 
-    await expect(title).toHaveCSS('border-top-color', await computedColor(page, 'var(--ramp-grey-500)'))
-    await expect(title).toHaveCSS('box-shadow', /0px 0px 0px 3px/)
+    const [dark, darkChroma] = await ring()
+    expect(dark).toBeCloseTo(0.55, 2)
+    expect(darkChroma).toBeLessThan(0.02)
 
     await page.context().addCookies([cookie('theme', 'light')])
     await page.reload()
     await page.locator('.collapsible__toggle-wrap').first().waitFor()
-    await title.click()
-    const [grey] = await channels(page, 'oklab', await computedColor(page, 'var(--ramp-grey-500)'))
-
-    await expect
-      .poll(async () => (await channels(page, 'oklab', await style(page, '#field-title', 'border-top-color')))[0])
-      .toBeGreaterThan(grey)
-    await expect(title).toHaveCSS('box-shadow', /0px 0px 0px 3px/)
+    const [light, lightChroma] = await ring()
+    expect(light).toBeGreaterThan(dark)
+    expect(lightChroma).toBeLessThan(0.02)
   })
 
   test('toasts match the dropdowns and color only the icon', async ({ page }) => {
@@ -1606,20 +1612,38 @@ test.describe('Custom palette', () => {
     await expect(primary).toHaveCSS('color', 'oklch(1 0 0)')
   })
 
-  test('selected text takes an ink of the accent in light mode, and the selected nav link is a neutral raised pill', async ({
-    page
-  }) => {
-    await page.context().addCookies(custom('#c2410c'))
-    await page.goto('/admin/collections/showcase')
-    const [, , accentHue] = await channels(page, 'oklch', '#c2410c')
-    const [inkLightness, , inkHue] = await channels(page, 'oklch', await computedColor(page, 'var(--color-text-selected)'))
+  test('selection stays neutral whatever the accent, a grey fill under the text color, in light and dark', async ({ page }) => {
+    for (const theme of ['light', 'dark']) {
+      await page.context().addCookies(custom('#c2410c', { theme }))
+      await page.goto('/admin/collections/showcase')
+      const text = await style(page, 'body', 'color')
 
-    expect(inkLightness).toBeLessThan(0.45)
-    expect(Math.abs(inkHue - accentHue)).toBeLessThan(5)
-    expect(await style(page, '.nav__link--selected', 'color')).toBe(await style(page, 'body', 'color'))
-    expect(await style(page, '.nav__link--selected', 'background-color', '::before')).toBe(
-      await computedColor(page, 'var(--color-bg-elevated)')
-    )
+      expect(await computedColor(page, 'var(--color-bg-selected)'), theme).toBe(
+        await computedColor(page, 'var(--color-bg-tertiary)')
+      )
+      expect(await computedColor(page, 'var(--color-text-selected)'), theme).toBe(text)
+      expect(await computedColor(page, 'var(--color-icon-selected)'), theme).toBe(await computedColor(page, 'var(--color-icon)'))
+    }
+  })
+
+  test('solid selections take the primary, and an open submenu looks like a hovered menu item', async ({ page }) => {
+    await page.context().addCookies(custom('#c2410c', { primary: '#2563eb' }))
+    await page.goto('/admin/collections/showcase')
+    const background = (locator: Locator) => locator.evaluate((element) => getComputedStyle(element).backgroundColor)
+
+    expect(await computedColor(page, 'var(--color-bg-selected-strong)')).toBe('rgb(37, 99, 235)')
+
+    await page.locator('.user-menu__trigger').click()
+    const submenu = page.locator('.popup-button-list__submenu-trigger')
+    await submenu.hover()
+    await page.locator('.popup-button-list__button', { hasText: 'Dark' }).hover()
+    await settled(submenu)
+    const open = await background(submenu)
+    const logOut = page.locator('.popup-button-list__button', { hasText: 'Log out' })
+    await logOut.hover()
+    await settled(logOut)
+
+    expect(await background(logOut)).toBe(open)
   })
 
   test('marks like the active tab bar take the accent itself, darkened only when it is too light', async ({ page }) => {
@@ -1636,35 +1660,13 @@ test.describe('Custom palette', () => {
     expect((await channels(page, 'oklch', await bar('#ffffff')))[0]).toBeCloseTo(0.6, 2)
   })
 
-  test('a white accent keeps selected items visible, and a white primary keeps its button edge, in light mode', async ({
-    page
-  }) => {
-    await page.context().addCookies(custom('#ffffff'))
-    await page.goto('/admin/collections/showcase')
-    const oklab = async (selector: string, property: string, pseudo?: string) =>
-      channels(page, 'oklab', await style(page, selector, property, pseudo))
-
-    expect((await channels(page, 'oklab', await computedColor(page, 'var(--color-bg-selected)')))[0]).toBeLessThan(0.95)
-    expect((await channels(page, 'oklab', await computedColor(page, 'var(--color-text-selected)')))[0]).toBeLessThan(0.45)
-
+  test('a white primary keeps its button edge in light mode', async ({ page }) => {
     await page.context().addCookies(custom('#c2410c', { primary: '#ffffff' }))
-    await page.reload()
-    await expect.poll(async () => (await oklab('.btn--style-primary:visible', 'border-top-color'))[3]).toBeGreaterThan(0)
-  })
-
-  test('dark selection mixes the accent into the palette background', async ({ page }) => {
-    await page.context().addCookies(custom('#c2410c', { theme: 'dark' }))
     await page.goto('/admin/collections/showcase')
-    const surface = await channels(page, 'oklab', await style(page, 'html', 'background-color'))
-    const fill = await channels(page, 'oklab', await computedColor(page, 'var(--color-bg-selected)'))
-    const accent = await channels(page, 'oklab', '#c2410c')
-    const share = (fill[0] - surface[0]) / (accent[0] - surface[0])
 
-    expect(share).toBeGreaterThan(0.2)
-    expect(share).toBeLessThan(0.5)
-    for (const channel of [1, 2]) {
-      expect(fill[channel]).toBeCloseTo(surface[channel] + share * (accent[channel] - surface[channel]), 2)
-    }
+    await expect
+      .poll(async () => (await channels(page, 'oklab', await style(page, '.btn--style-primary:visible', 'border-top-color')))[3])
+      .toBeGreaterThan(0)
   })
 })
 
@@ -2039,14 +2041,15 @@ test.describe('Studio character', () => {
 })
 
 test.describe('Warm palette', () => {
-  test('fills primary buttons with the text color and keeps the copper accent for marks', async ({ page }) => {
-    await page.context().addCookies([appearance({ character: 'studio', palette: 'warm' }), cookie('theme', 'light')])
-    await page.goto((await findShowcase(page)).path)
+  test('fills primary buttons with the copper accent in light and dark, and marks in light', async ({ page }) => {
+    for (const theme of ['light', 'dark']) {
+      await page.context().addCookies([appearance({ character: 'studio', palette: 'warm' }), cookie('theme', theme)])
+      await page.goto((await findShowcase(page)).path)
 
-    await expect(page.locator('.btn--style-primary:visible').first()).toHaveCSS(
-      'background-color',
-      await computedColor(page, 'var(--payloadpack-text)')
-    )
+      await expect(page.locator('.btn--style-primary:visible').first()).toHaveCSS('background-color', 'rgb(194, 65, 12)')
+    }
+    await page.context().addCookies([cookie('theme', 'light')])
+    await page.reload()
     const bar = await page
       .locator('.tabs__tab-button--active')
       .first()

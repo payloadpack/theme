@@ -23,17 +23,12 @@
       --ramp-grey-500: #72716b;
       --ramp-grey-600: #2a2a27;
       --color-icon-secondary: #a3a29b;
-      --color-bg-selected: var(--color-bg-tertiary);
-      --color-bg-selected-hover: var(--color-bg-tertiary);
-      --color-bg-selected-pressed: var(--color-bg-tertiary);
-      --color-text-onselected-strong: var(--color-text);
       --color-bg-disabled: var(--color-bg-tertiary);
     }
 
     &:not([data-enhanced-contrast])[data-theme='dark'],
     &:not([data-enhanced-contrast]) [data-theme='dark']:not([data-palette]) {
       --color-text-secondary: #a3a29b;
-      --color-bg-selected-strong: var(--color-bg-tertiary);
       --color-text-ondisabled: var(--color-text-disabled);
     }
   }
