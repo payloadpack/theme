@@ -304,6 +304,27 @@ test.describe('Appearance panel', () => {
     })
   }
 
+  for (const character of ['enhanced', 'studio']) {
+    test(`${character} draws the nav toggle's and the Appearance button's focus rings alike`, async ({ page }) => {
+      await page.context().addCookies([appearance({ character })])
+      await page.goto('/admin')
+      const ring = async (focus: string, ringed: string) => {
+        await page.locator(focus).focus()
+        return page.locator(ringed).evaluate((element) => {
+          const style = getComputedStyle(element)
+          const { height, width } = element.getBoundingClientRect()
+          return { height, offset: style.outlineOffset, outline: style.outlineWidth, radius: style.borderTopLeftRadius, width }
+        })
+      }
+      const trigger = '.payloadpack-appearance-panel--nav .payloadpack-appearance-panel__trigger'
+
+      expect(await ring(trigger, trigger)).toEqual(
+        await ring('.payloadpack-rail-toggle', '.payloadpack-rail-toggle .sidebar-toggle')
+      )
+      expect((await ring(trigger, trigger)).outline).toBe('2px')
+    })
+  }
+
   test('draws the bundled Lucide palette icon on the header button', async ({ page }) => {
     await page.goto('/admin')
 

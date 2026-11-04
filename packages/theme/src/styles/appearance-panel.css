@@ -441,6 +441,11 @@
             &:active {
               background-color: var(--color-bg-pressed);
             }
+
+            &:focus-visible {
+              outline: var(--accessibility-outline);
+              outline-offset: calc(-1 * var(--stroke-width-medium));
+            }
           }
         }
       }
