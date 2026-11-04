@@ -577,7 +577,6 @@ test.describe('Theme values', () => {
   test('list view keeps its layout when selecting rows', async ({ page }) => {
     await page.goto('/admin/collections/showcase')
     const table = page.locator('table')
-    await table.waitFor()
 
     expect(await size(page, '.list-controls .dots')).toEqual({ height: 36, width: 36 })
 
@@ -1288,7 +1287,6 @@ test.describe('Neutral palette', () => {
 
     await page.context().addCookies([cookie('theme', 'light')])
     await page.reload()
-    await page.locator('.collapsible__toggle-wrap').first().waitFor()
     const [light, lightChroma] = await ring()
     expect(light).toBeGreaterThan(dark)
     expect(lightChroma).toBeLessThan(0.02)
