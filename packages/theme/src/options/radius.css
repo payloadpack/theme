@@ -33,7 +33,8 @@
     /* 5. Menus and toasts */
     --popup-radius: calc(var(--popup-item-radius) + min(var(--popup-item-radius), var(--spacer-1)));
 
-    .payload-toast-item {
+    .payload-toast-item,
+    .slash-menu-popup {
       border-radius: var(--popup-radius);
     }
   }

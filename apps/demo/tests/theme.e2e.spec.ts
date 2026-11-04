@@ -763,12 +763,17 @@ test.describe('Radius', () => {
     await expect(page.locator('.popup__content:visible').first()).toHaveCSS('border-radius', '22px')
   })
 
-  test("studio's large menus and toasts follow their items, not the card tier", async ({ page }) => {
+  test("studio's large menus, slash menu and toasts follow their items, not the card tier", async ({ page }) => {
     await page.context().addCookies([appearance({ character: 'studio' })])
     await openShowcase(page)
 
     await page.getByRole('button', { name: 'More options' }).first().click()
     await expect(page.locator('.popup__content:visible').first()).toHaveCSS('border-radius', '12px')
+    await page.keyboard.press('Escape')
+
+    await page.locator('[data-lexical-editor="true"]').first().click()
+    await page.keyboard.type('/')
+    await expect(page.locator('.slash-menu-popup')).toHaveCSS('border-radius', '12px')
 
     await page.goto('/admin/toasts')
     await page.getByRole('button', { name: 'Error', exact: true }).click()

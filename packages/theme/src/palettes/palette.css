@@ -297,6 +297,29 @@
       --popup-item-color-hover: var(--color-text);
     }
 
+    .slash-menu-popup {
+      --payloadpack-scrollbar-thumb: color-mix(in srgb, currentColor 25%, transparent);
+
+      &::-webkit-scrollbar {
+        width: calc(var(--spacer-1) * 3);
+      }
+
+      &::-webkit-scrollbar-track {
+        margin-block: var(--popup-radius);
+      }
+
+      &::-webkit-scrollbar-thumb {
+        border: var(--spacer-1) solid transparent;
+        border-radius: var(--radius-full);
+        background: var(--payloadpack-scrollbar-thumb) padding-box;
+      }
+
+      @supports not selector(::-webkit-scrollbar) {
+        scrollbar-width: thin;
+        scrollbar-color: var(--payloadpack-scrollbar-thumb) transparent;
+      }
+    }
+
     /* 11. Primary */
     &,
     [data-theme] {
