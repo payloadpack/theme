@@ -206,7 +206,7 @@ export function AppearanceSheet() {
   const { t } = useTranslation<object, TranslationKey>()
   const [focusEditor, setFocusEditor] = useState(false)
   const [status, setStatus] = useStatus()
-  const style = t(`payloadpack:character${capitalize(character)}` as TranslationKey)
+  const characterName = t(`payloadpack:character${capitalize(character)}` as TranslationKey)
   const css = custom && paletteCss(customPalette, custom)
   const supported = Object.keys(registry[character].defaults) as Option[]
 
@@ -222,10 +222,10 @@ export function AppearanceSheet() {
     )
   }
 
-  const resetStyle = () => {
+  const resetCharacter = () => {
     const previous = choices
     reset()
-    setStatus({ message: t('payloadpack:resetDone', { style }), undo: () => restore(previous) })
+    setStatus({ message: t('payloadpack:resetDone', { character: characterName }), undo: () => restore(previous) })
   }
 
   const share = (action: () => Promise<void>) => (event: { currentTarget: HTMLElement }) => {
@@ -392,7 +392,7 @@ export function AppearanceSheet() {
                 {supported.length > 0 && (
                   <details className="payloadpack-appearance-panel__fine-tune">
                     <summary>
-                      {t('payloadpack:fineTune', { style })}
+                      {t('payloadpack:fineTune', { character: characterName })}
                       {changed > 0 && <span>{t('payloadpack:fineTuneChanged', { count: changed })}</span>}
                     </summary>
                     {supported.map((option) => (
@@ -410,9 +410,9 @@ export function AppearanceSheet() {
                     <button
                       className="payloadpack-appearance-panel__link"
                       disabled={changed === 0}
-                      onClick={resetStyle}
+                      onClick={resetCharacter}
                       type="button">
-                      {t('payloadpack:reset', { style })}
+                      {t('payloadpack:reset', { character: characterName })}
                     </button>
                   </details>
                 )}
