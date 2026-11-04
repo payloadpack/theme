@@ -5,7 +5,7 @@ import { type ReactNode, useEffect, useId, useState } from 'react'
 
 import { characters as registry, type Option, options } from '../characters/index.js'
 import { hexPattern } from '../lib/appearance.js'
-import { payloadBlue, palettes as paletteRegistry } from '../palettes/index.js'
+import { payloadBlue } from '../palettes/index.js'
 import type { TranslationKey } from '../translations.js'
 import { useAppearance } from './appearance-provider.js'
 
@@ -182,12 +182,7 @@ export function AppearancePanel() {
                   <>
                     <span aria-hidden="true" className="payloadpack-appearance-panel__halves">
                       {halves.map((half) => (
-                        <span
-                          key={half}
-                          style={{
-                            backgroundColor: paletteRegistry[name].preview[half].background,
-                            color: paletteRegistry[name].preview[half].text
-                          }}>
+                        <span data-palette={name} data-theme={half} key={half}>
                           <span />
                           <span />
                           <span />

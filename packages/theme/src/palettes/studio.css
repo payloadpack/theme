@@ -1,43 +1,33 @@
 @layer payload {
-  html[data-palette='studio'] {
+  [data-palette='studio'] {
     /* 1. Light palette */
-    &,
-    [data-theme] {
-      --payloadpack-field: color-mix(in oklab, var(--payloadpack-accent) 3%, #f1f0ec);
-      --ramp-grey-100: color-mix(in oklab, var(--payloadpack-accent) 2%, #f7f6f3);
-      --ramp-grey-200: color-mix(in oklab, var(--payloadpack-accent) 5%, #e4e2dc);
-      --color-text: #1c1b18;
-    }
+    --payloadpack-background: color-mix(in oklab, var(--payloadpack-accent) 3%, #f1f0ec);
+    --payloadpack-surface: #ffffff;
+    --payloadpack-text: #1c1b18;
+    --payloadpack-accent: #c2410c;
+    --ramp-grey-100: color-mix(in oklab, var(--payloadpack-accent) 2%, #f7f6f3);
+    --ramp-grey-200: color-mix(in oklab, var(--payloadpack-accent) 5%, #e4e2dc);
 
     &:not([data-enhanced-contrast]),
-    &:not([data-enhanced-contrast]) [data-theme] {
+    &:not([data-enhanced-contrast]) [data-theme]:not([data-palette]) {
       --color-text-secondary: #5c5a52;
     }
 
     /* 2. Dark palette */
     &[data-theme='dark'],
-    [data-theme='dark'] {
-      --payloadpack-field: color-mix(in oklab, var(--payloadpack-accent) 5%, #131312);
-      --ramp-grey-600: color-mix(in oklab, var(--payloadpack-accent) 5%, #30302d);
-      --ramp-grey-700: color-mix(in oklab, var(--payloadpack-accent) 3%, #262624);
-      --ramp-grey-800: color-mix(in oklab, var(--payloadpack-accent) 2%, #1c1c1b);
-      --ramp-grey-900: var(--ramp-grey-800);
-      --color-text: #f2f1ec;
-      --color-bg-selected: color-mix(in oklab, var(--payloadpack-accent) 40%, #1c1c1b);
+    [data-theme='dark']:not([data-palette]) {
+      --payloadpack-background: color-mix(in oklab, var(--payloadpack-accent) 5%, #131312);
+      --payloadpack-surface: color-mix(in oklab, var(--payloadpack-accent) 2%, #1c1c1b);
+      --payloadpack-text: #f2f1ec;
+      --color-bg-selected: color-mix(in oklab, var(--payloadpack-accent) 40%, var(--payloadpack-surface));
     }
 
     &:not([data-enhanced-contrast])[data-theme='dark'],
-    &:not([data-enhanced-contrast]) [data-theme='dark'] {
+    &:not([data-enhanced-contrast]) [data-theme='dark']:not([data-palette]) {
       --color-text-secondary: #a8a69e;
     }
 
-    /* 3. Field */
-    &,
-    .template-default,
-    .nav__header {
-      background-color: var(--payloadpack-field);
-    }
-
+    /* 3. Nav */
     .nav__close .sidebar-toggle:not(:hover, :active) {
       background-color: transparent;
     }

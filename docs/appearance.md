@@ -6,9 +6,9 @@ An editor's look is two independent choices: a **character** (how the admin is l
 
 ## Status
 
-Built: the three characters with every option below, the Payload, Warm and Studio palettes with an accent each, setups with Copy setup and Paste setup, the Appearance panel and the rail.
+Built: the three characters with every option below, the Payload, Warm and Studio palettes defined from base colors in CSS with an accent each, setups with Copy setup and Paste setup, the Appearance panel and the rail.
 
-Planned, not built: palettes defined from three base colors in CSS, custom palettes, **New palette**, **Copy as CSS** and a heading font. Today Warm and Studio set Payload's own color tokens directly, and only the accent's shades come from one shared stylesheet, `accent.css`.
+Planned, not built: custom palettes, **New palette**, **Copy as CSS** and a heading font. The accent's shades still come from their own stylesheet, `accent.css`, and only when the accent isn't Payload's blue.
 
 ## Characters
 
@@ -66,7 +66,7 @@ Studio's defaults:
 
 ## Palettes
 
-Planned: A palette is CSS, the way Tailwind v4 defines design tokens: a block scoped to `[data-palette='<name>']` that sets `--payloadpack-background`, `--payloadpack-surface`, `--payloadpack-text` and `--payloadpack-accent`, with the dark values in a nested `&[data-theme='dark'], [data-theme='dark']` block that also reaches Payload's dark popups. No `light-dark()`: Next's CSS compiler rewrites it for its default browser targets. The same block is a built-in palette, an editor's palette (rendered in a `<style>` element) and the Copy as CSS export. One shared stylesheet derives every Payload color token from them with `color-mix`: surfaces, borders, muted text, hover and selected states, the accent's shades and the text on the accent. Built-in and custom palettes are the same shape, so a new palette costs only its colors. Because the scope is the attribute and not only `<html>`, a preview card with `data-palette="clay"` shows the palette's real colors. Palettes work with every character, Stock included. There are no presets.
+A palette is CSS, the way Tailwind v4 defines design tokens: a block scoped to `[data-palette='<name>']` that sets `--payloadpack-background`, `--payloadpack-surface`, `--payloadpack-text` and `--payloadpack-accent`, with the dark values in a nested `&[data-theme='dark'], [data-theme='dark']:not([data-palette])` block that also reaches Payload's dark popups. The `:not([data-palette])` keeps one palette's dark values off another palette's preview card. No `light-dark()`: Next's CSS compiler rewrites it for its default browser targets. The same block is a built-in palette, an editor's palette (rendered in a `<style>` element) and the Copy as CSS export. One shared stylesheet, `palette.css`, derives Payload's grey ramp from them with `color-mix` in sRGB, with mixes that give back Payload's own light greys from white and `#1a1a1a`, and remaps Payload's translucent black (light) and white (dark) text ramps to the palette's text, so muted text and icons share its hue. Dark mode mixes in bigger steps than light, because the same step reads smaller on a dark surface. A palette pins any shade the mix doesn't give, as Warm does for its dark border, focus ring and muted text. Built-in and custom palettes are the same shape, so a new palette costs only its colors. Because the scope is the attribute and not only `<html>`, a preview card with `data-palette="clay"` shows the palette's real colors. Palettes work with every character, Stock included. There are no presets.
 
 | Base color | What it paints                               |
 | ---------- | -------------------------------------------- |
@@ -78,7 +78,7 @@ Planned: A palette is CSS, the way Tailwind v4 defines design tokens: a block sc
 | Palette | Light                               | Dark                                                              | Accent    |
 | ------- | ----------------------------------- | ----------------------------------------------------------------- | --------- |
 | Payload | Payload's own Figma UI3 colors      | Payload's own Figma UI3 colors                                    | `#0d99ff` |
-| Warm    | Payload's light colors              | today's Enhanced near-black (`#0f0f0e`, `#f3f2ed`)                | `#0d99ff` |
+| Warm    | Payload's light colors              | near-black: `#0a0a09` nav, `#0f0f0e` page, `#f3f2ed` text         | `#0d99ff` |
 | Studio  | a faintly tinted field, white cards | the same tint on near-black, cards a shade lighter than the field | `#c2410c` |
 
 - The Payload palette applies no overrides, so plain Payload is the Stock character with the Payload palette. Today's look is Enhanced with Warm, the zero-config default.
@@ -187,7 +187,7 @@ src/characters/enhanced/enhanced.css
 src/characters/studio/index.ts
 src/characters/studio/studio.css
 src/palettes/index.ts               the registry of built-in palettes and their default accents
-src/palettes/palette.css            what every palette but Payload's shares: focus ring, fields, toggles, date picker and toasts
+src/palettes/palette.css            derives Payload's colors from each palette's base colors, and what every palette but Payload's shares: focus ring, fields, toggles, date picker and toasts
 src/palettes/warm.css
 src/palettes/studio.css
 src/palettes/accent.css
@@ -202,7 +202,7 @@ src/styles/rail.css                 the rail's tooltip colors
 src/styles/fields/*
 ```
 
-- Each stylesheet stays one `@layer payload` block with one scope selector: `html[data-character='studio']`, `html[data-palette='warm']`, `html[data-density='comfortable']` and so on. A palette's dark version nests under `[data-theme='dark']`.
+- Each stylesheet stays one `@layer payload` block with one scope selector: `html[data-character='studio']`, `[data-palette='warm']`, `html[data-density='comfortable']` and so on. A palette's dark version nests under `[data-theme='dark']`.
 - The Payload palette has no stylesheet: it is Payload's own colors.
 - Characters and options set only shapes, sizes, spacing and motion, which the contract test checks. Colors live in the palettes, `accent.css` and the `src/styles` sheets for the panel, the fields and the rail's tooltips.
 - Option stylesheets set Payload's own variables. `accent.css` remaps Payload's blue ramp from `--payloadpack-accent`; a palette's stylesheet builds on the same variable. Where Payload hard-codes a value, the fix goes in the option's stylesheet with a contract-test entry, as `density.css` and `motion.css` do.

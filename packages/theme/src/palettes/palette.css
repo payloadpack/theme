@@ -1,6 +1,58 @@
 @layer payload {
   :where([data-palette]:not([data-palette='payload'])) {
-    /* 1. Focus */
+    /* 1. Light colors */
+    &:not([data-theme='dark']),
+    [data-theme='light'] {
+      --color-bg: var(--payloadpack-surface);
+      --color-bg-elevated: var(--payloadpack-surface);
+      --ramp-grey-100: color-mix(in srgb, var(--payloadpack-text) 4.37%, var(--payloadpack-surface));
+      --ramp-grey-200: color-mix(in srgb, var(--payloadpack-text) 10.92%, var(--payloadpack-surface));
+      --ramp-grey-300: color-mix(in srgb, var(--payloadpack-text) 16.59%, var(--payloadpack-surface));
+      --ramp-grey-500: color-mix(in srgb, var(--payloadpack-text) 60.26%, var(--payloadpack-surface));
+      --ramp-grey-600: color-mix(in srgb, var(--payloadpack-text) 81.66%, var(--payloadpack-surface));
+      --ramp-grey-700: color-mix(in srgb, var(--payloadpack-text) 86.9%, var(--payloadpack-surface));
+      --ramp-grey-800: color-mix(in srgb, var(--payloadpack-text) 92.14%, var(--payloadpack-surface));
+      --ramp-grey-900: color-mix(in srgb, var(--payloadpack-text) 98.25%, var(--payloadpack-surface));
+      --ramp-black-100: color-mix(in srgb, var(--payloadpack-text) 5.56%, transparent);
+      --ramp-black-200: color-mix(in srgb, var(--payloadpack-text) 11.11%, transparent);
+      --ramp-black-300: color-mix(in srgb, var(--payloadpack-text) 22.22%, transparent);
+      --ramp-black-400: color-mix(in srgb, var(--payloadpack-text) 33.33%, transparent);
+      --ramp-black-500: color-mix(in srgb, var(--payloadpack-text) 55.56%, transparent);
+      --ramp-black-600: color-mix(in srgb, var(--payloadpack-text) 88.89%, transparent);
+      --ramp-black-800: var(--payloadpack-text);
+    }
+
+    /* 2. Dark colors */
+    &[data-theme='dark'],
+    [data-theme='dark'] {
+      --color-bg-elevated: color-mix(in srgb, var(--payloadpack-text) 4%, var(--payloadpack-surface));
+      --color-bg-menu: var(--color-bg-elevated);
+      --color-bg-tooltip: var(--color-bg-elevated);
+      --field-color-bg: var(--color-bg-elevated);
+      --ramp-grey-500: color-mix(in srgb, var(--payloadpack-text) 43%, var(--payloadpack-surface));
+      --ramp-grey-600: color-mix(in srgb, var(--payloadpack-text) 12%, var(--payloadpack-surface));
+      --ramp-grey-700: color-mix(in srgb, var(--payloadpack-text) 7.5%, var(--payloadpack-surface));
+      --ramp-grey-800: var(--payloadpack-surface);
+      --ramp-grey-900: var(--payloadpack-background);
+      --ramp-white-100: color-mix(in srgb, var(--payloadpack-text) 5%, transparent);
+      --ramp-white-200: color-mix(in srgb, var(--payloadpack-text) 10%, transparent);
+      --ramp-white-300: color-mix(in srgb, var(--payloadpack-text) 20%, transparent);
+      --ramp-white-400: color-mix(in srgb, var(--payloadpack-text) 40%, transparent);
+      --ramp-white-500: color-mix(in srgb, var(--payloadpack-text) 70%, transparent);
+      --ramp-white-600: color-mix(in srgb, var(--payloadpack-text) 80%, transparent);
+      --ramp-white-800: color-mix(in srgb, var(--payloadpack-text) 90%, transparent);
+      --ramp-white-1000: var(--payloadpack-text);
+      --elevation-400-menu-panel: 0 0 0 1px var(--color-border), 0 10px 24px rgb(0 0 0 / 0.5), 0 2px 6px rgb(0 0 0 / 0.4);
+    }
+
+    /* 3. Canvas */
+    .template-default,
+    .nav,
+    .nav__header {
+      background-color: var(--payloadpack-background);
+    }
+
+    /* 4. Focus */
     &,
     [data-theme] {
       --accessibility-focus-color: var(--color-text);
@@ -16,7 +68,7 @@
       box-shadow: 0 0 0 3px color-mix(in srgb, var(--field-color-border-focus) 50%, transparent);
     }
 
-    /* 2. Fields */
+    /* 5. Fields */
     &,
     [data-theme] {
       --field-color-border: var(--color-border);
@@ -30,7 +82,7 @@
       color: var(--field-color-text-disabled);
     }
 
-    /* 3. Date picker */
+    /* 6. Date picker */
     .react-datepicker {
       background-color: var(--color-bg-elevated);
     }
@@ -43,7 +95,7 @@
       color: var(--color-text-oninverse);
     }
 
-    /* 4. Checkbox and radio */
+    /* 7. Checkbox and radio */
     &,
     [data-theme] {
       --payloadpack-toggle-bg: var(--color-bg-secondary);
@@ -111,7 +163,7 @@
       background-color: var(--color-bg-disabled);
     }
 
-    /* 5. Toasts */
+    /* 8. Toasts */
     &[data-theme='light'] .payload-toast-container[data-theme='dark'] {
       --color-text: inherit;
       --color-icon: inherit;
