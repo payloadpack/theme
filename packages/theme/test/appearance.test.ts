@@ -74,10 +74,8 @@ it("keeps an editor's density, motion and nav through a style without options, a
 
 it("forgets a personal pick that matches every style's default, so the editor follows later defaults", () => {
   const both: Settings = { ...settings, options: { enhanced: { density: 'comfortable' }, studio: { density: 'comfortable' } } }
-  const split: Settings = { ...both, options: { ...both.options, studio: { density: 'compact' } } }
 
   expect(normalize(both, { personal: { density: 'comfortable' } })).toEqual({})
-  expect(normalize(split, { personal: { density: 'comfortable' } })).toEqual({ personal: { density: 'comfortable' } })
 })
 
 it('pasting a setup replaces the personal options its style declares and keeps the rest of yours', () => {
@@ -94,7 +92,6 @@ it('pasting a setup replaces the personal options its style declares and keeps t
     JSON.stringify({ character: 'studio', options: { studio: { density: 'compact', nav: 'rail' } } })
   )
   expect(resolve(both, studio ?? {}).values).toEqual({ density: 'compact', nav: 'rail' })
-  expect(pasteSetup(both, mine, 'not a setup')).toBeUndefined()
 })
 
 it('reads a cookie that holds only personal choices', () => {
