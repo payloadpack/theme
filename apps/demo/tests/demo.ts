@@ -1,7 +1,5 @@
 import { type APIRequestContext, expect, type Locator, type Page } from '@playwright/test'
 
-import { demoUser } from '../src/seed'
-
 export const authFile = 'tests/.auth/demo.json'
 
 export const baseURL = `http://localhost:${process.env.DEMO_PORT ?? 3020}`
@@ -15,14 +13,6 @@ const setupPreference = '/api/payload-preferences/payloadpack-appearance'
 export const clearSetup = (page: Page) => page.request.delete(setupPreference)
 
 export const saveSetup = (request: APIRequestContext, value: object) => request.post(setupPreference, { data: { value } })
-
-export const logIn = async (page: Page) => {
-  await page.goto('/admin/login')
-  await page.fill('#field-email', demoUser.email)
-  await page.fill('#field-password', demoUser.password)
-  await page.click('button[type="submit"]')
-  await page.waitForURL('/admin')
-}
 
 export const hydrated = (page: Page) => expect(page.locator('.nav')).toHaveClass(/nav--nav-hydrated/)
 

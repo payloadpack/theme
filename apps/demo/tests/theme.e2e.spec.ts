@@ -1,6 +1,7 @@
 import { RADIO_CARDS, SWITCH, VERTICAL_TABS } from '@payloadpack/theme'
 import { expect, type Locator, type Page, test } from '@playwright/test'
 
+import { demoUser } from '../src/seed'
 import {
   appearance,
   authFile,
@@ -12,7 +13,6 @@ import {
   findShowcase,
   hydrated,
   label,
-  logIn,
   openAppearancePanel,
   openFineTune,
   pickAndSave,
@@ -119,7 +119,11 @@ test.describe('Logged out', () => {
   test('signing in brings back the saved appearance and its panel without a reload', async ({ page, playwright }) => {
     const signedIn = await playwright.request.newContext({ baseURL, storageState: authFile })
     await saveSetup(signedIn, { character: 'studio' })
-    await logIn(page)
+    await page.goto('/admin/login')
+    await page.fill('#field-email', demoUser.email)
+    await page.fill('#field-password', demoUser.password)
+    await page.click('button[type="submit"]')
+    await page.waitForURL('/admin')
 
     await expect(page.locator('html')).toHaveAttribute('data-character', 'studio')
     const sheet = await openAppearancePanel(page)
