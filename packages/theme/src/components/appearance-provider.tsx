@@ -65,6 +65,7 @@ type AppearanceProviderProps = {
   cookieName: string
   initialChoices: Choices
   initialRail: boolean
+  loadsOnSignIn: boolean
   railCookieName: string
   settings: Settings
 }
@@ -75,6 +76,7 @@ export function AppearanceProvider({
   cookieName,
   initialChoices,
   initialRail,
+  loadsOnSignIn,
   railCookieName,
   settings
 }: AppearanceProviderProps) {
@@ -118,7 +120,7 @@ export function AppearanceProvider({
   }, [attributes])
 
   useEffect(() => {
-    if (!user || user.id === signedInAs.current) {
+    if (!loadsOnSignIn || !user || user.id === signedInAs.current) {
       return
     }
     signedInAs.current = user.id
@@ -127,7 +129,7 @@ export function AppearanceProvider({
         setChoices(normalize(settings, saved))
       }
     })
-  }, [getPreference, settings, user])
+  }, [getPreference, loadsOnSignIn, settings, user])
 
   useEffect(() => {
     writeCookie(cookieName, Object.keys(choices).length ? encodeURIComponent(JSON.stringify(choices)) : undefined)

@@ -13,6 +13,7 @@ const render = (settings: Settings, initialChoices: Choices = {}, initialRail = 
       cookieName: 'payload-appearance',
       initialChoices,
       initialRail,
+      loadsOnSignIn: true,
       railCookieName: 'payload-nav-rail',
       settings
     })
