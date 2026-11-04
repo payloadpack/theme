@@ -93,8 +93,7 @@
 
       /* 6. Popups and menus */
       .popup__content:popover-open,
-      .rs__menu,
-      .react-datepicker-popper {
+      .rs__menu {
         transform-origin: var(--caret-left, 50%) top;
         transition:
           opacity 150ms var(--payloadpack-ease-out),
@@ -108,21 +107,9 @@
         }
       }
 
-      .react-datepicker-popper {
-        transform-origin: left top;
-      }
-
       .popup--v-top:popover-open,
       .rs__menu--placement-top {
         transform-origin: var(--caret-left, 50%) bottom;
-
-        @starting-style {
-          translate: 0 var(--spacer-2);
-        }
-      }
-
-      .react-datepicker-popper[data-placement^='top'] {
-        transform-origin: left bottom;
 
         @starting-style {
           translate: 0 var(--spacer-2);
