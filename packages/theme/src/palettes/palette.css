@@ -52,7 +52,27 @@
       background-color: var(--payloadpack-background);
     }
 
-    /* 4. Focus */
+    :is(.nav__close, .payloadpack-rail-toggle) .sidebar-toggle:not(:hover, :active) {
+      background-color: transparent;
+    }
+
+    /* 4. Nav */
+    .nav__link--selected::before {
+      background-color: var(--color-bg-tertiary);
+    }
+
+    .sidebar-tabs__tab--active {
+      border-color: transparent;
+      background-color: var(--color-bg-elevated);
+      box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+    }
+
+    &[data-theme='dark'] .sidebar-tabs__tab--active {
+      background-color: color-mix(in oklab, var(--color-text) 14%, var(--color-bg-secondary));
+      box-shadow: none;
+    }
+
+    /* 5. Focus */
     &,
     [data-theme] {
       --accessibility-focus-color: var(--color-text);
@@ -68,7 +88,7 @@
       box-shadow: 0 0 0 3px color-mix(in srgb, var(--field-color-border-focus) 50%, transparent);
     }
 
-    /* 5. Fields */
+    /* 6. Fields */
     &,
     [data-theme] {
       --field-color-border: var(--color-border);
@@ -82,7 +102,7 @@
       color: var(--field-color-text-disabled);
     }
 
-    /* 6. Date picker */
+    /* 7. Date picker */
     .react-datepicker {
       background-color: var(--color-bg-elevated);
     }
@@ -95,7 +115,7 @@
       color: var(--color-text-oninverse);
     }
 
-    /* 7. Checkbox and radio */
+    /* 8. Checkbox and radio */
     &,
     [data-theme] {
       --payloadpack-toggle-bg: var(--color-bg-secondary);
@@ -163,7 +183,7 @@
       background-color: var(--color-bg-disabled);
     }
 
-    /* 8. Toasts */
+    /* 9. Toasts */
     &[data-theme='light'] .payload-toast-container[data-theme='dark'] {
       --color-text: inherit;
       --color-icon: inherit;

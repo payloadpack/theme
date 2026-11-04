@@ -26,10 +26,5 @@
     &:not([data-enhanced-contrast]) [data-theme='dark']:not([data-palette]) {
       --color-text-secondary: #a8a69e;
     }
-
-    /* 3. Nav */
-    .nav__close .sidebar-toggle:not(:hover, :active) {
-      background-color: transparent;
-    }
   }
 }

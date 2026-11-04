@@ -41,10 +41,6 @@
       --color-text-selected: var(--payloadpack-accent-ink, var(--ramp-blue-600));
       --color-icon-brand: var(--payloadpack-accent-ink, var(--ramp-blue-600));
       --color-icon-selected: var(--payloadpack-accent-ink, var(--ramp-blue-600));
-
-      .nav__link--selected {
-        color: var(--payloadpack-accent-ink);
-      }
     }
 
     /* 5. Light accents */

@@ -947,6 +947,7 @@ test.describe('Every palette but Payload', () => {
           (await channels(page, 'oklab', await style(page, selector, 'background-color', pseudo)))[0]
 
         expect((await lightness('.nav__link--selected', '::before')) - (await lightness('.nav'))).toBeGreaterThan(0.08)
+        expect((await lightness('.sidebar-tabs__tab--active')) - (await lightness('.sidebar-tabs__tabs'))).toBeGreaterThan(0.08)
 
         await openAppearancePanel(page)
         expect(
@@ -1099,18 +1100,18 @@ test.describe('Custom palette', () => {
     await expect(primary).toHaveCSS('color', 'oklch(1 0 0)')
   })
 
-  test('selected nav links take an ink of the accent in light mode and keep the text color in dark mode', async ({ page }) => {
+  test('selected text takes an ink of the accent in light mode, and the selected nav link stays neutral', async ({ page }) => {
     await page.context().addCookies(custom('#c2410c'))
     await page.goto('/admin/collections/showcase')
     const [, , accentHue] = await channels(page, 'oklch', '#c2410c')
-    const [inkLightness, , inkHue] = await channels(page, 'oklch', await style(page, '.nav__link--selected', 'color'))
+    const [inkLightness, , inkHue] = await channels(page, 'oklch', await computedColor(page, 'var(--color-text-selected)'))
 
     expect(inkLightness).toBeLessThan(0.45)
     expect(Math.abs(inkHue - accentHue)).toBeLessThan(5)
-
-    await page.context().addCookies([cookie('theme', 'dark')])
-    await page.reload()
     expect(await style(page, '.nav__link--selected', 'color')).toBe(await style(page, 'body', 'color'))
+    expect(await style(page, '.nav__link--selected', 'background-color', '::before')).toBe(
+      await computedColor(page, 'var(--color-bg-tertiary)')
+    )
   })
 
   test('a white accent keeps selected items and primary buttons visible in light mode', async ({ page }) => {
@@ -1119,8 +1120,8 @@ test.describe('Custom palette', () => {
     const oklab = async (selector: string, property: string, pseudo?: string) =>
       channels(page, 'oklab', await style(page, selector, property, pseudo))
 
-    await expect.poll(async () => (await oklab('.nav__link--selected', 'background-color', '::before'))[0]).toBeLessThan(0.95)
-    await expect.poll(async () => (await oklab('.nav__link--selected', 'color'))[0]).toBeLessThan(0.45)
+    expect((await channels(page, 'oklab', await computedColor(page, 'var(--color-bg-selected)')))[0]).toBeLessThan(0.95)
+    expect((await channels(page, 'oklab', await computedColor(page, 'var(--color-text-selected)')))[0]).toBeLessThan(0.45)
     await expect.poll(async () => (await oklab('.btn--style-primary:visible', 'border-top-color'))[3]).toBeGreaterThan(0)
   })
 
@@ -1128,7 +1129,7 @@ test.describe('Custom palette', () => {
     await page.context().addCookies(custom('#c2410c', 'dark'))
     await page.goto('/admin/collections/showcase')
     const surface = await channels(page, 'oklab', await style(page, 'html', 'background-color'))
-    const fill = await channels(page, 'oklab', await style(page, '.nav__link--selected', 'background-color', '::before'))
+    const fill = await channels(page, 'oklab', await computedColor(page, 'var(--color-bg-selected)'))
     const accent = await channels(page, 'oklab', '#c2410c')
     const share = (fill[0] - surface[0]) / (accent[0] - surface[0])
 
@@ -1480,7 +1481,7 @@ test.describe('Studio palette', () => {
     await page.reload()
     await expect(field).toHaveCSS('background-color', await computedColor(page, 'color-mix(in oklab, #c2410c 5%, #131312)'))
     await expect(card).toHaveCSS('background-color', await computedColor(page, 'color-mix(in oklab, #c2410c 2%, #1c1c1b)'))
-    expect(await style(page, '.nav__link--selected', 'background-color', '::before')).toBe(
+    expect(await computedColor(page, 'var(--color-bg-selected)')).toBe(
       await computedColor(page, 'color-mix(in oklab, #c2410c 40%, color-mix(in oklab, #c2410c 2%, #1c1c1b))')
     )
   })
