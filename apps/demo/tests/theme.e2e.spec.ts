@@ -1,4 +1,4 @@
-import { RADIO_CARDS, SWITCH, VERTICAL_TABS } from '@payloadpack/theme'
+import { RADIO_CARDS, SWITCH, type ThemePluginConfig, VERTICAL_TABS } from '@payloadpack/theme'
 import { expect, type Locator, type Page, test } from '@playwright/test'
 
 import { demoUser } from '../src/seed'
@@ -1326,7 +1326,7 @@ test.describe('Neutral palette', () => {
 })
 
 test.describe('Every palette but Payload', () => {
-  for (const palette of ['neutral', 'warm']) {
+  for (const palette of ['neutral', 'warm'] satisfies NonNullable<ThemePluginConfig['palette']>[]) {
     test.describe(palette, () => {
       test.beforeEach(({ page }) => page.context().addCookies([appearance({ palette })]))
 
