@@ -3,7 +3,7 @@
     /* 1. Measures */
     --payloadpack-panel-gutter: 1.25rem;
     --payloadpack-panel-inset: 3px;
-    --payloadpack-panel-radius: calc(var(--radius-medium) + var(--payloadpack-panel-inset));
+    --payloadpack-panel-radius: calc(var(--button-radius) + var(--payloadpack-panel-inset));
     --payloadpack-panel-control-height: calc(var(--field-min-height-large) - 2 * var(--payloadpack-panel-inset));
 
     /* 2. Icon buttons */
@@ -315,7 +315,7 @@
         flex: 1 1 0;
         min-width: 0;
         height: var(--payloadpack-panel-control-height);
-        border-radius: var(--radius-medium);
+        border-radius: var(--button-radius);
         color: var(--color-text-secondary);
         font-weight: 500;
         cursor: pointer;

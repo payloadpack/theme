@@ -41,7 +41,7 @@ const payloadpack = {
   pasteSetup: 'Paste setup',
   primary: 'Primary',
   radius: 'Corners',
-  radiusFull: 'Round',
+  radiusFull: 'Full',
   radiusLg: 'L',
   radiusMd: 'M',
   radiusNone: 'None',

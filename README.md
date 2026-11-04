@@ -75,7 +75,7 @@ The panel opens as a sheet on the right and fills the screen on phones. Every ch
 
 | Option        | Values                 | Enhanced default | Studio default |
 | ------------- | ---------------------- | ---------------- | -------------- |
-| Corners       | None, S, M, L, Round   | M                | L              |
+| Corners       | None, S, M, L, Full    | M                | L              |
 | Typeface      | Payload, Geist, System |                  | Geist          |
 | Frame         | Boxed, Flat            |                  | Boxed          |
 | Density       | Compact, Comfortable   | Comfortable      | Comfortable    |
@@ -84,12 +84,12 @@ The panel opens as a sheet on the right and fills the screen on phones. Every ch
 | Collapsed nav | Icons, Hidden          | Icons            | Icons          |
 
 - **Enhanced** and **Studio** both draw a 2px focus ring, widen the nav to 288px and line its buttons, tabs and items up 12px from its edges, inset the sidebar tabs and the dividers between nav groups, and move each nav group's chevron to the end of its row.
-- **Enhanced** rounds popups and toasts a little more and lifts the date picker and toasts like menus.
+- **Enhanced** lifts the date picker and toasts like menus.
 - **Studio** keeps the nav on the field, puts the collapse button at its top left, and moves the user menu to the bottom of it.
 - Every palette except Payload's draws the focus ring in the text color, gives all fields one border color, fades disabled and read-only fields to half their colors, softens checkbox and radio rings, raises the selected nav link like the active sidebar tab in light mode, mutes the other nav links, fills the hovered menu item neutrally instead of with the accent, fills a hovered nav group heading like a link, and raises the active sidebar tab like the panel's segments.
 - **Neutral** puts white cards and inputs on a soft `oklch(97.5% 0 none)` grey with `#111111` text in light mode, gives dark mode a near-black palette, and takes its text color as both primary and accent, so selections, links and marks are greys and nothing is blue. It fills checked checkboxes and selected radios with the text color instead of the accent.
 - **Studio**, the palette, mixes a faint share of the accent into a warm off-white field and nav, with white cards and lines tinted the same way. Dark mode mixes it into near-black. Selected items take a soft fill of the accent.
-- **Corners** scales Payload's own corner sizes. M keeps them as they are, None squares every corner, S and L make them smaller or larger, and Round is L with pill-shaped buttons.
+- **Corners** scales Payload's own corner sizes. M keeps them as they are, None squares every corner, S and L make them smaller or larger, and Full is L with pill-shaped buttons, fields and tabs. Menus and toasts round a little more than the items inside them at every size, instead of taking the card size.
 - **Geist** uses [Geist](https://vercel.com/font), bundled in the package under the SIL Open Font License, so builds need no network; the browser downloads it only when an editor uses it. **Payload** keeps Inter. **System** uses the operating system's font.
 - **Boxed** puts each view in a soft card with a border and rounded corners. **Flat** drops the card and keeps the nav's border.
 - **Comfortable** sets 14px body text, 36px fields and buttons, 32px menu items and 18px checkboxes and radios, keeps nav group labels at 12px, gives dialogs more room, and fixes Payload components that hard-code their sizes.

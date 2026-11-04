@@ -1,14 +1,11 @@
 @layer payload {
   html[data-character='enhanced'] {
-    /* 1. Shape */
-    --popup-radius: calc(var(--radius-medium) + min(var(--radius-medium), var(--spacer-1)));
-
-    /* 2. Date picker */
+    /* 1. Date picker */
     .react-datepicker {
       box-shadow: var(--elevation-400-menu-panel);
     }
 
-    /* 3. Checkbox and radio */
+    /* 2. Checkbox and radio */
     .checkbox-input__mark-halo {
       display: none;
     }
@@ -17,9 +14,8 @@
       border-width: var(--stroke-width-small);
     }
 
-    /* 4. Toasts */
+    /* 3. Toasts */
     .payload-toast-item {
-      border-radius: var(--popup-radius);
       box-shadow: var(--elevation-400-menu-panel);
     }
 
@@ -38,7 +34,7 @@
       }
     }
 
-    /* 5. Nav */
+    /* 4. Nav */
     --payloadpack-nav-button-area: inline-start;
 
     .nav__close {

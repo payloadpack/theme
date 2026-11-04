@@ -26,7 +26,15 @@
 
     /* 4. Full */
     &[data-radius='full'] {
-      --button-radius: var(--radius-full);
+      --button-radius: calc(var(--field-min-height-large) / 2);
+      --field-border-radius: var(--button-radius);
+    }
+
+    /* 5. Menus and toasts */
+    --popup-radius: calc(var(--popup-item-radius) + min(var(--popup-item-radius), var(--spacer-1)));
+
+    .payload-toast-item {
+      border-radius: var(--popup-radius);
     }
   }
 }

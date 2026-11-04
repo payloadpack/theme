@@ -19,7 +19,7 @@ Three built-in characters. Apps cannot register their own. A character owns ever
 | Character | What it is                                                                                                                         |
 | --------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | Stock     | Payload's own layout and behavior. No options.                                                                                     |
-| Enhanced  | Payload touched up without changing its structure: roomier, rounder popups and tabs, Lucide icons. The zero-config default.        |
+| Enhanced  | Payload touched up without changing its structure: roomier, lifted date picker and toasts, Lucide icons. The zero-config default.  |
 | Studio    | The first bold character: each view sits in a soft card on a field, the nav collapses to a rail, the user menu sits at the bottom. |
 
 Characters restyle only through CSS and Payload's own slots (providers, header actions, nav slots). No Payload view is replaced: no dashboard, command palette, login or document outline.
@@ -228,7 +228,7 @@ From Payload 4.0.0-beta.6's CSS:
   - Payload's blue info backgrounds and presence badges take the accent too.
   - A palette without an accent keeps Payload's exact ramp. A palette that sets `#0d99ff` gets mixed shades instead.
   - No component hard-codes a blue.
-- `radius`: `--radius-small`, `--radius-medium`, `--radius-large`, `--button-radius`, `--field-border-radius`, `--popup-radius` and `--popup-item-radius`. Components pick a tier directly, so the option sets the tiers.
+- `radius`: `--radius-small`, `--radius-medium`, `--radius-large`, `--button-radius`, `--field-border-radius`, `--popup-radius` and `--popup-item-radius`. Components pick a tier directly, so the option sets the tiers. Menus and toasts take `--popup-radius`, the menu item's corner plus up to 4px, instead of Payload's card tier. `full` sets `--button-radius` and `--field-border-radius` to half the control height rather than 9999px: controls still draw as pills, and taller boxes that read the same token, such as collapsibles and the focus ring, keep plain corners.
 - `font`: `--font-family-sans`. Payload loads Inter with `next/font` as an unlayered class on `<html>`, so the option needs a layered `!important` declaration. Geist ships in the package as a variable woff2 under the SIL Open Font License, declared with `@font-face` in `styles/index.css` as `payloadpack-geist`, so builds need no network and the browser downloads it only when an editor uses it.
 - `density`: what `density.css` already does.
 - `motion`: what Payload 3 animated and Payload 4 dropped:

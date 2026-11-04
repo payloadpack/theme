@@ -25,13 +25,13 @@
       gap: 2px;
       padding: 3px;
       border: var(--stroke-width-small) solid var(--color-border);
-      border-radius: calc(var(--radius-medium) + 3px);
+      border-radius: calc(var(--button-radius) + 3px);
     }
 
     .sidebar-tabs__tab {
       height: calc(var(--field-min-height-large) - 6px);
       border: 0;
-      border-radius: var(--radius-medium);
+      border-radius: var(--button-radius);
     }
 
     /* 3. Nav */

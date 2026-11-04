@@ -750,12 +750,29 @@ test.describe('Radius', () => {
     await expect(page.locator('.popup__content:visible').first()).toHaveCSS('border-radius', '0px')
   })
 
-  test('full makes buttons pills and keeps fields on the large tier', async ({ page }) => {
+  test('full makes buttons, fields, tabs and menus pills without doming collapsibles', async ({ page }) => {
     await page.context().addCookies([appearance({ options: { enhanced: { radius: 'full' } } })])
     await openShowcase(page)
 
-    await expect(page.locator(button).first()).toHaveCSS('border-radius', '9999px')
-    await expect(page.locator(field).first()).toHaveCSS('border-radius', '8px')
+    await expect(page.locator(button).first()).toHaveCSS('border-radius', '18px')
+    await expect(page.locator(field).first()).toHaveCSS('border-radius', '18px')
+    await expect(page.locator('.sidebar-tabs__tab').first()).toHaveCSS('border-radius', '18px')
+    await expect(page.locator('.collapsible__toggle-wrap').first()).toHaveCSS('border-top-left-radius', '18px')
+
+    await page.getByRole('button', { name: 'More options' }).first().click()
+    await expect(page.locator('.popup__content:visible').first()).toHaveCSS('border-radius', '22px')
+  })
+
+  test("studio's large menus and toasts follow their items, not the card tier", async ({ page }) => {
+    await page.context().addCookies([appearance({ character: 'studio' })])
+    await openShowcase(page)
+
+    await page.getByRole('button', { name: 'More options' }).first().click()
+    await expect(page.locator('.popup__content:visible').first()).toHaveCSS('border-radius', '12px')
+
+    await page.goto('/admin/toasts')
+    await page.getByRole('button', { name: 'Error', exact: true }).click()
+    await expect(page.locator('.payload-toast-item[data-type="error"]')).toHaveCSS('border-radius', '12px')
   })
 })
 
