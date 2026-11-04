@@ -258,5 +258,11 @@
     :is(.toast-success, .toast-info, .toast-warning, .toast-error) .toast-icon .icon {
       color: var(--payloadpack-toast-icon);
     }
+
+    /* 10. Menus */
+    .popup-button-list {
+      --popup-item-bg-hover: var(--color-bg-hover);
+      --popup-item-color-hover: var(--color-text);
+    }
   }
 }

@@ -961,6 +961,31 @@ test.describe('Every palette but Payload', () => {
     test.describe(palette, () => {
       test.beforeEach(({ page }) => page.context().addCookies([appearance({ palette })]))
 
+      for (const theme of ['light', 'dark']) {
+        test(`menu items light up in the menu's own hover, icon and background at once, in ${theme} mode`, async ({ page }) => {
+          await page.context().addCookies([cookie('theme', theme)])
+          await page.goto((await findShowcase(page)).path)
+          await page.getByRole('button', { name: 'More options' }).first().click()
+          const item = page.locator('#action-duplicate')
+          await item.hover()
+
+          const { hovered, menu } = await item.evaluate((element) => {
+            const probe = document.createElement('div')
+            probe.style.cssText = 'background-color: var(--color-bg-hover); color: var(--color-text)'
+            element.parentElement!.append(probe)
+            const [item, icon, expected] = [getComputedStyle(element), getComputedStyle(element, '::before'), getComputedStyle(probe)]
+            const colors = {
+              hovered: [item.backgroundColor, item.color, icon.opacity],
+              menu: [expected.backgroundColor, expected.color, '1']
+            }
+            probe.remove()
+            return colors
+          })
+
+          expect(hovered).toEqual(menu)
+        })
+      }
+
       test('one toggle border token reaches checkboxes and radios', async ({ page }) => {
         await openShowcase(page)
         await page.addStyleTag({ content: 'html { --payloadpack-toggle-border: rgb(255, 0, 0); }' })

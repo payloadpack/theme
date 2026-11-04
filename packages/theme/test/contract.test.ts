@@ -221,7 +221,9 @@ const readByDescendants: Record<string, string[]> = {
   '--lexical-h4-font-size': ['.LexicalEditorTheme__h4'],
   '--lexical-h5-font-size': ['.LexicalEditorTheme__h5'],
   '--lexical-h6-font-size': ['.LexicalEditorTheme__h6'],
-  '--normal-text': ['[data-sonner-toast]']
+  '--normal-text': ['[data-sonner-toast]'],
+  '--popup-item-bg-hover': ['.popup-button-list__button'],
+  '--popup-item-color-hover': ['.popup-button-list__button']
 }
 
 const readByTheme = ['--elevation-400-menu-panel']
@@ -371,8 +373,8 @@ describe('theme contract with Payload', () => {
     expect(read(path.join(uiDist, 'layouts/Root/DocumentRoot.js'))).toContain('@layer payload-default, payload;')
   })
 
-  it('overrides only tokens that Payload still declares', () => {
-    const payloadTokens = new Set(declaredProperties(payloadCss))
+  it('overrides only tokens that Payload still declares or reads', () => {
+    const payloadTokens = new Set([...declaredProperties(payloadCss), ...referencedProperties(payloadCss)])
     const overridden = declaredProperties(allThemeCss).filter((token) => !token.startsWith('--payloadpack-'))
     expect(overridden.filter((token) => !payloadTokens.has(token))).toEqual([])
   })

@@ -152,7 +152,6 @@
       margin-inline-end: var(--spacer-2);
       background-color: currentColor;
       opacity: 0.5;
-      transition: opacity 150ms ease-in-out;
       mask: var(--payloadpack-icon) center / contain no-repeat;
     }
 

@@ -233,7 +233,7 @@ From Payload 4.0.0-beta.6's CSS:
   - the tooltip's fade, now 150ms in and 100ms out
   - the small transitions on fields, buttons and cards
   - new in this theme: popups, select menus and the date picker fade in and scale up from 95% at their trigger, sliding in 8px from it when they open above or below, and scale back out on close. Submenus scale from their top edge without a slide, because Payload flips them to the other side without saying so. Payload 3 never animated them. Modals stay still.
-  - Timing is fixed per kind of component, never measured: popovers, menus, the date picker and tooltips take 150ms in and 100ms out on a strong ease-out, `cubic-bezier(0.23, 1, 0.32, 1)`; drawers and the Appearance sheet take 300ms in on the drawer curve and 200ms out.
+  - Timing is fixed per kind of component, never measured: popovers, menus, the date picker and tooltips take 150ms in and 100ms out on a strong ease-out, `cubic-bezier(0.23, 1, 0.32, 1)`; drawers and the Appearance sheet take 300ms in on the drawer curve and 200ms out. Menu items and nav links switch at once on hover, icon included.
 
 ## Open
 
