@@ -53,13 +53,12 @@
     "build:swc": "swc ./src -d ./dist --config-file .swcrc --strip-leading-paths --ignore \"**/*.d.ts\"",
     "build:types": "tsc -p tsconfig.json",
     "clean": "rimraf {dist,*.tsbuildinfo}",
-    "copyfiles": "copyfiles -u 1 \"src/**/*.css\" dist/ && cp ../../README.md README.md",
+    "copyfiles": "copyfiles -u 1 \"src/**/*.css\" \"src/fonts/*\" dist/ && cp ../../README.md README.md",
     "prepublishOnly": "bun run build",
     "test": "vitest run"
   },
   "peerDependencies": {
     "@payloadcms/ui": "^4.0.0-beta.6",
-    "next": "^16.4.2",
     "payload": "^4.0.0-beta.6",
     "react": "^19",
     "react-dom": "^19"
@@ -73,7 +72,6 @@
     "@types/react": "19.3.0",
     "copyfiles": "2.4.1",
     "lucide-static": "1.61.0",
-    "next": "16.4.2",
     "payload": "4.0.0-beta.6",
     "react": "19.3.1",
     "react-dom": "19.3.1",

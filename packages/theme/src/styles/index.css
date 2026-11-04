@@ -16,3 +16,11 @@
 @import './fields/switch.css';
 @import './appearance-panel.css';
 @import './rail.css';
+
+@font-face {
+  font-family: payloadpack-geist;
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('../fonts/Geist-Variable.woff2') format('woff2');
+}

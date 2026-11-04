@@ -1,5 +1,4 @@
 import { getPreferences } from '@payloadcms/ui/rsc'
-import { Geist } from 'next/font/google'
 import type { ServerProps } from 'payload'
 import type { ReactNode } from 'react'
 
@@ -7,8 +6,6 @@ import { isEditable, normalize, type Panel, parseChoices, preferenceKey, type Se
 import '../styles/index.css'
 import { AppearanceSheet } from './appearance-panel.js'
 import { AppearanceProvider } from './appearance-provider.js'
-
-const geist = Geist({ preload: false, subsets: ['latin'] })
 
 type Props = ServerProps & { children: ReactNode; codeEditorFontSize: false | number; panel: Panel; settings: Settings }
 
@@ -34,7 +31,6 @@ export async function AppearanceServerProvider(props: Props) {
     <AppearanceProvider
       codeEditorFontSize={codeEditorFontSize}
       cookieName={cookieName}
-      geist={geist.style.fontFamily}
       initialChoices={choices}
       initialRail={initialRail}
       railCookieName={railCookieName}

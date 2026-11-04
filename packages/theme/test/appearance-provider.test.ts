@@ -5,15 +5,12 @@ import { expect, it } from 'vitest'
 import { AppearanceProvider } from '../src/components/appearance-provider.js'
 import { type Choices, type CustomPalette, paletteCss, type Settings } from '../src/lib/appearance.js'
 
-const geist = "'Geist', 'Geist Fallback'"
-
 const render = (settings: Settings, initialChoices: Choices = {}, initialRail = false) =>
   renderToString(
     createElement(AppearanceProvider, {
       children: null,
       codeEditorFontSize: false,
       cookieName: 'payload-appearance',
-      geist,
       initialChoices,
       initialRail,
       railCookieName: 'payload-nav-rail',
@@ -24,13 +21,10 @@ const render = (settings: Settings, initialChoices: Choices = {}, initialRail = 
 const runScript = (settings: Settings, initialChoices: Choices = {}, initialRail = false) => {
   const script = render(settings, initialChoices, initialRail).match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? ''
   const dataset = {}
-  const style: Record<string, string> = {}
 
-  new Function('document', script)({
-    documentElement: { dataset, style: { setProperty: (name: string, value: string) => (style[name] = value) } }
-  })
+  new Function('document', script)({ documentElement: { dataset } })
 
-  return { dataset, style }
+  return dataset
 }
 
 const custom: CustomPalette = {
@@ -49,7 +43,7 @@ const settings: Settings = {
 it('keeps the initial appearance inside its inline script', () => {
   const density = '</script><script>alert(1)</script>' as 'compact'
 
-  expect(runScript({ ...settings, options: { enhanced: { density, icons: 'lucide' } } }).dataset).toEqual({
+  expect(runScript({ ...settings, options: { enhanced: { density, icons: 'lucide' } } })).toEqual({
     character: 'enhanced',
     density,
     icons: 'lucide',
@@ -57,12 +51,9 @@ it('keeps the initial appearance inside its inline script', () => {
   })
 })
 
-it('sets the palette and the Geist family, and leaves the accent to the palette CSS', () => {
-  expect(runScript(settings)).toEqual({
-    dataset: { character: 'enhanced', density: 'comfortable', icons: 'lucide', palette: 'neutral' },
-    style: { '--payloadpack-font-geist': geist }
-  })
-  expect(runScript(settings, { custom, palette: 'custom' }).dataset).toEqual({
+it('sets the palette and leaves the accent to the palette CSS', () => {
+  expect(runScript(settings)).toEqual({ character: 'enhanced', density: 'comfortable', icons: 'lucide', palette: 'neutral' })
+  expect(runScript(settings, { custom, palette: 'custom' })).toEqual({
     character: 'enhanced',
     density: 'comfortable',
     icons: 'lucide',
@@ -78,8 +69,8 @@ it('renders the custom palette into the server HTML as the CSS block Copy as CSS
 it('renders the collapsed rail only while the nav option is icons', () => {
   const withNav: Settings = { ...settings, options: { enhanced: { nav: 'icons' } } }
 
-  expect(runScript(withNav, {}, true).dataset).toEqual({ character: 'enhanced', nav: 'icons', palette: 'neutral', rail: '' })
-  expect(runScript(withNav, { options: { enhanced: { nav: 'hidden' } } }, true).dataset).toEqual({
+  expect(runScript(withNav, {}, true)).toEqual({ character: 'enhanced', nav: 'icons', palette: 'neutral', rail: '' })
+  expect(runScript(withNav, { options: { enhanced: { nav: 'hidden' } } }, true)).toEqual({
     character: 'enhanced',
     nav: 'hidden',
     palette: 'neutral'

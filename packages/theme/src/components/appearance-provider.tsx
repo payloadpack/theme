@@ -21,8 +21,6 @@ import type { Palette } from '../palettes/index.js'
 
 const ONE_YEAR_IN_SECONDS = 60 * 60 * 24 * 365
 
-const GEIST_PROPERTY = '--payloadpack-font-geist'
-
 const ATTRIBUTE_KEYS = ['character', 'palette', 'rail', ...Object.keys(options)]
 
 const inline = (value: unknown) => JSON.stringify(value).replace(/</g, '\\u003c')
@@ -55,7 +53,6 @@ type AppearanceProviderProps = {
   children: ReactNode
   codeEditorFontSize: false | number
   cookieName: string
-  geist: string
   initialChoices: Choices
   initialRail: boolean
   railCookieName: string
@@ -66,7 +63,6 @@ export function AppearanceProvider({
   children,
   codeEditorFontSize,
   cookieName,
-  geist,
   initialChoices,
   initialRail,
   railCookieName,
@@ -99,7 +95,7 @@ export function AppearanceProvider({
   useMonacoFontSize(values.density === 'comfortable' && codeEditorFontSize)
 
   useLayoutEffect(() => {
-    const { dataset, style } = document.documentElement
+    const { dataset } = document.documentElement
     for (const key of ATTRIBUTE_KEYS) {
       if (key in attributes) {
         dataset[key] = attributes[key]
@@ -107,8 +103,7 @@ export function AppearanceProvider({
         delete dataset[key]
       }
     }
-    style.setProperty(GEIST_PROPERTY, geist)
-  }, [attributes, geist])
+  }, [attributes])
 
   useEffect(() => {
     writeCookie(cookieName, Object.keys(choices).length ? encodeURIComponent(JSON.stringify(choices)) : undefined)
@@ -163,7 +158,7 @@ export function AppearanceProvider({
       {isServerHtml && (
         <script
           dangerouslySetInnerHTML={{
-            __html: `Object.assign(document.documentElement.dataset,${inline(attributes)});document.documentElement.style.setProperty('${GEIST_PROPERTY}',${inline(geist)})`
+            __html: `Object.assign(document.documentElement.dataset,${inline(attributes)})`
           }}
         />
       )}

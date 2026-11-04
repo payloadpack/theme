@@ -172,8 +172,7 @@ The provider renders the active character, its option values and the palette ont
   data-motion="on"
   data-nav="icons"
   data-rail=""
-  data-palette="studio"
-  style="--payloadpack-font-geist: 'Geist', 'Geist Fallback'"></html>
+  data-palette="studio"></html>
 ```
 
 `data-rail` is there only while the nav is collapsed to the rail. Under the Stock character, no option attribute is rendered, so no option stylesheet can apply. The palette applies under any character.
@@ -230,7 +229,7 @@ From Payload 4.0.0-beta.6's CSS:
   - A palette without an accent keeps Payload's exact ramp. A palette that sets `#0d99ff` gets mixed shades instead.
   - No component hard-codes a blue.
 - `radius`: `--radius-small`, `--radius-medium`, `--radius-large`, `--button-radius`, `--field-border-radius`, `--popup-radius` and `--popup-item-radius`. Components pick a tier directly, so the option sets the tiers.
-- `font`: `--font-family-sans`. Payload loads Inter with `next/font` as an unlayered class on `<html>`, so the option needs a layered `!important` declaration. Geist loads with `next/font/google` in the server provider, with `preload: false` so only editors who use it download it, and the provider sets its family as `--payloadpack-font-geist` on `<html>`.
+- `font`: `--font-family-sans`. Payload loads Inter with `next/font` as an unlayered class on `<html>`, so the option needs a layered `!important` declaration. Geist ships in the package as a variable woff2 under the SIL Open Font License, declared with `@font-face` in `styles/index.css` as `payloadpack-geist`, so builds need no network and the browser downloads it only when an editor uses it.
 - `density`: what `density.css` already does.
 - `motion`: what Payload 3 animated and Payload 4 dropped:
   - not the drawer's fade and slide: Payload 4 unmounts a drawer on close, so only its opening could animate, and it opens at once instead. Select menus unmount too, but a menu that only animates in reads as quick, so they keep it.
