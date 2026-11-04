@@ -1893,7 +1893,7 @@ test.describe('Studio character', () => {
     await openList(page)
     const body = page.locator('body')
 
-    await expect(body).toHaveCSS('font-family', /^payloadpack-geist,/)
+    await expect(body).toHaveCSS('font-family', /^payloadpack-geist, payloadpack-geist-fallback,/)
     expect(
       await page.evaluate(async () => {
         await document.fonts.ready
@@ -1909,6 +1909,31 @@ test.describe('Studio character', () => {
     await page.context().addCookies([studio({ font: 'system' })])
     await page.reload()
     await expect(body).toHaveCSS('font-family', /^system-ui,/)
+  })
+
+  test("sets text in Geist's fallback at Geist's width, so nothing shifts when it loads", async ({ page }) => {
+    await page.context().addCookies([studio()])
+    await openList(page)
+    const fallback = await page.evaluate(() =>
+      document.fonts.load('14px payloadpack-geist-fallback').then(
+        (faces) => faces.length,
+        () => 0
+      )
+    )
+    test.skip(!fallback, 'the fallback face needs Arial, which this machine does not have')
+
+    const [geist, metricFallback] = await page.evaluate(async () => {
+      await document.fonts.load('14px payloadpack-geist')
+      return ['payloadpack-geist', 'payloadpack-geist-fallback'].map((family) => {
+        const text = document.body.appendChild(document.createElement('span'))
+        text.style.font = `14px ${family}`
+        text.textContent = 'Published documents need a title and a slug'
+        const { width } = text.getBoundingClientRect()
+        text.remove()
+        return width
+      })
+    })
+    expect(Math.abs(metricFallback / geist - 1)).toBeLessThan(0.03)
   })
 
   test('leaves Stock and Enhanced in their own layout and font', async ({ page }) => {

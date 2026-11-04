@@ -24,3 +24,12 @@
   font-display: swap;
   src: url('../fonts/Geist-Variable.woff2') format('woff2');
 }
+
+@font-face {
+  font-family: payloadpack-geist-fallback;
+  src: local('Arial');
+  size-adjust: 104.76%;
+  ascent-override: 95.94%;
+  descent-override: 28.16%;
+  line-gap-override: 0%;
+}

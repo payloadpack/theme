@@ -1,12 +1,14 @@
 @layer payload {
   html[data-character='studio'] {
     /* 1. Font */
+    --payloadpack-font-system: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
     &[data-font='geist'] {
-      --font-family-sans: payloadpack-geist, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif !important;
+      --font-family-sans: payloadpack-geist, payloadpack-geist-fallback, var(--payloadpack-font-system) !important;
     }
 
     &[data-font='system'] {
-      --font-family-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif !important;
+      --font-family-sans: var(--payloadpack-font-system) !important;
     }
 
     /* 2. Frame */
