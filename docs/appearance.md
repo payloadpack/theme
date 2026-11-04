@@ -76,11 +76,11 @@ A palette is CSS, the way Tailwind v4 defines design tokens: a block scoped to `
 | primary    | primary buttons and checked toggles          |
 | accent     | links, marks, selection                      |
 
-| Palette | Light                               | Dark                                                              | Accent    |
-| ------- | ----------------------------------- | ----------------------------------------------------------------- | --------- |
-| Payload | Payload's own Figma UI3 colors      | Payload's own Figma UI3 colors                                    | `#0d99ff` |
-| Neutral | `#f5f5f5` field, white cards        | near-black: `#0a0a09` nav, `#0f0f0e` page, `#f3f2ed` text         | its text  |
-| Studio  | a faintly tinted field, white cards | the same tint on near-black, cards a shade lighter than the field | `#c2410c` |
+| Palette | Light                                    | Dark                                                              | Accent    |
+| ------- | ---------------------------------------- | ----------------------------------------------------------------- | --------- |
+| Payload | Payload's own Figma UI3 colors           | Payload's own Figma UI3 colors                                    | `#0d99ff` |
+| Neutral | `oklch(97.5% 0 none)` field, white cards | near-black: `#0a0a09` nav, `#0f0f0e` page, `#f3f2ed` text         | its text  |
+| Studio  | a faintly tinted field, white cards      | the same tint on near-black, cards a shade lighter than the field | `#c2410c` |
 
 - The Payload palette applies no overrides, so plain Payload is the Stock character with the Payload palette. Today's look is Enhanced with Neutral, the zero-config default.
 - A palette's primary is its `--payloadpack-primary` line, per version. The built-in palettes set it to their text color, so primary buttons are near-black in light mode and near-white in dark mode, and a palette without one falls back to its text color. Text on it turns black or white by its lightness, and a nearly white primary gets a faint edge in light mode.

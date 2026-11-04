@@ -1,11 +1,16 @@
 @layer payload {
   [data-palette='neutral'] {
     /* 1. Light palette */
-    --payloadpack-background: #f5f5f5;
+    --payloadpack-background: oklch(97.5% 0 none);
     --payloadpack-surface: #ffffff;
     --payloadpack-text: #111111;
     --payloadpack-primary: var(--payloadpack-text);
     --payloadpack-accent: var(--payloadpack-text);
+
+    &:not([data-enhanced-contrast]),
+    &:not([data-enhanced-contrast]) [data-theme]:not([data-palette]) {
+      --color-text-secondary: oklch(43.9% 0 none);
+    }
 
     /* 2. Dark palette */
     &[data-theme='dark'],

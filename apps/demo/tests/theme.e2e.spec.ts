@@ -48,11 +48,13 @@ const computedColor = (page: Page, color: string, theme?: string) =>
     [color, theme] as const
   )
 
-const hex = (rgb: string) =>
-  `#${(rgb.match(/\d+/g) ?? [])
-    .slice(0, 3)
-    .map((channel) => Number(channel).toString(16).padStart(2, '0'))
-    .join('')}`
+const hex = (page: Page, color: string) =>
+  page.evaluate((value) => {
+    const context = document.createElement('canvas').getContext('2d')!
+    context.fillStyle = value
+    context.fillRect(0, 0, 1, 1)
+    return `#${[...context.getImageData(0, 0, 1, 1).data.slice(0, 3)].map((channel) => channel.toString(16).padStart(2, '0')).join('')}`
+  }, color)
 
 const nearColor = async (page: Page, actual: string, expected: string) => {
   const [a, b] = [await channels(page, 'oklab', actual), await channels(page, 'oklab', expected)]
@@ -1315,7 +1317,7 @@ test.describe('Custom palette', () => {
     const html = page.locator('html')
     const header = page.locator('.nav__header')
     const sheet = await openAppearancePanel(page)
-    const neutral = async (token: string, theme: string) => hex(await computedColor(page, `var(${token})`, theme))
+    const neutral = async (token: string, theme: string) => hex(page, await computedColor(page, `var(${token})`, theme))
     const expected = {
       accent: await neutral('--payloadpack-accent', 'light'),
       darkBackground: await neutral('--payloadpack-background', 'dark'),
