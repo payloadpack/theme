@@ -1,7 +1,7 @@
 @layer payload {
   [data-palette='studio'] {
     /* 1. Light palette */
-    --payloadpack-background: color-mix(in oklab, var(--payloadpack-accent) 3%, #f1f0ec);
+    --payloadpack-background: color-mix(in oklab, var(--payloadpack-accent) 2%, #f4f3ef);
     --payloadpack-surface: #ffffff;
     --payloadpack-text: #1c1b18;
     --payloadpack-accent: #c2410c;

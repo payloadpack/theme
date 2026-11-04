@@ -1647,9 +1647,9 @@ test.describe('Studio palette', () => {
     const field = page.locator('.template-default')
     const card = page.locator('.template-default__wrap')
 
-    await expect(field).toHaveCSS('background-color', await computedColor(page, 'color-mix(in oklab, #c2410c 3%, #f1f0ec)'))
+    await expect(field).toHaveCSS('background-color', await computedColor(page, 'color-mix(in oklab, #c2410c 2%, #f4f3ef)'))
     await expect(card).toHaveCSS('background-color', 'rgb(255, 255, 255)')
-    await expect(page.locator('.nav')).toHaveCSS('background-color', await computedColor(page, 'color-mix(in oklab, #c2410c 3%, #f1f0ec)'))
+    await expect(page.locator('.nav')).toHaveCSS('background-color', await computedColor(page, 'color-mix(in oklab, #c2410c 2%, #f4f3ef)'))
 
     await page.context().addCookies([appearance({ character: 'studio', palette: 'studio' }), cookie('theme', 'dark')])
     await page.reload()
@@ -1666,7 +1666,7 @@ test.describe('Studio palette', () => {
 
     await expect(page.locator('.nav__header')).toHaveCSS(
       'background-color',
-      await computedColor(page, 'color-mix(in oklab, #c2410c 3%, #f1f0ec)')
+      await computedColor(page, 'color-mix(in oklab, #c2410c 2%, #f4f3ef)')
     )
     await expect(page.locator('.template-default__wrap')).toHaveCSS('background-color', 'rgb(255, 255, 255)')
   })
