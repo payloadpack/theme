@@ -342,16 +342,15 @@ test.describe('Appearance panel', () => {
     await expect(status).toHaveText('The browser blocked the clipboard.')
   })
 
-  test("shows a sample of each icon set, and Payload's stays Payload's while Lucide is on", async ({ page }) => {
+  test("shows each icon set's logo", async ({ page }) => {
     await page.goto('/admin')
     const sheet = await openAppearancePanel(page)
     const icons = sheet.locator('[data-option="icons"]')
 
     await openFineTune(sheet)
 
-    await expect(page.locator('html')).toHaveAttribute('data-icons', 'lucide')
-    await expect(icons.locator('svg.icon--people path')).toBeVisible()
-    await expect(icons.locator('span.payloadpack-appearance-panel__sample')).toHaveCSS('mask-image', /data:image\/svg\+xml/)
+    await expect(icons.getByRole('radio', { name: 'Payload' }).locator('..').locator('svg.graphic-icon')).toBeVisible()
+    await expect(icons.getByRole('radio', { name: 'Lucide' }).locator('..').locator('path[stroke="#f56565"]')).toBeVisible()
   })
 
   test('moves through a group with the arrow keys, one Tab stop per group', async ({ page }) => {

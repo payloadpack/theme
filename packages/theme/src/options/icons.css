@@ -1,7 +1,7 @@
 @layer payload {
   html[data-icons='lucide'] {
     /* 1. Payload icons */
-    svg.icon:not(.payloadpack-appearance-panel__sample):is(
+    svg.icon:is(
       .icon--align-justified,
       .icon--arrow,
       .icon--calendar,

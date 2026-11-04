@@ -1,6 +1,6 @@
 'use client'
 
-import { PeopleIcon, useConfig, useTheme, useTranslation, XIcon } from '@payloadcms/ui'
+import { PayloadIcon, useConfig, useTheme, useTranslation, XIcon } from '@payloadcms/ui'
 import { Fragment, type ReactNode, useEffect, useId, useRef, useState } from 'react'
 
 import { characters as registry, type Option, options } from '../characters/index.js'
@@ -452,6 +452,21 @@ export function AppearanceSheet() {
   )
 }
 
+function LucideLogo() {
+  return (
+    <svg fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} viewBox="0 0 24 24">
+      <path
+        d="M14 12C14 9.79086 12.2091 8 10 8C7.79086 8 6 9.79086 6 12C6 16.4183 9.58172 20 14 20C18.4183 20 22 16.4183 22 12C22 8.446 20.455 5.25285 18 3.05557"
+        stroke="currentColor"
+      />
+      <path
+        d="M10 12C10 14.2091 11.7909 16 14 16C16.2091 16 18 14.2091 18 12C18 7.58172 14.4183 4 10 4C5.58172 4 2 7.58172 2 12C2 15.5841 3.57127 18.8012 6.06253 21"
+        stroke="#f56565"
+      />
+    </svg>
+  )
+}
+
 function FineTuneRow<O extends Option>({
   label,
   onChange,
@@ -476,12 +491,11 @@ function FineTuneRow<O extends Option>({
               <span aria-hidden="true" className="payloadpack-appearance-panel__corner" data-value={value} />
             ) : (
               <>
-                {option === 'icons' &&
-                  (value === 'payload' ? (
-                    <PeopleIcon className="payloadpack-appearance-panel__sample" size={16} />
-                  ) : (
-                    <span aria-hidden="true" className="payloadpack-appearance-panel__sample" />
-                  ))}
+                {option === 'icons' && (
+                  <span aria-hidden="true" className="payloadpack-appearance-panel__logo">
+                    {value === 'payload' ? <PayloadIcon fill="currentColor" /> : <LucideLogo />}
+                  </span>
+                )}
                 <span data-font={option === 'font' ? value : undefined}>
                   {t(`payloadpack:${option}${capitalize(value)}` as TranslationKey)}
                 </span>
