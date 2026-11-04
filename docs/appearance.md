@@ -128,7 +128,7 @@ Color mode is Payload's own light/dark preference: the panel calls `useTheme().s
 
 ## The Appearance panel
 
-- A Lucide `palette` icon button in the header actions (`admin.components.actions`), on every Default-template view. Signed-out views have no slot for it.
+- A Lucide `palette` icon button, on every Default-template view. Under Enhanced and Studio it sits in the nav beside the collapse button (`beforeNav`, placed with CSS anchor positioning): right of it under Studio, left of it under Enhanced, and under it in the rail. Under Stock, on phones and while a `hidden` nav is closed, it is in the header actions (`admin.components.actions`) instead, which also hold the sheet both buttons open. Signed-out views have no slot for it.
 - It opens a side sheet docked to the right edge, full height, 360px wide, built on the native `popover` attribute: Escape and a click outside close it. The page stays visible beside it.
 - Below 768px the sheet fills the screen, with a close button in its header.
 - Every change applies at once. There is no Save button.

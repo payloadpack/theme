@@ -29,10 +29,14 @@ it('gives every supported language the English panel labels, and lets the app ov
   expect(translations.de.payloadpack.colorMode).toBe('Color mode')
 })
 
-it('puts the rail toggle after the app nav components', async () => {
+it('puts the rail toggle and the Appearance button after the app nav components', async () => {
   const config = await themePlugin({})({ admin: { components: { beforeNav: ['/nav#Banner'] } } } as Config)
 
-  expect(config.admin?.components?.beforeNav).toEqual(['/nav#Banner', '@payloadpack/theme/client#RailToggle'])
+  expect(config.admin?.components?.beforeNav).toEqual([
+    '/nav#Banner',
+    '@payloadpack/theme/client#RailToggle',
+    { path: '@payloadpack/theme/rsc#AppearanceServerPanel', serverProps: { panel: true, place: 'nav' } }
+  ])
 })
 
 it('throws when the default character is not allowed', () => {

@@ -30,7 +30,7 @@
   </tr>
 </table>
 
-Each editor picks how their admin panel looks from the Appearance panel in the header: a character for the layout and a palette for the colors. The default is the Enhanced character, with a roomier density and Lucide icons, on the Warm palette. Stock on the Payload palette is plain Payload. Setups are rendered on the server, so pages never flash.
+Each editor picks how their admin panel looks from the Appearance panel: a character for the layout and a palette for the colors. The default is the Enhanced character, with a roomier density and Lucide icons, on the Warm palette. Stock on the Payload palette is plain Payload. Setups are rendered on the server, so pages never flash.
 
 ## Install
 
@@ -54,7 +54,7 @@ payload generate:importmap
 
 ## Appearance
 
-Click the Appearance button in the header to open the Appearance panel:
+Click the Appearance button, beside the collapse button at the top of the nav, or in the header under Stock and on phones, to open the Appearance panel:
 
 <p>
   <picture>

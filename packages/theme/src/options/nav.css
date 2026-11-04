@@ -23,7 +23,6 @@
     @media (min-width: 769px) {
       .nav__close {
         visibility: hidden;
-        anchor-name: --payloadpack-nav-close;
       }
 
       .payloadpack-rail-toggle {

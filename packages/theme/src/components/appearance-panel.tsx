@@ -12,6 +12,8 @@ const colorModes = ['light', 'dark', 'auto'] as const
 
 const halves = ['light', 'dark'] as const
 
+const SHEET_ID = 'payloadpack-appearance'
+
 const FEEDBACK_MS = 2000
 
 const capitalize = (text: string) => `${text[0].toUpperCase()}${text.slice(1)}`
@@ -53,6 +55,28 @@ const readPalette = (cards: Element, name: string): CustomPalette => {
   return { accent: light.accent, dark: dark.base, light: light.base }
 }
 
+function Trigger() {
+  const { t } = useTranslation<object, TranslationKey>()
+
+  return (
+    <button
+      aria-label={t('payloadpack:appearance')}
+      className="payloadpack-appearance-panel__trigger"
+      popoverTarget={SHEET_ID}
+      type="button">
+      <span aria-hidden="true" className="payloadpack-appearance-panel__palette-icon" />
+    </button>
+  )
+}
+
+export function AppearanceNavButton() {
+  return (
+    <div className="payloadpack-appearance-panel payloadpack-appearance-panel--nav">
+      <Trigger />
+    </div>
+  )
+}
+
 function ColorField({ label, onChange, value }: { label: string; onChange: (value: string) => void; value: string }) {
   return (
     <label className="payloadpack-appearance-panel__color">
@@ -86,7 +110,6 @@ function ChoiceGroup<V extends string>({ children, choices, className, label, on
 }
 
 export function AppearancePanel() {
-  const id = useId()
   const {
     character,
     characters,
@@ -131,23 +154,21 @@ export function AppearancePanel() {
 
   return (
     <div className="payloadpack-appearance-panel">
-      <button
-        aria-label={t('payloadpack:appearance')}
-        className="payloadpack-appearance-panel__trigger"
-        popoverTarget={id}
-        type="button">
-        <span aria-hidden="true" className="payloadpack-appearance-panel__palette-icon" />
-      </button>
-      <dialog aria-labelledby={`${id}-title`} className="payloadpack-appearance-panel__sheet" id={id} popover="auto">
+      <Trigger />
+      <dialog
+        aria-labelledby={`${SHEET_ID}-title`}
+        className="payloadpack-appearance-panel__sheet"
+        id={SHEET_ID}
+        popover="auto">
         <header className="payloadpack-appearance-panel__header">
           <div>
-            <h2 id={`${id}-title`}>{t('payloadpack:appearance')}</h2>
+            <h2 id={`${SHEET_ID}-title`}>{t('payloadpack:appearance')}</h2>
             <p>{t('payloadpack:appearanceDescription')}</p>
           </div>
           <button
             aria-label={t('payloadpack:close')}
             className="payloadpack-appearance-panel__close"
-            popoverTarget={id}
+            popoverTarget={SHEET_ID}
             popoverTargetAction="hide"
             type="button">
             <XIcon size={16} />

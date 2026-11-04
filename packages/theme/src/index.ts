@@ -71,7 +71,8 @@ export function themePlugin(pluginConfig: ThemePluginConfig = {}): Plugin {
         ],
         beforeNav: [
           ...(config.admin?.components?.beforeNav ?? []),
-          `${PACKAGE_NAME}/client#RailToggle`
+          `${PACKAGE_NAME}/client#RailToggle`,
+          { path: `${PACKAGE_NAME}/rsc#AppearanceServerPanel`, serverProps: { panel, place: 'nav' } }
         ],
         providers: [
           ...(config.admin?.components?.providers ?? []),

@@ -253,6 +253,34 @@ test.describe('Appearance panel', () => {
     await elsewhere.close()
   })
 
+  test('sits left of the nav toggle under Enhanced, right of it under Studio, and in the header when the nav is closed or Stock', async ({ page }) => {
+    const button = page.getByRole('button', { name: 'Appearance' })
+    const beside = async () => {
+      const [trigger, toggle] = [(await button.boundingBox())!, (await page.locator('.payloadpack-rail-toggle').boundingBox())!]
+      expect(trigger.y).toBe(toggle.y)
+      return trigger.x < toggle.x ? 'left' : 'right'
+    }
+
+    await page.goto('/admin')
+    expect(await beside()).toBe('left')
+
+    await page.context().addCookies([appearance({ character: 'studio' })])
+    await page.reload()
+    expect(await beside()).toBe('right')
+
+    await page.route('**/api/payload-preferences/nav*', (route) =>
+      route.request().method() === 'POST' ? route.fulfill({ json: {} }) : route.fallback()
+    )
+    await page.context().addCookies([appearance({ options: { enhanced: { nav: 'hidden' } } })])
+    await page.reload()
+    await page.getByRole('button', { name: 'Hide sidebar' }).click()
+    await expect(page.locator('.app-header').getByRole('button', { name: 'Appearance' })).toBeVisible()
+
+    await page.context().addCookies([appearance({ character: 'stock' })])
+    await page.reload()
+    await expect(page.locator('.app-header').getByRole('button', { name: 'Appearance' })).toBeVisible()
+  })
+
   test('draws the bundled Lucide palette icon on the header button', async ({ page }) => {
     await page.goto('/admin')
 
