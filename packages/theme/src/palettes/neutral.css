@@ -1,15 +1,15 @@
 @layer payload {
   [data-palette='neutral'] {
     /* 1. Light palette */
-    --payloadpack-background: #f7f7f7;
+    --payloadpack-background: #f6f6f6;
     --payloadpack-surface: #ffffff;
-    --payloadpack-text: #111111;
-    --payloadpack-primary: var(--payloadpack-text);
+    --payloadpack-text: #171717;
+    --payloadpack-primary: #0a0a0a;
     --payloadpack-accent: var(--payloadpack-text);
 
     &:not([data-enhanced-contrast]),
     &:not([data-enhanced-contrast]) [data-theme]:not([data-palette]) {
-      --color-text-secondary: oklch(43.9% 0 none);
+      --color-text-secondary: #646464;
     }
 
     /* 2. Dark palette */
