@@ -1089,12 +1089,23 @@ test.describe('Neutral palette', () => {
     await expect(card).toHaveCSS('border-top-color', await computedColor(page, 'var(--color-border-control)'))
   })
 
-  test('focused fields get a soft grey ring', async ({ page }) => {
+  test('focused fields get a soft grey ring, lighter in light mode', async ({ page }) => {
     await openShowcase(page)
     const title = page.locator('#field-title')
     await title.click()
 
-    await expect(title).toHaveCSS('border-top-color', 'rgb(114, 113, 107)')
+    await expect(title).toHaveCSS('border-top-color', await computedColor(page, 'var(--ramp-grey-500)'))
+    await expect(title).toHaveCSS('box-shadow', /0px 0px 0px 3px/)
+
+    await page.context().addCookies([cookie('theme', 'light')])
+    await page.reload()
+    await page.locator('.collapsible__toggle-wrap').first().waitFor()
+    await title.click()
+    const [grey] = await channels(page, 'oklab', await computedColor(page, 'var(--ramp-grey-500)'))
+
+    await expect
+      .poll(async () => (await channels(page, 'oklab', await style(page, '#field-title', 'border-top-color')))[0])
+      .toBeGreaterThan(grey)
     await expect(title).toHaveCSS('box-shadow', /0px 0px 0px 3px/)
   })
 

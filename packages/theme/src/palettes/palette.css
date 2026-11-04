@@ -7,6 +7,7 @@
       --payloadpack-pressed-step: 10%;
       --color-bg: var(--payloadpack-surface);
       --color-bg-elevated: var(--payloadpack-surface);
+      --field-color-border-focus: color-mix(in srgb, var(--payloadpack-text) 40%, var(--payloadpack-surface));
       --ramp-grey-100: color-mix(in srgb, var(--payloadpack-text) 4.37%, var(--payloadpack-surface));
       --ramp-grey-200: color-mix(in srgb, var(--payloadpack-text) 10.92%, var(--payloadpack-surface));
       --ramp-grey-300: color-mix(in srgb, var(--payloadpack-text) 16.59%, var(--payloadpack-surface));
@@ -33,6 +34,7 @@
       --color-bg-menu: var(--color-bg-elevated);
       --color-bg-tooltip: var(--color-bg-elevated);
       --field-color-bg: var(--color-bg-elevated);
+      --field-color-border-focus: var(--ramp-grey-500);
       --ramp-grey-500: color-mix(in srgb, var(--payloadpack-text) 43%, var(--payloadpack-surface));
       --ramp-grey-600: color-mix(in srgb, var(--payloadpack-text) 12%, var(--payloadpack-surface));
       --ramp-grey-700: color-mix(in srgb, var(--payloadpack-text) 7.5%, var(--payloadpack-surface));
@@ -117,7 +119,6 @@
     &,
     [data-theme] {
       --accessibility-focus-color: var(--color-text);
-      --field-color-border-focus: var(--ramp-grey-500);
     }
 
     .form-input:focus:not(:read-only, .form-input-group *),
