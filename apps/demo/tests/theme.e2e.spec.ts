@@ -33,6 +33,7 @@ const openShowcase = async (page: Page) => {
   await page.context().addCookies([cookie('theme', 'dark')])
   await page.goto((await findShowcase(page)).path)
   await page.locator('.collapsible__toggle-wrap').first().waitFor()
+  await hydrated(page)
 }
 
 const size = async (page: Page, selector: string) => {
@@ -1687,6 +1688,7 @@ test.describe('Custom palette', () => {
     const bar = async (accent: string) => {
       await page.context().addCookies(custom(accent))
       await page.goto((await findShowcase(page)).path)
+      await hydrated(page)
       return page
         .locator('.tabs__tab-button--active')
         .first()
@@ -1694,7 +1696,6 @@ test.describe('Custom palette', () => {
     }
 
     expect(await nearColor(page, await bar('#c2410c'), '#c2410c')).toBe(true)
-    await hydrated(page)
     expect((await channels(page, 'oklch', await bar('#ffffff')))[0]).toBeCloseTo(0.6, 2)
   })
 
@@ -1911,6 +1912,7 @@ test.describe('Studio character', () => {
   const openList = async (page: Page) => {
     await page.goto('/admin/collections/showcase')
     await page.locator('table').waitFor()
+    await hydrated(page)
   }
 
   test('renders its attributes and puts each view in a card on the field', async ({ page }) => {
