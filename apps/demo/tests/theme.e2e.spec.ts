@@ -1124,7 +1124,7 @@ test.describe('Motion', () => {
 })
 
 test.describe('Neutral palette', () => {
-  test('takes its text color as primary and accent, so no blue is left in light or dark', async ({ page }) => {
+  test('has no blue left in light or dark', async ({ page }) => {
     for (const theme of ['light', 'dark']) {
       await page.context().addCookies([cookie('theme', theme)])
       await page.goto('/admin/collections/showcase')
@@ -1143,7 +1143,7 @@ test.describe('Neutral palette', () => {
     }
   })
 
-  test('checked checkboxes fill with the text color and use the Lucide tick', async ({ page }) => {
+  test('checked checkboxes fill with the primary and use the Lucide tick', async ({ page }) => {
     await openShowcase(page)
     const featured = page.locator('.field-type.checkbox').filter({ hasText: 'Featured' })
     await featured.getByRole('checkbox').check()
@@ -1151,7 +1151,7 @@ test.describe('Neutral palette', () => {
 
     await expect(featured.locator('.checkbox-input__visuals')).toHaveCSS(
       'background-color',
-      await computedColor(page, 'var(--payloadpack-text)')
+      await computedColor(page, 'var(--payloadpack-primary)')
     )
     await expect(featured.locator('.checkbox-input__check')).toHaveCSS(
       'background-color',
@@ -1178,7 +1178,7 @@ test.describe('Neutral palette', () => {
     await expect(visuals).toHaveCSS('background-color', hovered)
     await page.mouse.up()
 
-    await expect(visuals).toHaveCSS('background-color', await computedColor(page, 'var(--payloadpack-text)'))
+    await expect(visuals).toHaveCSS('background-color', await computedColor(page, 'var(--payloadpack-primary)'))
   })
 
   test('radios share the checkbox look and focus ring', async ({ page }) => {
@@ -1199,7 +1199,7 @@ test.describe('Neutral palette', () => {
     }
 
     await radio('m').click()
-    await expect(radio('m')).toHaveCSS('background-color', await computedColor(page, 'var(--payloadpack-text)'))
+    await expect(radio('m')).toHaveCSS('background-color', await computedColor(page, 'var(--payloadpack-primary)'))
     expect(await radio('m').evaluate((element) => getComputedStyle(element, '::before').backgroundColor)).toBe(
       await computedColor(page, 'var(--payloadpack-toggle-mark)')
     )
