@@ -4,7 +4,6 @@
     --payloadpack-background: #ffffff;
     --payloadpack-surface: #ffffff;
     --payloadpack-text: #1a1a1a;
-    --payloadpack-accent: #0d99ff;
 
     /* 2. Dark palette */
     &[data-theme='dark'],

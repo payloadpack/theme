@@ -1,11 +1,5 @@
-export const payloadBlue = '#0d99ff'
+export const palettes = ['payload', 'warm', 'studio'] as const
 
-export const palettes = {
-  payload: { accent: payloadBlue },
-  warm: { accent: payloadBlue },
-  studio: { accent: '#c2410c' }
-} satisfies Record<string, { accent: string }>
-
-export type Palette = keyof typeof palettes
+export type Palette = (typeof palettes)[number]
 
 export const defaultPalette: Palette = 'warm'

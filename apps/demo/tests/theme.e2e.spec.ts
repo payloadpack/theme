@@ -117,7 +117,7 @@ test.describe('Theme plugin', () => {
 
     const html = await (await page.request.get('/admin')).text()
     expect(html).toContain(
-      `<script>Object.assign(document.documentElement.dataset,{"character":"stock","palette":"warm"});document.documentElement.style.setProperty('--payloadpack-accent',"#0d99ff");document.documentElement.style.setProperty('--payloadpack-font-geist',"'Geist', 'Geist Fallback'")</script>`
+      `<script>Object.assign(document.documentElement.dataset,{"character":"stock","palette":"warm"});document.documentElement.style.setProperty('--payloadpack-font-geist',"'Geist', 'Geist Fallback'")</script>`
     )
 
     await page.goto('/admin')
@@ -723,6 +723,20 @@ test.describe('Motion', () => {
 })
 
 test.describe('Warm palette', () => {
+  test("keeps Payload's own blue shades and the text color on selected nav links", async ({ page }) => {
+    await page.context().addCookies([cookie('theme', 'light')])
+    await page.goto('/admin/collections/showcase')
+
+    for (const [token, value] of [
+      ['--ramp-blue-200', '#e5f4ff'],
+      ['--ramp-blue-500', '#0d99ff'],
+      ['--ramp-pale-blue-800', '#394360']
+    ]) {
+      expect(await style(page, 'html', token)).toBe(value)
+    }
+    expect(await style(page, '.nav__link--selected', 'color')).toBe(await style(page, 'body', 'color'))
+  })
+
   test('checked checkboxes fill with the text color and use the Lucide tick', async ({ page }) => {
     await openShowcase(page)
     const featured = page.locator('.field-type.checkbox').filter({ hasText: 'Featured' })
@@ -934,7 +948,6 @@ test.describe('Payload palette', () => {
     await openShowcase(page)
 
     await expect(page.locator('html')).toHaveAttribute('data-palette', 'payload')
-    await expect(page.locator('html')).not.toHaveAttribute('data-accent')
     await expect(page.locator('html')).toHaveCSS('background-color', 'rgb(44, 44, 44)')
     await expect(page.locator('.nav')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
     expect(await style(page, 'html', '--ramp-blue-400')).toBe('#80caff')
@@ -1052,7 +1065,6 @@ test.describe('Custom palette', () => {
     await page.goto('/admin/collections/showcase')
     const primary = page.locator('.btn--style-primary:visible').first()
 
-    await expect(page.locator('html')).toHaveAttribute('data-accent', '#c2410c')
     await expect(primary).toHaveCSS('background-color', 'rgb(194, 65, 12)')
     await page.context().addCookies([cookie('theme', 'dark')])
     await page.reload()
@@ -1444,7 +1456,6 @@ test.describe('Studio palette', () => {
     const field = page.locator('.template-default')
     const card = page.locator('.template-default__wrap')
 
-    await expect(page.locator('html')).toHaveAttribute('data-accent', '#c2410c')
     await expect(field).toHaveCSS('background-color', await computedColor(page, 'color-mix(in oklab, #c2410c 3%, #f1f0ec)'))
     await expect(card).toHaveCSS('background-color', 'rgb(255, 255, 255)')
     await expect(page.locator('.nav')).toHaveCSS('background-color', await computedColor(page, 'color-mix(in oklab, #c2410c 3%, #f1f0ec)'))

@@ -11,10 +11,10 @@ export const isEditable = (panel: Panel, user: undefined | User) =>
 export const preferenceKey = 'payloadpack-appearance'
 
 export type Settings = {
-  accents: Record<string, string>
   character: Character
   options: Partial<Record<Character, Values>>
   palette: Palette
+  palettes: Palette[]
 }
 
 export const customPalette = 'custom' as const
@@ -55,8 +55,8 @@ const customOf = (value: unknown): CustomPalette | undefined => {
   return dark && light ? { accent: value.accent, dark, light } : undefined
 }
 
-const pick = (allowed: object, fallback: string, value: unknown) =>
-  typeof value === 'string' && value !== fallback && Object.hasOwn(allowed, value) ? value : undefined
+const pick = (allowed: readonly string[], fallback: string, value: unknown) =>
+  typeof value === 'string' && value !== fallback && allowed.includes(value) ? value : undefined
 
 const changed = (defaults: object, input: unknown, isValid: (key: string, value: unknown) => boolean) => {
   const picked = isRecord(input) ? input : {}
@@ -73,10 +73,10 @@ export function normalize(settings: Settings, input: unknown): Choices {
   })
   const custom = customOf(raw.custom)
   const choices = {
-    character: pick(settings.options, settings.character, raw.character),
+    character: pick(Object.keys(settings.options), settings.character, raw.character),
     custom,
     options: options.length ? Object.fromEntries(options) : undefined,
-    palette: custom && raw.palette === customPalette ? customPalette : pick(settings.accents, settings.palette, raw.palette)
+    palette: custom && raw.palette === customPalette ? customPalette : pick(settings.palettes, settings.palette, raw.palette)
   }
 
   return Object.fromEntries(Object.entries(choices).filter(([, value]) => value !== undefined)) as Choices
@@ -86,7 +86,6 @@ export function resolve(settings: Settings, choices: Choices) {
   const character = choices.character ?? settings.character
   const palette = choices.palette ?? settings.palette
   return {
-    accent: palette === customPalette && choices.custom ? choices.custom.accent : settings.accents[palette],
     character,
     custom: choices.custom,
     palette,

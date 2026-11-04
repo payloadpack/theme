@@ -35,21 +35,22 @@ const toHex = (color: string) => {
   return `#${[...context.getImageData(0, 0, 1, 1).data.slice(0, 3)].map((channel) => channel.toString(16).padStart(2, '0')).join('')}`
 }
 
-const readPalette = (cards: Element, name: string, accent: string): CustomPalette => {
+const readPalette = (cards: Element, name: string): CustomPalette => {
+  const color = (probe: HTMLElement, value: string) => {
+    probe.style.color = value
+    return toHex(getComputedStyle(probe).color)
+  }
   const read = (half: (typeof halves)[number]) => {
     const probe = document.createElement('span')
     Object.assign(probe.dataset, { palette: name, theme: half })
     cards.append(probe)
-    const base = Object.fromEntries(
-      bases.map((key) => {
-        probe.style.color = `var(--payloadpack-${key})`
-        return [key, toHex(getComputedStyle(probe).color)]
-      })
-    ) as Base
+    const base = Object.fromEntries(bases.map((key) => [key, color(probe, `var(--payloadpack-${key})`)])) as Base
+    const accent = color(probe, 'var(--payloadpack-accent, var(--ramp-blue-500))')
     probe.remove()
-    return base
+    return { accent, base }
   }
-  return { accent, dark: read('dark'), light: read('light') }
+  const [light, dark] = [read('light'), read('dark')]
+  return { accent: light.accent, dark: dark.base, light: light.base }
 }
 
 function ColorField({ label, onChange, value }: { label: string; onChange: (value: string) => void; value: string }) {
@@ -87,7 +88,6 @@ function ChoiceGroup<V extends string>({ children, choices, className, label, on
 export function AppearancePanel() {
   const id = useId()
   const {
-    accent,
     character,
     characters,
     custom,
@@ -231,7 +231,7 @@ export function AppearancePanel() {
                   onClick={(event) => {
                     const cards = event.currentTarget.closest('section')?.querySelector('.payloadpack-appearance-panel__halves')
                     if (cards) {
-                      setCustom(readPalette(cards, palette, accent))
+                      setCustom(readPalette(cards, palette))
                     }
                   }}
                   size="medium">

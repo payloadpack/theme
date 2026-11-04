@@ -121,7 +121,6 @@ themePlugin({
   options: { enhanced: { density: 'compact', icons: 'lucide' }, studio: { frame: 'flat' } },
   palette: 'warm',
   palettes: ['payload', 'warm', 'studio'],
-  accent: { warm: '#1d4ed8' },
   panel: ({ user }) => user?.role === 'admin',
   codeEditorFontSize: 13
 })
@@ -134,7 +133,6 @@ themePlugin({
 | `options`            | Each character's defaults from the option table              | Option values per character, which editors start from and Reset returns to. Each character takes only its own options, so a typo is a type error. Stock has no options and no key.                                                                                   |
 | `palette`            | `'warm'`                                                     | The palette everyone starts with. It must be one of `palettes`.                                                                                                                                                                                                      |
 | `palettes`           | `['payload', 'warm', 'studio']`                              | The palettes editors may pick. An editor whose palette is no longer allowed gets `palette`.                                                                                                                                                                          |
-| `accent`             | `{ payload: '#0d99ff', warm: '#0d99ff', studio: '#c2410c' }` | The accent per palette, as `#rrggbb`.                                                                                                                                                                                 |
 | `panel`              | `true`                                                       | Who gets the Appearance panel: `true`, `false` or `({ user }) => boolean`. When it resolves to `false`, the editor gets no Appearance button and their saved setup is ignored. Signed-out views have no user, so there the cookie applies unless `panel` is `false`. |
 | `codeEditorFontSize` | `13`                                                         | Font size for code editors in Comfortable density. Payload's default is 11. Fields that set `admin.editorOptions.fontSize` keep their own size. `false` turns it off.                                                                                                |
 

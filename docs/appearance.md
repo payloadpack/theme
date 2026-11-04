@@ -8,9 +8,9 @@ An editor's look is two independent choices: a **character** (how the admin is l
 
 Built: the three characters with every option below, the Payload, Warm and Studio palettes defined from base colors in CSS with an accent each, setups with Copy setup and Paste setup, the Appearance panel and the rail.
 
-Built since: an editor's own palette with **New palette** and **Copy as CSS**. The accent is part of a palette: the panel has no accent picker.
+Built since: an editor's own palette with **New palette** and **Copy as CSS**. The accent is part of a palette: the panel has no accent picker and the plugin has no `accent` option.
 
-Planned, not built: palettes a developer defines in CSS and lists by name in `palettes`, and a heading font. A CSS palette's accent needs its shades without the provider's inline accent: the accent's shades still come from their own stylesheet, `accent.css`, and only when the provider sets `data-accent`, which it does for an accent other than Payload's blue from the registry, the `accent` option or the editor's own palette.
+Planned, not built: palettes a developer defines in CSS and lists by name in `palettes`, and a heading font.
 
 ## Characters
 
@@ -84,7 +84,7 @@ A palette is CSS, the way Tailwind v4 defines design tokens: a block scoped to `
 | Studio  | a faintly tinted field, white cards | the same tint on near-black, cards a shade lighter than the field | `#c2410c` |
 
 - The Payload palette applies no overrides, so plain Payload is the Stock character with the Payload palette. Today's look is Enhanced with Warm, the zero-config default.
-- A palette's accent comes from the palette: the registry, the `accent` option, or the editor's own palette. One accent serves both versions: the theme mixes the shades itself. Selected items get a light tint and darker accent text in light mode, and a tint mixed into the palette's own background in dark mode, so even a white accent stays visible.
+- A palette's accent is its `--payloadpack-accent` line, and a palette without one, like Warm, keeps Payload's blue. One accent serves both versions: the theme mixes the shades itself. Selected items get a light tint and darker accent text in light mode, and a tint mixed into the palette's own background in dark mode, so even a white accent stays visible.
 - Editors create a palette with **New palette** in the panel: it starts from the current palette's colors, read from the browser so any CSS palette works, and shows the three color fields for each mode and the accent. Every color is a lowercase `#rrggbb`, checked on the server like every other choice. The provider renders it as the same CSS block, named `custom`, in a `<style>` element in the server HTML, and saves it into their setup, so Copy setup shares it with colleagues. Picking another palette keeps it in the setup; Reset drops it.
 - **Copy as CSS** copies an editor's palette as the CSS block the page renders. Planned: developers paste it into their admin stylesheet (Payload's `custom.scss`) under their own name and list that name in `themePlugin({ palettes: [...] })` to offer it to everyone.
 - The package ships no palette named after another company or product.
@@ -98,7 +98,6 @@ themePlugin({
   options: { studio: { frame: 'flat' } },
   palette: 'studio',
   palettes: ['payload', 'studio', 'clay'],
-  accent: { studio: '#1d4ed8' },
   panel: ({ user }) => user?.role === 'admin'
 })
 ```
@@ -106,13 +105,12 @@ themePlugin({
 - `character` and `palette` are the defaults. Zero config is `'enhanced'` and `'warm'`.
 - `characters` lists the characters editors may pick. `palettes` lists the palettes they may pick by name: built-in ones, and later your own palettes defined in CSS, such as `clay` above. The config never holds colors. Default: everything built in. The plugin throws at startup when a default isn't allowed.
 - `options` holds option values per character. Each key is typed with only that character's options, so `options: { enhanced: { frame: 'flat' } }` is a type error. Stock has no key.
-- `accent` holds a hex per palette.
 - `panel` is `true`, `false` or `({ user }) => boolean`. Default `true`. When it resolves to `false`, the editor gets no panel button and their saved setup is ignored.
 - `codeEditorFontSize` stays as it is.
 
 ## Setups
 
-A setup is what an editor picked: a character, that character's options, a palette and, when they made one, their own palette's colors. On a built-in palette it has the same shape as the plugin config above, minus `characters`, `palettes`, `accent` and `panel`.
+A setup is what an editor picked: a character, that character's options, a palette and, when they made one, their own palette's colors. On a built-in palette it has the same shape as the plugin config above, minus `characters`, `palettes` and `panel`.
 
 - Priority, lowest to highest: built-in defaults, the developer's config, the editor's setup.
 - A setup holds only what differs from the defaults below it, kept per character and per palette, so switching back and forth keeps each one's tweaks.
@@ -161,7 +159,7 @@ With `nav: 'icons'`, a collapsed nav becomes a 64px rail of icons instead of dis
 
 ## Scoping and folders
 
-The provider renders the active character, its option values, the palette and the accent onto `<html>`:
+The provider renders the active character, its option values and the palette onto `<html>`:
 
 ```html
 <html
@@ -176,8 +174,7 @@ The provider renders the active character, its option values, the palette and th
   data-nav="icons"
   data-rail=""
   data-palette="studio"
-  data-accent="#c2410c"
-  style="--payloadpack-accent: #c2410c; --payloadpack-font-geist: 'Geist', 'Geist Fallback'"></html>
+  style="--payloadpack-font-geist: 'Geist', 'Geist Fallback'"></html>
 ```
 
 `data-rail` is there only while the nav is collapsed to the rail. Under the Stock character, no option attribute is rendered, so no option stylesheet can apply. The palette applies under any character.
@@ -188,7 +185,7 @@ src/characters/enhanced/index.ts    defaults
 src/characters/enhanced/enhanced.css
 src/characters/studio/index.ts
 src/characters/studio/studio.css
-src/palettes/index.ts               the registry of built-in palettes and their default accents
+src/palettes/index.ts               the names of the built-in palettes
 src/palettes/palette.css            derives Payload's colors from each palette's base colors, and what every palette but Payload's shares: focus ring, fields, toggles, date picker and toasts
 src/palettes/warm.css
 src/palettes/studio.css
@@ -226,10 +223,11 @@ From Payload 4.0.0-beta.6's CSS:
 
 - `accent`: every brand and selected token (`--color-bg-brand*`, `--color-bg-selected*`, `--color-border-brand*`, `--color-border-selected*`, `--color-icon-brand`, `--color-icon-selected`, `--color-text-brand`, `--color-text-selected`, the focus ring) reads one of Payload's 11 `--ramp-blue-*` and `--ramp-pale-blue-*` steps, declared once on `:root`.
   - `accent.css` remaps those steps from `--payloadpack-accent` with `color-mix`. Payload's dark mode already picks the lighter steps, so one accent works in both versions.
+  - Each step goes through its own variable, `--ramp-blue-200: var(--payloadpack-accent-200, #e5f4ff)`. Without an accent that variable is invalid, so the step falls back to Payload's exact value, and the contract test checks every fallback against Payload's tokens. No attribute or inline style switches it on.
   - In light mode, brand and selected text and icons take a darker ink of the accent, and primary buttons get a faint edge when the accent is nearly white.
   - Text and icons on the accent turn black or white by the accent's lightness.
   - Payload's blue info backgrounds and presence badges take the accent too.
-  - Payload's own blue, `#0d99ff`, keeps Payload's exact ramp.
+  - A palette without an accent keeps Payload's exact ramp. A palette that sets `#0d99ff` gets mixed shades instead.
   - No component hard-codes a blue.
 - `radius`: `--radius-small`, `--radius-medium`, `--radius-large`, `--button-radius`, `--field-border-radius`, `--popup-radius` and `--popup-item-radius`. Components pick a tier directly, so the option sets the tiers.
 - `font`: `--font-family-sans`. Payload loads Inter with `next/font` as an unlayered class on `<html>`, so the option needs a layered `!important` declaration. Geist loads with `next/font/google` in the server provider, with `preload: false` so only editors who use it download it, and the provider sets its family as `--payloadpack-font-geist` on `<html>`.

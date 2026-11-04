@@ -29,7 +29,7 @@ const lucideIcons = path.join(packageRoot('lucide-static'), 'icons')
 const scopes: Record<string, string> = {
   'characters/enhanced/enhanced.css': "html[data-character='enhanced']",
   'characters/studio/studio.css': "html[data-character='studio']",
-  'palettes/accent.css': 'html[data-accent]',
+  'palettes/accent.css': ":where([data-palette]:not([data-palette='payload']))",
   'options/density.css': "html[data-density='comfortable']",
   'options/icons.css': "html[data-icons='lucide']",
   'options/motion.css': "html[data-motion='on']",
@@ -430,6 +430,16 @@ describe('theme contract with Payload', () => {
       ...declaredProperties(ruleBody(palette, '.toast-error') ?? '')
     ]
     expect(referencedProperties(toastCss).filter((token) => darkTokens.has(token) && !handled.includes(token))).toEqual([])
+  })
+
+  it("falls back to Payload's own blue steps for a palette without an accent", () => {
+    const tokens = read(path.join(uiDist, 'css/design-tokens.css'))
+    const fallbacks = [...themeCss['palettes/accent.css'].matchAll(/(--ramp-[\w-]+):\s*var\(--[\w-]+,\s*(#[\da-f]+)\)/g)]
+
+    expect(fallbacks).toHaveLength(12)
+    for (const [, token, fallback] of fallbacks) {
+      expect(tokens).toContain(`${token}: ${fallback};`)
+    }
   })
 
   it('remaps every blue step Payload reads from the accent', () => {

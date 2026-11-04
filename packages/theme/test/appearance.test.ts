@@ -14,10 +14,10 @@ import {
 } from '../src/lib/appearance.js'
 
 const settings: Settings = {
-  accents: { payload: '#0d99ff', warm: '#0d99ff' },
   character: 'enhanced',
   options: { enhanced: { density: 'compact', icons: 'lucide' }, stock: {} },
-  palette: 'warm'
+  palette: 'warm',
+  palettes: ['payload', 'warm']
 }
 
 const custom: CustomPalette = {
@@ -28,36 +28,31 @@ const custom: CustomPalette = {
 
 it('layers the editor choices over the developer defaults', () => {
   expect(resolve(settings, {})).toEqual({
-    accent: '#0d99ff',
     character: 'enhanced',
     palette: 'warm',
     values: { density: 'compact', icons: 'lucide' }
   })
   expect(resolve(settings, { options: { enhanced: { icons: 'payload' } }, palette: 'payload' })).toEqual({
-    accent: '#0d99ff',
     character: 'enhanced',
     palette: 'payload',
     values: { density: 'compact', icons: 'payload' }
   })
   expect(resolve(settings, { character: 'stock', options: { enhanced: { icons: 'payload' } } })).toEqual({
-    accent: '#0d99ff',
     character: 'stock',
     palette: 'warm',
     values: {}
   })
 })
 
-it("takes the custom palette's accent while it is picked, and keeps the palette across switches", () => {
-  expect(resolve(settings, { custom, palette: 'custom' }).accent).toBe('#c2410c')
-  expect(resolve(settings, { custom, palette: 'payload' })).toMatchObject({ accent: '#0d99ff', custom, palette: 'payload' })
+it('keeps the custom palette while another palette is picked', () => {
+  expect(resolve(settings, { custom, palette: 'payload' })).toMatchObject({ custom, palette: 'payload' })
 })
 
 it('drops characters, palettes, options and values the settings do not allow', () => {
-  const onlyEnhanced: Settings = { ...settings, accents: { warm: '#0d99ff' }, options: { enhanced: settings.options.enhanced } }
+  const onlyEnhanced: Settings = { ...settings, options: { enhanced: settings.options.enhanced }, palettes: ['warm'] }
 
   expect(
     normalize(onlyEnhanced, {
-      accent: { payload: '#be185d' },
       character: 'stock',
       options: { enhanced: { density: 'huge', icons: 'payload', motion: 'on' } },
       palette: 'payload'

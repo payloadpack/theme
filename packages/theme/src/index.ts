@@ -8,8 +8,8 @@ import {
   defaultCharacter,
   type Values
 } from './characters/index.js'
-import { hexPattern, type Panel, type Settings } from './lib/appearance.js'
-import { defaultPalette, type Palette, palettes as paletteRegistry } from './palettes/index.js'
+import type { Panel, Settings } from './lib/appearance.js'
+import { defaultPalette, type Palette, palettes as builtInPalettes } from './palettes/index.js'
 import { translations } from './translations.js'
 
 const PACKAGE_NAME = '@payloadpack/theme'
@@ -23,7 +23,6 @@ type OptionsConfig = {
 }
 
 export type ThemePluginConfig = {
-  accent?: Partial<Record<Palette, string>>
   character?: Character
   characters?: Character[]
   codeEditorFontSize?: false | number
@@ -35,12 +34,11 @@ export type ThemePluginConfig = {
 
 export function themePlugin(pluginConfig: ThemePluginConfig = {}): Plugin {
   const {
-    accent = {},
     character = defaultCharacter,
     characters = Object.keys(registry) as Character[],
     codeEditorFontSize = 13,
     palette = defaultPalette,
-    palettes = Object.keys(paletteRegistry) as Palette[],
+    palettes = [...builtInPalettes],
     panel = true
   } = pluginConfig
   const options: Partial<Record<Character, Values>> = pluginConfig.options ?? {}
@@ -53,17 +51,11 @@ export function themePlugin(pluginConfig: ThemePluginConfig = {}): Plugin {
     throw new Error(`themePlugin: palette '${palette}' is not one of palettes: ${palettes.join(', ')}`)
   }
 
-  for (const [name, hex] of Object.entries(accent)) {
-    if (!hexPattern.test(hex.toLowerCase())) {
-      throw new Error(`themePlugin: accent '${hex}' for '${name}' is not a #rrggbb color`)
-    }
-  }
-
   const settings: Settings = {
-    accents: Object.fromEntries(palettes.map((name) => [name, accent[name]?.toLowerCase() ?? paletteRegistry[name].accent])),
     character,
     options: Object.fromEntries(characters.map((name) => [name, { ...registry[name].defaults, ...options[name] }])),
-    palette
+    palette,
+    palettes
   }
 
   return (config) => ({

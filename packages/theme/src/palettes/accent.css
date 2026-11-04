@@ -1,43 +1,55 @@
 @layer payload {
-  html[data-accent] {
+  :where([data-palette]:not([data-palette='payload'])) {
     /* 1. Blue */
-    --ramp-blue-200: oklch(from color-mix(in oklab, var(--payloadpack-accent) 12%, white) min(l, 0.94) c h);
-    --ramp-blue-300: oklch(from color-mix(in oklab, var(--payloadpack-accent) 27%, white) min(l, 0.88) c h);
-    --ramp-blue-400: oklch(from color-mix(in oklab, var(--payloadpack-accent) 52%, white) min(l, 0.8) c h);
-    --ramp-blue-500: var(--payloadpack-accent);
-    --ramp-blue-600: color-mix(in srgb, var(--payloadpack-accent) 87%, black);
-    --ramp-blue-700: color-mix(in srgb, var(--payloadpack-accent) 78%, black);
-    --ramp-blue-800: color-mix(in srgb, var(--payloadpack-accent) 68%, black);
-    --ramp-blue-900: color-mix(in srgb, var(--payloadpack-accent) 43%, black);
+    --payloadpack-accent-200: oklch(from color-mix(in oklab, var(--payloadpack-accent) 12%, white) min(l, 0.94) c h);
+    --payloadpack-accent-300: oklch(from color-mix(in oklab, var(--payloadpack-accent) 27%, white) min(l, 0.88) c h);
+    --payloadpack-accent-400: oklch(from color-mix(in oklab, var(--payloadpack-accent) 52%, white) min(l, 0.8) c h);
+    --payloadpack-accent-600: color-mix(in srgb, var(--payloadpack-accent) 87%, black);
+    --payloadpack-accent-700: color-mix(in srgb, var(--payloadpack-accent) 78%, black);
+    --payloadpack-accent-800: color-mix(in srgb, var(--payloadpack-accent) 68%, black);
+    --payloadpack-accent-900: color-mix(in srgb, var(--payloadpack-accent) 43%, black);
+    --ramp-blue-200: var(--payloadpack-accent-200, #e5f4ff);
+    --ramp-blue-300: var(--payloadpack-accent-300, #bde3ff);
+    --ramp-blue-400: var(--payloadpack-accent-400, #80caff);
+    --ramp-blue-500: var(--payloadpack-accent, #0d99ff);
+    --ramp-blue-600: var(--payloadpack-accent-600, #007be5);
+    --ramp-blue-700: var(--payloadpack-accent-700, #0768cf);
+    --ramp-blue-800: var(--payloadpack-accent-800, #034ac1);
+    --ramp-blue-900: var(--payloadpack-accent-900, #093077);
 
     /* 2. Pale blue */
-    --ramp-pale-blue-500: color-mix(in oklab, var(--payloadpack-accent) 50%, var(--ramp-grey-800));
-    --ramp-pale-blue-600: color-mix(in oklab, var(--payloadpack-accent) 40%, var(--ramp-grey-800));
-    --ramp-pale-blue-700: color-mix(in oklab, var(--payloadpack-accent) 32%, var(--ramp-grey-800));
-    --ramp-pale-blue-800: color-mix(in oklab, var(--payloadpack-accent) 24%, var(--ramp-grey-800));
+    --payloadpack-accent-pale-500: color-mix(in oklab, var(--payloadpack-accent) 50%, var(--ramp-grey-800));
+    --payloadpack-accent-pale-600: color-mix(in oklab, var(--payloadpack-accent) 40%, var(--ramp-grey-800));
+    --payloadpack-accent-pale-700: color-mix(in oklab, var(--payloadpack-accent) 32%, var(--ramp-grey-800));
+    --payloadpack-accent-pale-800: color-mix(in oklab, var(--payloadpack-accent) 24%, var(--ramp-grey-800));
+    --ramp-pale-blue-500: var(--payloadpack-accent-pale-500, #667799);
+    --ramp-pale-blue-600: var(--payloadpack-accent-pale-600, #536383);
+    --ramp-pale-blue-700: var(--payloadpack-accent-pale-700, #4a5878);
+    --ramp-pale-blue-800: var(--payloadpack-accent-pale-800, #394360);
 
     /* 3. On accent */
     --payloadpack-on-accent: oklch(from var(--payloadpack-accent) clamp(0, (0.72 - l) * 1000, 1) 0 0);
-    --color-text-onbrand: var(--payloadpack-on-accent);
-    --color-icon-onbrand: var(--payloadpack-on-accent);
-    --color-icon-onbrand-secondary: rgb(from var(--payloadpack-on-accent) r g b / 0.8);
+    --payloadpack-on-accent-secondary: rgb(from var(--payloadpack-on-accent) r g b / 0.8);
+    --color-text-onbrand: var(--payloadpack-on-accent, var(--ramp-white-1000));
+    --color-icon-onbrand: var(--payloadpack-on-accent, var(--ramp-white-1000));
+    --color-icon-onbrand-secondary: var(--payloadpack-on-accent-secondary, var(--ramp-white-600));
 
     /* 4. Ink */
     &:not([data-theme='dark']) {
       --payloadpack-accent-ink: oklch(from color-mix(in oklab, var(--payloadpack-accent) 80%, black) min(l, 0.42) c h);
-      --color-text-brand: var(--payloadpack-accent-ink);
-      --color-text-selected: var(--payloadpack-accent-ink);
-      --color-icon-brand: var(--payloadpack-accent-ink);
-      --color-icon-selected: var(--payloadpack-accent-ink);
+      --color-text-brand: var(--payloadpack-accent-ink, var(--ramp-blue-600));
+      --color-text-selected: var(--payloadpack-accent-ink, var(--ramp-blue-600));
+      --color-icon-brand: var(--payloadpack-accent-ink, var(--ramp-blue-600));
+      --color-icon-selected: var(--payloadpack-accent-ink, var(--ramp-blue-600));
 
       .nav__link--selected {
-        color: var(--color-text-selected);
+        color: var(--payloadpack-accent-ink);
       }
     }
 
     /* 5. Light accents */
     &:not([data-theme='dark']) .btn--style-primary {
-      border-color: oklch(from var(--payloadpack-accent) 0 0 0 / clamp(0, (l - 0.9) * 2, 0.15));
+      border-color: oklch(from var(--payloadpack-accent, transparent) 0 0 0 / clamp(0, (l - 0.9) * 2, 0.15));
     }
   }
 }

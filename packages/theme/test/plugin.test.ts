@@ -2,7 +2,7 @@ import type { Config } from 'payload'
 import { expect, it } from 'vitest'
 
 import { themePlugin, type ThemePluginConfig } from '../src/index.js'
-import { resolve, type Settings } from '../src/lib/appearance.js'
+import type { Settings } from '../src/lib/appearance.js'
 
 const settingsOf = async (pluginConfig: ThemePluginConfig) => {
   const config = await themePlugin(pluginConfig)({} as Config)
@@ -10,11 +10,9 @@ const settingsOf = async (pluginConfig: ThemePluginConfig) => {
   return providers[0].serverProps.settings
 }
 
-it("takes the accent from the palette, then the developer's accent option", async () => {
-  const settings = await settingsOf({ accent: { warm: '#c2410c' } })
-
-  expect(resolve(settings, { palette: 'payload' }).accent).toBe('#0d99ff')
-  expect(resolve(settings, {}).accent).toBe('#c2410c')
+it('offers editors the allowed palettes, every built-in one by default', async () => {
+  expect((await settingsOf({})).palettes).toEqual(['payload', 'warm', 'studio'])
+  expect((await settingsOf({ palette: 'studio', palettes: ['studio', 'warm'] })).palettes).toEqual(['studio', 'warm'])
 })
 
 it('gives every supported language the English panel labels, and lets the app override them', async () => {
@@ -43,9 +41,4 @@ it('throws when the default character is not allowed', () => {
 
 it('throws when the default palette is not allowed', () => {
   expect(() => themePlugin({ palettes: ['payload'] })).toThrow("palette 'warm'")
-})
-
-it('lowercases developer accents and rejects anything but #rrggbb', () => {
-  expect(() => themePlugin({ accent: { warm: 'red' } })).toThrow("accent 'red' for 'warm'")
-  expect(() => themePlugin({ accent: { warm: '#C2410C' } })).not.toThrow()
 })

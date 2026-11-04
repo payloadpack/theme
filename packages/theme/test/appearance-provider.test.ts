@@ -40,10 +40,10 @@ const custom: CustomPalette = {
 }
 
 const settings: Settings = {
-  accents: { payload: '#0d99ff', warm: '#0d99ff' },
   character: 'enhanced',
   options: { enhanced: { density: 'comfortable', icons: 'lucide' } },
-  palette: 'warm'
+  palette: 'warm',
+  palettes: ['payload', 'warm']
 }
 
 it('keeps the initial appearance inside its inline script', () => {
@@ -57,14 +57,16 @@ it('keeps the initial appearance inside its inline script', () => {
   })
 })
 
-it("sets the palette, its accent and the Geist family, and leaves Payload's blue to Payload", () => {
+it('sets the palette and the Geist family, and leaves the accent to the palette CSS', () => {
   expect(runScript(settings)).toEqual({
     dataset: { character: 'enhanced', density: 'comfortable', icons: 'lucide', palette: 'warm' },
-    style: { '--payloadpack-accent': '#0d99ff', '--payloadpack-font-geist': geist }
+    style: { '--payloadpack-font-geist': geist }
   })
-  expect(runScript(settings, { custom, palette: 'custom' })).toEqual({
-    dataset: { accent: '#c2410c', character: 'enhanced', density: 'comfortable', icons: 'lucide', palette: 'custom' },
-    style: { '--payloadpack-accent': '#c2410c', '--payloadpack-font-geist': geist }
+  expect(runScript(settings, { custom, palette: 'custom' }).dataset).toEqual({
+    character: 'enhanced',
+    density: 'comfortable',
+    icons: 'lucide',
+    palette: 'custom'
   })
 })
 

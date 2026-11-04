@@ -17,15 +17,13 @@ import {
   type Settings,
   setupOf
 } from '../lib/appearance.js'
-import { type Palette, payloadBlue } from '../palettes/index.js'
+import type { Palette } from '../palettes/index.js'
 
 const ONE_YEAR_IN_SECONDS = 60 * 60 * 24 * 365
 
-const ACCENT_PROPERTY = '--payloadpack-accent'
-
 const GEIST_PROPERTY = '--payloadpack-font-geist'
 
-const ATTRIBUTE_KEYS = ['character', 'palette', 'accent', 'rail', ...Object.keys(options)]
+const ATTRIBUTE_KEYS = ['character', 'palette', 'rail', ...Object.keys(options)]
 
 const inline = (value: unknown) => JSON.stringify(value).replace(/</g, '\\u003c')
 
@@ -78,17 +76,16 @@ export function AppearanceProvider({
   const [rail, setRail] = useState(initialRail)
   const { setPreference } = usePreferences()
   const resolved = useMemo(() => resolve(settings, choices), [settings, choices])
-  const { accent, character, custom, palette, values } = resolved
+  const { character, custom, palette, values } = resolved
   const hasRail = values.nav === 'icons'
   const attributes = useMemo(
     (): Record<string, string> => ({
       character,
       ...values,
       ...(hasRail && rail ? { rail: '' } : {}),
-      palette,
-      ...(accent === payloadBlue ? {} : { accent })
+      palette
     }),
-    [accent, character, hasRail, palette, rail, values]
+    [character, hasRail, palette, rail, values]
   )
   const { navOpen, setNavOpen } = useNav()
   const { breakpoints } = useWindowInfo()
@@ -110,9 +107,8 @@ export function AppearanceProvider({
         delete dataset[key]
       }
     }
-    style.setProperty(ACCENT_PROPERTY, accent)
     style.setProperty(GEIST_PROPERTY, geist)
-  }, [accent, attributes, geist])
+  }, [attributes, geist])
 
   useEffect(() => {
     writeCookie(cookieName, Object.keys(choices).length ? encodeURIComponent(JSON.stringify(choices)) : undefined)
@@ -138,7 +134,7 @@ export function AppearanceProvider({
     return {
       ...resolved,
       characters: Object.keys(settings.options) as Character[],
-      palettes: Object.keys(settings.accents) as Palette[],
+      palettes: settings.palettes,
       paste: (text: string) => {
         const pasted = parseChoices(settings, text)
         if (pasted) {
@@ -167,7 +163,7 @@ export function AppearanceProvider({
       {isServerHtml && (
         <script
           dangerouslySetInnerHTML={{
-            __html: `Object.assign(document.documentElement.dataset,${inline(attributes)});document.documentElement.style.setProperty('${ACCENT_PROPERTY}',${inline(accent)});document.documentElement.style.setProperty('${GEIST_PROPERTY}',${inline(geist)})`
+            __html: `Object.assign(document.documentElement.dataset,${inline(attributes)});document.documentElement.style.setProperty('${GEIST_PROPERTY}',${inline(geist)})`
           }}
         />
       )}
