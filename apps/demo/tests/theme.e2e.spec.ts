@@ -32,7 +32,6 @@ const nextScripts = '**/_next/static/**/*.js'
 const openShowcase = async (page: Page) => {
   await page.context().addCookies([cookie('theme', 'dark')])
   await page.goto((await findShowcase(page)).path)
-  await page.locator('.collapsible__toggle-wrap').first().waitFor()
   await hydrated(page)
 }
 
@@ -1906,7 +1905,6 @@ test.describe('Studio character', () => {
 
   const openList = async (page: Page) => {
     await page.goto('/admin/collections/showcase')
-    await page.locator('table').waitFor()
     await hydrated(page)
   }
 
