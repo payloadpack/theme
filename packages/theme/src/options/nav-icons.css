@@ -1,5 +1,5 @@
 @layer payload {
-  html:is([data-icons='lucide'], [data-nav='icons']) {
+  html:is([data-icons='lucide'], [data-nav='rail']) {
     .nav__link { --payloadpack-icon: url('lucide-static/icons/layers-2.svg'); }
     .nav__link[id^='nav-global-'] { --payloadpack-icon: url('lucide-static/icons/app-window.svg'); }
     .nav__link[id*='header'] { --payloadpack-icon: url('lucide-static/icons/panel-top.svg'); }

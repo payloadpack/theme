@@ -19,6 +19,7 @@ import {
   type Choices,
   type CustomPalette,
   customPalette,
+  isPersonal,
   normalize,
   paletteCss,
   parseChoices,
@@ -43,10 +44,13 @@ const writeCookie = (name: string, value: string | undefined) => {
 
 type AppearanceContextValue = ReturnType<typeof resolve> & {
   characters: Character[]
+  choices: Choices
   palettes: Palette[]
   paste: (text: string) => boolean
   rail: boolean
+  removeCustom: () => void
   reset: () => void
+  restore: (choices: Choices) => void
   setCustom: (custom: CustomPalette, persist?: boolean) => void
   setCharacter: (character: Character) => void
   setOption: <O extends Option>(option: O, value: OptionValue<O>) => void
@@ -87,7 +91,7 @@ export function AppearanceProvider({
   const { getPreference, setPreference } = usePreferences()
   const resolved = useMemo(() => resolve(settings, choices), [settings, choices])
   const { character, custom, palette, values } = resolved
-  const hasRail = values.nav === 'icons'
+  const hasRail = values.nav === 'rail'
   const attributes = useMemo(
     (): Record<string, string> => ({
       character,
@@ -157,6 +161,7 @@ export function AppearanceProvider({
     return {
       ...resolved,
       characters: Object.keys(settings.options) as Character[],
+      choices,
       palettes: settings.palettes,
       paste: (text: string) => {
         const pasted = parseChoices(settings, text)
@@ -166,21 +171,26 @@ export function AppearanceProvider({
             character: pasted.character,
             custom: pasted.custom ?? choices.custom,
             options: { ...choices.options, [pastedCharacter]: pasted.options?.[pastedCharacter] },
-            palette: pasted.palette
+            palette: pasted.palette,
+            personal: pasted.personal
           })
         }
         return pasted !== undefined
       },
       rail,
-      reset: () => update({}),
+      removeCustom: () =>
+        update({ ...choices, custom: undefined, palette: palette === customPalette ? undefined : choices.palette }),
+      reset: () => update({ ...choices, options: { ...choices.options, [character]: undefined }, personal: undefined }),
+      restore: update,
       setCharacter: (next: Character) => update({ ...choices, character: next }),
       setCustom: (next: CustomPalette, persist?: boolean) =>
         update({ ...choices, custom: next, palette: customPalette }, persist),
       setOption: <O extends Option>(option: O, value: OptionValue<O>) =>
-        update({
-          ...choices,
-          options: { ...choices.options, [character]: { ...choices.options?.[character], [option]: value } }
-        }),
+        update(
+          isPersonal(option)
+            ? { ...choices, personal: { ...choices.personal, [option]: value } }
+            : { ...choices, options: { ...choices.options, [character]: { ...choices.options?.[character], [option]: value } } }
+        ),
       setPalette: (next: Palette | typeof customPalette) => update({ ...choices, palette: next }),
       setup: setupOf(resolved),
       toggleRail: () => setRail(!rail)

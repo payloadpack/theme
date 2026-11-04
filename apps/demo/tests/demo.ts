@@ -46,6 +46,18 @@ export const openAppearancePanel = async (page: Page) => {
   return sheet
 }
 
+export const choice = (sheet: Locator, group: string, name: string) =>
+  sheet.getByRole('radiogroup', { name: group }).getByRole('radio', { exact: true, name })
+
+export const label = (radio: Locator) => radio.locator('..')
+
+export const openFineTune = (sheet: Locator) => sheet.locator('summary').click()
+
+export const share = async (sheet: Locator, action: 'Copy setup' | 'Paste setup') => {
+  await sheet.getByRole('button', { name: 'Share setup' }).click()
+  return sheet.getByRole('button', { name: action })
+}
+
 export const findShowcase = async (page: Page) => {
   const { docs } = await (await page.request.get('/api/showcase?where[slug][equals]=showcase&limit=1')).json()
   return { path: `/admin/collections/showcase/${docs[0].id}`, updatedAt: new Date(docs[0].updatedAt) }

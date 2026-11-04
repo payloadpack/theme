@@ -3,9 +3,11 @@
 @import '../characters/studio/studio.css';
 @import '../palettes/palette.css';
 @import '../palettes/neutral.css';
-@import '../palettes/studio.css';
+@import '../palettes/warm.css';
 @import '../palettes/accent.css';
 @import '../options/radius.css';
+@import '../options/font.css';
+@import '../options/frame.css';
 @import '../options/density.css';
 @import '../options/icons.css';
 @import '../options/motion.css';

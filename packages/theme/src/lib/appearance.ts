@@ -1,6 +1,6 @@
 import type { User } from 'payload'
 
-import { type Character, type Option, options, type Values } from '../characters/index.js'
+import { type Character, type Option, options, personalOptions, type Values } from '../characters/index.js'
 import type { Palette } from '../palettes/index.js'
 
 export type Panel = boolean | ((args: { user: User }) => boolean)
@@ -30,13 +30,23 @@ export type Choices = {
   custom?: CustomPalette
   options?: Partial<Record<Character, Values>>
   palette?: Palette | typeof customPalette
+  personal?: Values
 }
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value)
 
+export const isPersonal = (option: string) => (personalOptions as readonly string[]).includes(option)
+
 const isOptionValue = (option: string, value: unknown) =>
   Object.hasOwn(options, option) && (options[option as Option] as readonly unknown[]).includes(value)
+
+const isStyleValue = (option: string, value: unknown) => !isPersonal(option) && isOptionValue(option, value)
+
+const isPersonalValue = (option: string, value: unknown) => isPersonal(option) && isOptionValue(option, value)
+
+const only = (values: Values, keep: (option: string) => boolean) =>
+  Object.fromEntries(Object.entries(values).filter(([option]) => keep(option))) as Values
 
 const isHex = (value: unknown): value is string => typeof value === 'string' && /^#[0-9a-f]{6}$/.test(value)
 
@@ -65,17 +75,25 @@ const changed = (defaults: object, input: unknown, isValid: (key: string, value:
 export function normalize(settings: Settings, input: unknown): Choices {
   const raw = isRecord(input) ? input : {}
   const pickedOptions = isRecord(raw.options) ? raw.options : {}
-  const options = Object.entries(settings.options).flatMap(([character, defaults]) => {
-    const values = changed(defaults, pickedOptions[character], isOptionValue)
-    return values ? [[character, values]] : []
+  const character = pick(Object.keys(settings.options), settings.character, raw.character)
+  const options = Object.entries(settings.options).flatMap(([name, defaults]) => {
+    const values = changed(defaults, pickedOptions[name], isStyleValue)
+    return values ? [[name, values]] : []
   })
+  const defaults = settings.options[(character ?? settings.character) as Character] ?? {}
+  const personal = changed(
+    only(defaults, isPersonal),
+    raw.personal ?? pickedOptions[character ?? settings.character],
+    isPersonalValue
+  )
   const custom = customOf(raw.custom)
   const picksCustom = custom && settings.palettes.length > 1 && raw.palette === customPalette
   const choices = {
-    character: pick(Object.keys(settings.options), settings.character, raw.character),
+    character,
     custom,
     options: options.length ? Object.fromEntries(options) : undefined,
-    palette: picksCustom ? customPalette : pick(settings.palettes, settings.palette, raw.palette)
+    palette: picksCustom ? customPalette : pick(settings.palettes, settings.palette, raw.palette),
+    personal
   }
 
   return Object.fromEntries(Object.entries(choices).filter(([, value]) => value !== undefined)) as Choices
@@ -84,11 +102,14 @@ export function normalize(settings: Settings, input: unknown): Choices {
 export function resolve(settings: Settings, choices: Choices) {
   const character = choices.character ?? settings.character
   const palette = choices.palette ?? settings.palette
+  const defaults = settings.options[character] ?? {}
+  const personal = only(choices.personal ?? {}, (option) => Object.hasOwn(defaults, option))
   return {
+    changed: Object.keys({ ...choices.options?.[character], ...personal }).length,
     character,
     custom: choices.custom,
     palette,
-    values: { ...settings.options[character], ...choices.options?.[character] }
+    values: { ...defaults, ...choices.options?.[character], ...personal }
   }
 }
 

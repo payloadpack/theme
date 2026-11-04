@@ -8,7 +8,7 @@ export function RailToggle() {
   const { rail, toggleRail, values } = useAppearance()
   const { t } = useTranslation()
 
-  if (values.nav !== 'icons') {
+  if (values.nav !== 'rail') {
     return null
   }
 

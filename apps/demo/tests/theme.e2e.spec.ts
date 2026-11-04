@@ -5,16 +5,20 @@ import {
   appearance,
   authFile,
   baseURL,
+  choice,
   clearSetup,
   cookie,
   customPalette,
   findShowcase,
+  label,
+  logIn,
   openAppearancePanel,
+  openFineTune,
   pickAndSave,
   saved,
-  logIn,
   saveSetup,
-  settled
+  settled,
+  share
 } from './demo'
 
 test.beforeEach(async ({ page }) => {
@@ -81,16 +85,24 @@ const backgrounds = (page: Page) =>
 test.describe('Logged out', () => {
   test.use({ storageState: { cookies: [], origins: [] } })
 
-  test('defaults to Enhanced and Neutral with medium radius, comfortable density, Lucide icons and motion', async ({ page }) => {
+  test("defaults to Enhanced and Neutral with Enhanced's starting values", async ({ page }) => {
     await page.context().addCookies([cookie('theme', 'dark')])
     await page.goto('/admin/login')
+    const defaults = {
+      character: 'enhanced',
+      density: 'comfortable',
+      font: 'inter',
+      frame: 'flat',
+      icons: 'lucide',
+      motion: 'auto',
+      nav: 'rail',
+      palette: 'neutral',
+      radius: 'md'
+    }
 
-    await expect(page.locator('html')).toHaveAttribute('data-character', 'enhanced')
-    await expect(page.locator('html')).toHaveAttribute('data-radius', 'md')
-    await expect(page.locator('html')).toHaveAttribute('data-density', 'comfortable')
-    await expect(page.locator('html')).toHaveAttribute('data-icons', 'lucide')
-    await expect(page.locator('html')).toHaveAttribute('data-motion', 'on')
-    await expect(page.locator('html')).toHaveAttribute('data-palette', 'neutral')
+    for (const [name, value] of Object.entries(defaults)) {
+      await expect(page.locator('html')).toHaveAttribute(`data-${name}`, value)
+    }
     await expect(page.locator('html')).toHaveCSS('background-color', await computedColor(page, 'var(--payloadpack-surface)'))
   })
 
@@ -109,10 +121,7 @@ test.describe('Logged out', () => {
 
     await expect(page.locator('html')).toHaveAttribute('data-character', 'studio')
     const sheet = await openAppearancePanel(page)
-    await expect(sheet.getByRole('group', { name: 'Character' }).getByRole('button', { name: 'Studio' })).toHaveAttribute(
-      'aria-pressed',
-      'true'
-    )
+    await expect(choice(sheet, 'Style', 'Studio')).toBeChecked()
     await saveSetup(signedIn, {})
     await signedIn.dispose()
   })
@@ -141,17 +150,17 @@ test.describe('Theme plugin', () => {
     await expect(smallCode).toHaveCSS('font-size', '10px')
   })
 
-  test('renders the appearance cookie on the server, with no option attributes under Stock', async ({ page }) => {
-    await page.context().addCookies([appearance({ character: 'stock', options: { enhanced: { density: 'compact' } } })])
+  test('renders the appearance cookie on the server, with no option attributes under Payload', async ({ page }) => {
+    await page.context().addCookies([appearance({ character: 'payload', options: { enhanced: { density: 'compact' } } })])
 
     const html = await (await page.request.get('/admin')).text()
     expect(html).toContain(
-      `<script>Object.assign(document.documentElement.dataset,{"character":"stock","palette":"neutral"})</script>`
+      `<script>Object.assign(document.documentElement.dataset,{"character":"payload","palette":"neutral"})</script>`
     )
 
     await page.goto('/admin')
-    await expect(page.locator('html')).toHaveAttribute('data-character', 'stock')
-    for (const option of ['radius', 'density', 'icons', 'motion']) {
+    await expect(page.locator('html')).toHaveAttribute('data-character', 'payload')
+    for (const option of ['radius', 'font', 'frame', 'density', 'icons', 'motion', 'nav']) {
       await expect(page.locator('html')).not.toHaveAttribute(`data-${option}`)
     }
   })
@@ -171,7 +180,9 @@ test.describe('Theme plugin', () => {
 })
 
 test.describe('Appearance panel', () => {
-  test('opens from the header as a full-height sheet on the right and closes with Escape', async ({ page }) => {
+  test('opens from the header as a full-height sheet on the right, or from the bottom on a phone, and closes', async ({
+    page
+  }) => {
     await page.goto('/admin')
     const sheet = await openAppearancePanel(page)
 
@@ -183,62 +194,88 @@ test.describe('Appearance panel', () => {
     await page.setViewportSize({ height: 800, width: 375 })
     await openAppearancePanel(page)
 
-    expect(await sheet.boundingBox()).toEqual({ height: 800, width: 375, x: 0, y: 0 })
+    expect(await sheet.boundingBox()).toEqual({ height: 560, width: 375, x: 0, y: 240 })
 
     await sheet.getByRole('button', { name: 'Close' }).click()
     await expect(sheet).toBeHidden()
   })
 
-  test('picks Stock with no option attributes and keeps it after a reload', async ({ page }) => {
+  test('picks Payload with nothing to fine-tune and no option attributes, and keeps it after a reload', async ({ page }) => {
     await page.goto('/admin')
     const sheet = await openAppearancePanel(page)
+    const payload = choice(sheet, 'Style', 'Payload')
 
-    await pickAndSave(page, sheet.getByRole('button', { name: 'Stock' }))
+    await pickAndSave(page, label(payload))
 
-    await expect(sheet.getByRole('button', { name: 'Stock' })).toHaveAttribute('aria-pressed', 'true')
-    await expect(sheet.getByText("Stock keeps Payload's own layout. It has no options.")).toBeVisible()
-    await expect(sheet.getByRole('group', { name: 'Density' })).toHaveCount(0)
-    await expect(page.locator('html')).toHaveAttribute('data-character', 'stock')
+    await expect(payload).toBeChecked()
+    await expect(sheet.getByText("Payload's own look. Nothing to fine-tune.")).toBeVisible()
+    await expect(sheet.locator('summary')).toHaveCount(0)
+    await expect(page.locator('html')).toHaveAttribute('data-character', 'payload')
     await expect(page.locator('html')).not.toHaveAttribute('data-density')
 
     await page.reload()
 
-    await expect(page.locator('html')).toHaveAttribute('data-character', 'stock')
+    await expect(page.locator('html')).toHaveAttribute('data-character', 'payload')
     await expect(page.locator('html')).not.toHaveAttribute('data-density')
   })
 
-  test('switches density, keeps it across characters and resets to the defaults', async ({ page }) => {
+  test('carries density, motion and nav to every style, and keeps the rest of the look per style', async ({ page }) => {
     await page.goto('/admin')
     const sheet = await openAppearancePanel(page)
-    const compact = sheet.getByRole('group', { name: 'Density' }).getByRole('button', { name: 'Compact' })
+    const html = page.locator('html')
 
-    await compact.click()
+    await openFineTune(sheet)
+    await label(choice(sheet, 'Density', 'Compact')).click()
+    await label(choice(sheet, 'Corners', 'Small')).click()
+    await expect(html).toHaveAttribute('data-density', 'compact')
+    await expect(html).toHaveAttribute('data-radius', 'sm')
 
-    await expect(compact).toHaveAttribute('aria-pressed', 'true')
-    await expect(page.locator('html')).toHaveAttribute('data-density', 'compact')
+    await label(choice(sheet, 'Style', 'Studio')).click()
+    await expect(html).toHaveAttribute('data-density', 'compact')
+    await expect(html).toHaveAttribute('data-radius', 'lg')
+    await expect(choice(sheet, 'Density', 'Compact')).toBeChecked()
 
-    await sheet.getByRole('button', { name: 'Stock' }).click()
-    await sheet.getByRole('button', { name: 'Enhanced' }).click()
+    await label(choice(sheet, 'Style', 'Enhanced')).click()
+    await expect(html).toHaveAttribute('data-radius', 'sm')
+  })
 
-    await expect(page.locator('html')).toHaveAttribute('data-density', 'compact')
+  test('Fine-tune opens on demand and counts changes, Reset puts them back, and Undo restores them', async ({ page }) => {
+    await page.goto('/admin')
+    const sheet = await openAppearancePanel(page)
+    const html = page.locator('html')
+    const reset = sheet.getByRole('button', { name: 'Reset Enhanced' })
+    const status = sheet.getByRole('status')
 
-    await sheet.getByRole('button', { name: 'Stock' }).click()
-    await pickAndSave(page, sheet.getByRole('button', { name: 'Reset' }))
+    await expect(sheet.getByRole('radiogroup', { name: 'Density' })).toBeHidden()
+    await openFineTune(sheet)
+    await expect(sheet.getByRole('radiogroup', { name: 'Density' })).toBeVisible()
+    await expect(reset).toBeDisabled()
 
-    await expect(page.locator('html')).toHaveAttribute('data-character', 'enhanced')
-    await expect(page.locator('html')).toHaveAttribute('data-density', 'comfortable')
-    expect((await page.context().cookies()).map(({ name }) => name)).not.toContain('theme-demo-appearance')
+    await label(choice(sheet, 'Density', 'Compact')).click()
+    await pickAndSave(page, label(choice(sheet, 'Corners', 'Small')))
+    await expect(sheet.locator('summary')).toContainText('2 changed')
+
+    await pickAndSave(page, reset)
+    await expect(html).toHaveAttribute('data-density', 'comfortable')
+    await expect(html).toHaveAttribute('data-radius', 'md')
+    await expect(reset).toBeDisabled()
+    await expect(status).toContainText('Enhanced is back to its defaults.')
+
+    await pickAndSave(page, status.getByRole('button', { name: 'Undo' }))
+    await expect(html).toHaveAttribute('data-density', 'compact')
+    await expect(html).toHaveAttribute('data-radius', 'sm')
+    await expect(status).toBeEmpty()
 
     await page.reload()
-    await expect(page.locator('html')).toHaveAttribute('data-character', 'enhanced')
-    await expect(page.locator('html')).toHaveAttribute('data-density', 'comfortable')
+    await expect(html).toHaveAttribute('data-radius', 'sm')
   })
 
   test('saves the setup in Payload preferences, so it follows the editor to a new browser', async ({ browser, page }) => {
     await page.goto('/admin')
     const sheet = await openAppearancePanel(page)
 
-    await pickAndSave(page, sheet.getByRole('group', { name: 'Density' }).getByRole('button', { name: 'Compact' }))
+    await openFineTune(sheet)
+    await pickAndSave(page, label(choice(sheet, 'Density', 'Compact')))
 
     const elsewhere = await browser.newContext({ baseURL, storageState: authFile })
     const other = await elsewhere.newPage()
@@ -251,12 +288,12 @@ test.describe('Appearance panel', () => {
 
   test('copies the setup in one browser and pastes it in another', async ({ browser, context, page }) => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write'])
-    await page.context().addCookies([appearance({ character: 'stock', custom: customPalette('#be185d'), palette: 'custom' })])
+    await page.context().addCookies([appearance({ character: 'payload', custom: customPalette('#be185d'), palette: 'custom' })])
     await page.goto('/admin')
     const sheet = await openAppearancePanel(page)
 
-    await sheet.getByRole('button', { name: 'Copy setup' }).click()
-    await expect(sheet.getByRole('button', { name: 'Copied' })).toBeVisible()
+    await (await share(sheet, 'Copy setup')).click()
+    await expect(sheet.getByRole('status')).toHaveText('Setup copied. Paste it in another browser to get the same look.')
     const setup = await page.evaluate(() => navigator.clipboard.readText())
     const attributes = await page.locator('html').evaluate((html) => ({ ...html.dataset }))
 
@@ -265,39 +302,70 @@ test.describe('Appearance panel', () => {
     const other = await elsewhere.newPage()
     await other.goto('/admin')
     const otherSheet = await openAppearancePanel(other)
-    const pasteButton = otherSheet.getByRole('button', { name: 'Paste setup' })
+    const status = otherSheet.getByRole('status')
     const writeClipboard = (text: string) => other.evaluate((value) => navigator.clipboard.writeText(value), text)
 
     await writeClipboard('not a setup')
-    await pasteButton.click()
-    await expect(otherSheet.getByRole('button', { name: 'Invalid setup' })).toBeVisible()
-    await expect(otherSheet.getByRole('status')).toHaveText('Invalid setup')
+    await (await share(otherSheet, 'Paste setup')).click()
+    await expect(status).toHaveText('There is no appearance setup on the clipboard.')
+    await expect(status).toHaveAttribute('data-tone', 'error')
     await expect(other.locator('html')).toHaveAttribute('data-character', 'enhanced')
-    await expect(pasteButton).toBeVisible()
-    await expect(otherSheet.getByRole('status')).toBeEmpty()
 
     await writeClipboard(setup)
-    await pickAndSave(other, pasteButton)
+    await pickAndSave(other, await share(otherSheet, 'Paste setup'))
+    await expect(status).toHaveText('Setup applied.')
     expect(await other.locator('html').evaluate((html) => ({ ...html.dataset }))).toEqual(attributes)
     await elsewhere.close()
   })
 
-  test('says the setup is invalid when the clipboard refuses or is missing', async ({ page }) => {
+  test('says there is no setup when the clipboard refuses or is missing', async ({ page }) => {
     await page.goto('/admin')
     const sheet = await openAppearancePanel(page)
-    const pasteButton = sheet.getByRole('button', { name: 'Paste setup' })
     const status = sheet.getByRole('status')
 
-    await pasteButton.click()
-    await expect(status).toHaveText('Invalid setup')
+    await (await share(sheet, 'Paste setup')).click()
+    await expect(status).toHaveText('There is no appearance setup on the clipboard.')
     await expect(status).toBeEmpty()
 
     await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', { value: undefined }))
-    await pasteButton.click()
-    await expect(status).toHaveText('Invalid setup')
+    await (await share(sheet, 'Paste setup')).click()
+    await expect(status).toHaveText('There is no appearance setup on the clipboard.')
   })
 
-  test('sits left of the nav toggle under Enhanced, right of it under Studio, and in the header when the nav is closed or Stock', async ({
+  test('moves through a group with the arrow keys, one Tab stop per group', async ({ page }) => {
+    await page.goto('/admin')
+    const sheet = await openAppearancePanel(page)
+    const dark = choice(sheet, 'Theme', 'Dark')
+
+    await choice(sheet, 'Theme', 'Light').focus()
+    await page.keyboard.press('ArrowRight')
+    await expect(dark).toBeChecked()
+    await expect(dark).toBeFocused()
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+
+    await page.keyboard.press('Tab')
+    await expect(choice(sheet, 'Palette', 'Neutral')).toBeFocused()
+  })
+
+  test('keeps its own size and typeface whatever the density and typeface', async ({ page }) => {
+    const look = async () =>
+      (await openAppearancePanel(page))
+        .getByRole('radiogroup', { name: 'Theme' })
+        .evaluate((group) => ({ font: getComputedStyle(group).fontFamily, height: group.getBoundingClientRect().height }))
+
+    await page.goto('/admin')
+    const enhanced = await look()
+
+    await page
+      .context()
+      .addCookies([appearance({ character: 'studio', options: { studio: { density: 'compact', font: 'system' } } })])
+    await page.reload()
+
+    await expect(page.locator('body')).toHaveCSS('font-family', /^system-ui,/)
+    expect(await look()).toEqual(enhanced)
+  })
+
+  test('sits left of the nav toggle under Enhanced, right of it under Studio, and in the header when the nav is closed or Payload', async ({
     page
   }) => {
     const button = page.getByRole('button', { name: 'Appearance' })
@@ -322,7 +390,7 @@ test.describe('Appearance panel', () => {
     await page.getByRole('button', { name: 'Hide sidebar' }).click()
     await expect(page.locator('.app-header').getByRole('button', { name: 'Appearance' })).toBeVisible()
 
-    await page.context().addCookies([appearance({ character: 'stock' })])
+    await page.context().addCookies([appearance({ character: 'payload' })])
     await page.reload()
     await expect(page.locator('.app-header').getByRole('button', { name: 'Appearance' })).toBeVisible()
   })
@@ -373,6 +441,17 @@ test.describe('Appearance panel', () => {
     })
   }
 
+  test("keeps Payload's header height under the Payload style", async ({ page }) => {
+    await page.context().addCookies([appearance({ character: 'payload' })])
+    await page.goto('/admin')
+    const height = async () => (await page.locator('.app-header').boundingBox())?.height
+    const withButton = await height()
+
+    await page.addStyleTag({ content: '.app-header .payloadpack-appearance-panel { display: none; }' })
+
+    expect(await height()).toBe(withButton)
+  })
+
   test('opens from the nav on a custom view, which renders no header actions', async ({ page }) => {
     await page.goto('/admin/toasts')
     await page.locator('.payloadpack-appearance-panel--nav .payloadpack-appearance-panel__trigger').click()
@@ -388,10 +467,10 @@ test.describe('Appearance panel', () => {
 
   test('segments sit 3px inside a bordered track', async ({ page }) => {
     await page.goto('/admin')
-    const track = (await openAppearancePanel(page)).getByRole('group', { name: 'Density' })
+    const track = (await openAppearancePanel(page)).getByRole('radiogroup', { name: 'Theme' })
     const inset = await track.evaluate((element) => {
       const outer = element.getBoundingClientRect()
-      const inner = element.querySelector('[aria-pressed="true"]')!.getBoundingClientRect()
+      const inner = element.querySelector('label:has(:checked)')!.getBoundingClientRect()
       return [inner.top - outer.top, outer.bottom - inner.bottom, outer.right - inner.right]
     })
 
@@ -400,20 +479,20 @@ test.describe('Appearance panel', () => {
     await expect(track).toHaveCSS('border-radius', '8px')
   })
 
-  test('switches Payload color mode', async ({ page }) => {
+  test("switches Payload's theme", async ({ page }) => {
     await page.goto('/admin')
-    const colorMode = (await openAppearancePanel(page)).getByRole('group', { name: 'Color mode' })
+    const sheet = await openAppearancePanel(page)
     const themeCookie = async () => (await page.context().cookies()).find(({ name }) => name === 'theme-demo-theme')?.value
 
-    await expect(colorMode.getByRole('button', { name: 'Auto' })).toHaveAttribute('aria-pressed', 'true')
+    await expect(choice(sheet, 'Theme', 'Automatic')).toBeChecked()
 
-    await colorMode.getByRole('button', { name: 'Dark' }).click()
+    await label(choice(sheet, 'Theme', 'Dark')).click()
 
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
-    await expect(colorMode.getByRole('button', { name: 'Dark' })).toHaveAttribute('aria-pressed', 'true')
+    await expect(choice(sheet, 'Theme', 'Dark')).toBeChecked()
     expect(await themeCookie()).toBe('dark')
 
-    await colorMode.getByRole('button', { name: 'Auto' }).click()
+    await label(choice(sheet, 'Theme', 'Automatic')).click()
 
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
     expect(await themeCookie()).toBeUndefined()
@@ -588,31 +667,31 @@ test.describe('Theme values', () => {
         await page.context().addCookies([appearance({ character }), cookie('theme', theme)])
         await page.goto('/admin')
         const segments = (await openAppearancePanel(page)).locator('.payloadpack-appearance-panel__segments').first()
-        const look = (locator: Locator) =>
-          locator.evaluate((element) => {
-            const style = getComputedStyle(element)
-            const properties = [
-              'padding-top',
-              'padding-left',
-              'gap',
-              'border-top-width',
-              'border-top-color',
-              'border-top-left-radius'
-            ]
-            return {
-              height: element.getBoundingClientRect().height,
-              ...Object.fromEntries(
-                [...properties, 'background-color', 'box-shadow', 'color'].map((name) => [name, style.getPropertyValue(name)])
-              )
-            }
-          })
+        const read = (locator: Locator, properties: string[]) =>
+          locator.evaluate(
+            (element, names) => Object.fromEntries(names.map((name) => [name, getComputedStyle(element).getPropertyValue(name)])),
+            properties
+          )
+        const look = async (locator: Locator) => ({
+          height: (await locator.boundingBox())?.height,
+          ...(await read(locator, [
+            'border-top-width',
+            'border-top-color',
+            'border-top-left-radius',
+            'background-color',
+            'box-shadow',
+            'color'
+          ]))
+        })
+        const inset = ['padding-top', 'padding-left', 'gap']
 
+        expect(await read(page.locator('.sidebar-tabs__tabs'), inset)).toEqual(await read(segments, inset))
         for (const [tab, segment] of [
           ['.sidebar-tabs__tabs', segments],
-          ['.sidebar-tabs__tab--active', segments.locator('[aria-pressed="true"]')],
-          ['.sidebar-tabs__tab:not(.sidebar-tabs__tab--active)', segments.locator('[aria-pressed="false"]').first()]
+          ['.sidebar-tabs__tab--active', segments.locator('label:has(:checked)')],
+          ['.sidebar-tabs__tab:not(.sidebar-tabs__tab--active)', segments.locator('label:not(:has(:checked))').first()]
         ] as const) {
-          expect(await look(page.locator(tab)), tab).toEqual(await look(segment))
+          expect(await look(page.locator(tab).first()), tab).toEqual(await look(segment))
         }
       })
     }
@@ -759,7 +838,7 @@ test.describe('Radius', () => {
         style(page, field, 'border-radius')
       ])
 
-    await page.context().addCookies([appearance({ character: 'stock' })])
+    await page.context().addCookies([appearance({ character: 'payload' })])
     await openShowcase(page)
     const payload = await radii()
 
@@ -1317,7 +1396,7 @@ test.describe('Every palette but Payload', () => {
 
         await openAppearancePanel(page)
         expect(
-          (await lightness('.payloadpack-appearance-panel__segments button[aria-pressed="true"]')) -
+          (await lightness('.payloadpack-appearance-panel__segments label:has(:checked)')) -
             (await lightness('.payloadpack-appearance-panel__segments'))
         ).toBeGreaterThan(0.08)
       })
@@ -1326,8 +1405,8 @@ test.describe('Every palette but Payload', () => {
 })
 
 test.describe('Payload palette', () => {
-  test("Stock keeps Payload's own backgrounds and blue", async ({ page }) => {
-    await page.context().addCookies([appearance({ character: 'stock', palette: 'payload' })])
+  test("Payload keeps Payload's own backgrounds and blue", async ({ page }) => {
+    await page.context().addCookies([appearance({ character: 'payload', palette: 'payload' })])
     await openShowcase(page)
 
     await expect(page.locator('html')).toHaveAttribute('data-palette', 'payload')
@@ -1340,8 +1419,8 @@ test.describe('Payload palette', () => {
     await expect(page.locator('html')).toHaveCSS('background-color', 'rgb(255, 255, 255)')
   })
 
-  test('Stock applies no theme stylesheet', async ({ page }) => {
-    await page.context().addCookies([appearance({ character: 'stock', palette: 'payload' })])
+  test('Payload applies no theme stylesheet', async ({ page }) => {
+    await page.context().addCookies([appearance({ character: 'payload', palette: 'payload' })])
     await openShowcase(page)
 
     const { applied, total } = await page.evaluate(() => {
@@ -1379,13 +1458,14 @@ test.describe('Payload palette', () => {
 })
 
 test.describe('Custom palette', () => {
-  const field = (sheet: Locator, half: string, name: string) => sheet.getByRole('group', { name: half }).getByLabel(name)
+  const field = (sheet: Locator, half: string, name: string) => sheet.getByLabel(`${name}, ${half}`, { exact: true })
+  const accent = (sheet: Locator) => sheet.getByLabel('Accent, Both modes', { exact: true })
   const custom = (accent: string, { primary, theme = 'light' }: { primary?: string; theme?: string } = {}) => [
     appearance({ custom: customPalette(accent, primary), palette: 'custom' }),
     cookie('theme', theme)
   ]
 
-  test('New palette starts from the current palette, applies each color at once and keeps it through a reload', async ({
+  test('Custom colors start from the current palette, apply each color at once and keep it through a reload', async ({
     page
   }) => {
     await page.context().addCookies([cookie('theme', 'light')])
@@ -1403,18 +1483,15 @@ test.describe('Custom palette', () => {
       lightPrimary: await neutral('--payloadpack-primary')
     }
 
-    await pickAndSave(page, sheet.getByRole('button', { name: 'New palette' }))
+    await pickAndSave(page, sheet.getByRole('button', { name: 'Custom colors' }))
     await expect(html).toHaveAttribute('data-palette', 'custom')
-    await expect(sheet.getByRole('group', { name: 'Palette' }).getByRole('button', { name: 'Custom' })).toHaveAttribute(
-      'aria-pressed',
-      'true'
-    )
+    await expect(choice(sheet, 'Palette', 'Custom')).toBeChecked()
     await expect(field(sheet, 'Light', 'Background')).toHaveValue(expected.lightBackground)
     await expect(field(sheet, 'Light', 'Primary')).toHaveValue(expected.lightPrimary)
     await expect(field(sheet, 'Dark', 'Primary')).toHaveValue(expected.darkPrimary)
     await expect(field(sheet, 'Dark', 'Background')).toHaveValue(expected.darkBackground)
     await expect(field(sheet, 'Dark', 'Text')).toHaveValue(expected.darkText)
-    await expect(sheet.getByLabel('Accent')).toHaveValue(expected.accent)
+    await expect(accent(sheet)).toHaveValue(expected.accent)
 
     await Promise.all([saved(page), field(sheet, 'Light', 'Background').fill('#eae6df')])
     await expect(header).toHaveCSS('background-color', 'rgb(234, 230, 223)')
@@ -1448,40 +1525,39 @@ test.describe('Custom palette', () => {
     expect(saves).toHaveLength(1)
   })
 
-  test("pasting a setup keeps your own palette and your other characters' options", async ({ context, page }) => {
+  test("pasting a setup keeps your own palette and your other styles' options", async ({ context, page }) => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write'])
     await page.context().addCookies([
       appearance({
         character: 'studio',
         custom: customPalette('#be185d'),
-        options: { studio: { font: 'payload' } },
+        options: { studio: { font: 'inter' } },
         palette: 'neutral'
       })
     ])
     await page.goto('/admin')
     const sheet = await openAppearancePanel(page)
 
-    await page.evaluate(() => navigator.clipboard.writeText(JSON.stringify({ character: 'enhanced', palette: 'studio' })))
-    await pickAndSave(page, sheet.getByRole('button', { name: 'Paste setup' }))
+    await page.evaluate(() => navigator.clipboard.writeText(JSON.stringify({ character: 'enhanced', palette: 'warm' })))
+    await pickAndSave(page, await share(sheet, 'Paste setup'))
     await expect(page.locator('html')).toHaveAttribute('data-character', 'enhanced')
-    await expect(page.locator('html')).toHaveAttribute('data-palette', 'studio')
-    await expect(sheet.getByRole('group', { name: 'Palette' }).getByRole('button', { name: 'Custom' })).toBeVisible()
+    await expect(page.locator('html')).toHaveAttribute('data-palette', 'warm')
+    await expect(choice(sheet, 'Palette', 'Custom')).toBeAttached()
 
-    await pickAndSave(page, sheet.getByRole('group', { name: 'Character' }).getByRole('button', { name: 'Studio' }))
-    await expect(page.locator('html')).toHaveAttribute('data-font', 'payload')
+    await pickAndSave(page, label(choice(sheet, 'Style', 'Studio')))
+    await expect(page.locator('html')).toHaveAttribute('data-font', 'inter')
   })
 
   test('stays in the setup while another palette is picked', async ({ page }) => {
     await page.context().addCookies(custom('#c2410c'))
     await page.goto('/admin')
     const sheet = await openAppearancePanel(page)
-    const palettes = sheet.getByRole('group', { name: 'Palette' })
 
-    await pickAndSave(page, palettes.getByRole('button', { name: 'Neutral' }))
+    await pickAndSave(page, label(choice(sheet, 'Palette', 'Neutral')))
     await expect(page.locator('html')).toHaveAttribute('data-palette', 'neutral')
-    await expect(sheet.getByRole('button', { name: 'New palette' })).toHaveCount(0)
-    await pickAndSave(page, palettes.getByRole('button', { name: 'Custom' }))
-    await expect(sheet.getByLabel('Accent')).toHaveValue('#c2410c')
+    await expect(sheet.getByRole('button', { name: 'Custom colors' })).toHaveCount(0)
+    await pickAndSave(page, label(choice(sheet, 'Palette', 'Custom')))
+    await expect(accent(sheet)).toHaveValue('#c2410c')
   })
 
   test('Copy as CSS copies the same block the page renders', async ({ context, page }) => {
@@ -1491,7 +1567,7 @@ test.describe('Custom palette', () => {
     const sheet = await openAppearancePanel(page)
 
     await sheet.getByRole('button', { name: 'Copy as CSS' }).click()
-    await expect(sheet.getByRole('button', { name: 'Copied' })).toBeVisible()
+    await expect(sheet.getByRole('status')).toHaveText('CSS copied')
     const css = await page.evaluate(() => navigator.clipboard.readText())
     expect(css).toContain('--payloadpack-accent: #c2410c;')
     const rendered = await page.evaluate(() =>
@@ -1665,7 +1741,7 @@ test.describe('Rail', () => {
     await page.goto('/admin')
     await page.getByRole('button', { name: 'Hide sidebar' }).click()
 
-    expect(await (await page.request.get('/admin')).text()).toContain('"nav":"icons","rail":""')
+    expect(await (await page.request.get('/admin')).text()).toContain('"nav":"rail","rail":""')
 
     await page.route(nextScripts, (route) => route.abort())
     await page.reload()
@@ -1759,7 +1835,7 @@ test.describe('Rail', () => {
   })
 
   for (const { nav, name, closes } of [
-    { closes: false, name: "keeps Payload's nav open", nav: 'icons' },
+    { closes: false, name: "keeps Payload's nav open", nav: 'rail' },
     { closes: true, name: 'lets Payload close the nav', nav: 'hidden' }
   ] as const) {
     test(`nav: '${nav}' ${name} when the window shrinks past 1440px`, async ({ page }) => {
@@ -1808,8 +1884,8 @@ test.describe('Studio character', () => {
       frame: 'boxed',
       density: 'comfortable',
       icons: 'lucide',
-      motion: 'on',
-      nav: 'icons'
+      motion: 'auto',
+      nav: 'rail'
     }
 
     for (const [name, value] of Object.entries(defaults)) {
@@ -1893,7 +1969,7 @@ test.describe('Studio character', () => {
     expect(((await popup.boundingBox())?.y ?? 0) + ((await popup.boundingBox())?.height ?? 0)).toBeLessThanOrEqual(menu?.y ?? 0)
   })
 
-  test('loads the bundled Geist for the body font and switches to Payload or the system font', async ({ page }) => {
+  test('loads the bundled Geist for the body font and switches to Inter or the system font', async ({ page }) => {
     const fonts: string[] = []
     page.on('request', (request) => {
       if (request.resourceType() === 'font') {
@@ -1913,7 +1989,7 @@ test.describe('Studio character', () => {
     ).toBe(true)
     expect(fonts.every((hostname) => hostname === 'localhost')).toBe(true)
 
-    await page.context().addCookies([studio({ font: 'payload' })])
+    await page.context().addCookies([studio({ font: 'inter' })])
     await page.reload()
     await expect(body).toHaveCSS('font-family', /^Inter, "?Inter Fallback"?/)
 
@@ -1948,12 +2024,11 @@ test.describe('Studio character', () => {
     expect(Math.abs(metricFallback / geist - 1)).toBeLessThan(0.03)
   })
 
-  test('leaves Stock and Enhanced in their own layout and font', async ({ page }) => {
-    for (const character of ['enhanced', 'stock']) {
+  test('leaves Payload and Enhanced in their own layout and font', async ({ page }) => {
+    for (const character of ['enhanced', 'payload']) {
       await page.context().addCookies([appearance({ character })])
       await openList(page)
 
-      await expect(page.locator('html')).not.toHaveAttribute('data-frame')
       await expect(page.locator('.template-default__wrap')).toHaveCSS('margin', '0px')
       await expect(page.locator('.template-default__wrap')).toHaveCSS('border-top-width', '0px')
       await expect(page.locator('.nav__header')).toHaveCSS('display', 'flex')
@@ -1963,9 +2038,9 @@ test.describe('Studio character', () => {
   })
 })
 
-test.describe('Studio palette', () => {
+test.describe('Warm palette', () => {
   test('fills primary buttons with the text color and keeps the copper accent for marks', async ({ page }) => {
-    await page.context().addCookies([appearance({ character: 'studio', palette: 'studio' }), cookie('theme', 'light')])
+    await page.context().addCookies([appearance({ character: 'studio', palette: 'warm' }), cookie('theme', 'light')])
     await page.goto((await findShowcase(page)).path)
 
     await expect(page.locator('.btn--style-primary:visible').first()).toHaveCSS(
@@ -1980,7 +2055,7 @@ test.describe('Studio palette', () => {
   })
 
   test('tints the field from the accent in light and dark, with cards on top', async ({ page }) => {
-    await page.context().addCookies([appearance({ character: 'studio', palette: 'studio' }), cookie('theme', 'light')])
+    await page.context().addCookies([appearance({ character: 'studio', palette: 'warm' }), cookie('theme', 'light')])
     await page.goto('/admin/collections/showcase')
     const field = page.locator('.template-default')
     const card = page.locator('.template-default__wrap')
@@ -1993,7 +2068,7 @@ test.describe('Studio palette', () => {
     }
 
     for (const theme of ['light', 'dark']) {
-      await page.context().addCookies([appearance({ character: 'studio', palette: 'studio' }), cookie('theme', theme)])
+      await page.context().addCookies([appearance({ character: 'studio', palette: 'warm' }), cookie('theme', theme)])
       await page.reload()
       const [background, surface] = [
         await computedColor(page, 'var(--payloadpack-background)'),
@@ -2010,7 +2085,7 @@ test.describe('Studio palette', () => {
   })
 
   test('tints the nav under Enhanced too', async ({ page }) => {
-    await page.context().addCookies([appearance({ palette: 'studio' }), cookie('theme', 'light')])
+    await page.context().addCookies([appearance({ palette: 'warm' }), cookie('theme', 'light')])
     await page.goto('/admin/collections/showcase')
 
     await expect(page.locator('.nav__header')).toHaveCSS(

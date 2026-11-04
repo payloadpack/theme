@@ -1,0 +1,27 @@
+@layer payload {
+  html[data-frame='boxed'] {
+    /* 1. Card */
+    .nav {
+      border-inline-end: 0;
+    }
+
+    @media (min-width: 769px) {
+      .template-default__wrap {
+        width: auto;
+        margin: var(--spacer-2-5);
+        overflow: clip;
+        border: var(--stroke-width-small) solid var(--color-border);
+        border-radius: calc(var(--radius-large) + min(var(--radius-large), var(--spacer-1-5)));
+      }
+
+      &[data-nav='rail'] .template-default__wrap,
+      .template-default--nav-open .template-default__wrap {
+        margin-inline-start: 0;
+      }
+
+      &:not([data-nav='rail']) .template-default:not(.template-default--nav-open) .nav {
+        visibility: hidden;
+      }
+    }
+  }
+}

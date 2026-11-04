@@ -8,7 +8,7 @@ test.beforeEach(async ({ page }) => {
 })
 
 const looks = {
-  stock: [appearance({ character: 'stock', palette: 'payload' })],
+  stock: [appearance({ character: 'payload', palette: 'payload' })],
   themed: [appearance({})]
 }
 

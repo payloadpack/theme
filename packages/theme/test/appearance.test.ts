@@ -15,7 +15,7 @@ import {
 
 const settings: Settings = {
   character: 'enhanced',
-  options: { enhanced: { density: 'compact', icons: 'lucide' }, stock: {} },
+  options: { enhanced: { density: 'compact', icons: 'lucide' }, payload: {} },
   palette: 'neutral',
   palettes: ['payload', 'neutral']
 }
@@ -28,20 +28,35 @@ const custom: CustomPalette = {
 
 it('layers the editor choices over the developer defaults', () => {
   expect(resolve(settings, {})).toEqual({
+    changed: 0,
     character: 'enhanced',
     palette: 'neutral',
     values: { density: 'compact', icons: 'lucide' }
   })
   expect(resolve(settings, { options: { enhanced: { icons: 'payload' } }, palette: 'payload' })).toEqual({
+    changed: 1,
     character: 'enhanced',
     palette: 'payload',
     values: { density: 'compact', icons: 'payload' }
   })
-  expect(resolve(settings, { character: 'stock', options: { enhanced: { icons: 'payload' } } })).toEqual({
-    character: 'stock',
+  expect(resolve(settings, { character: 'payload', options: { enhanced: { icons: 'payload' } } })).toEqual({
+    changed: 0,
+    character: 'payload',
     palette: 'neutral',
     values: {}
   })
+})
+
+it('carries density, motion and nav across styles, and keeps the rest of the look per style', () => {
+  const both: Settings = {
+    ...settings,
+    options: { enhanced: { density: 'compact', radius: 'md' }, payload: {}, studio: { density: 'compact', radius: 'lg' } }
+  }
+  const choices = normalize(both, { options: { enhanced: { density: 'comfortable', radius: 'sm' } } })
+
+  expect(choices).toEqual({ options: { enhanced: { radius: 'sm' } }, personal: { density: 'comfortable' } })
+  expect(resolve(both, { ...choices, character: 'studio' }).values).toEqual({ density: 'comfortable', radius: 'lg' })
+  expect(resolve(both, { ...choices, character: 'payload' }).values).toEqual({})
 })
 
 it('keeps the custom palette while another palette is picked', () => {
@@ -53,13 +68,13 @@ it('drops characters, palettes, options and values the settings do not allow', (
 
   expect(
     normalize(onlyEnhanced, {
-      character: 'stock',
+      character: 'payload',
       options: { enhanced: { density: 'huge', icons: 'payload', motion: 'on' } },
       palette: 'payload'
     })
   ).toEqual({ options: { enhanced: { icons: 'payload' } } })
   expect(
-    normalize(settings, { character: 'constructor', options: { stock: { density: 'comfortable' } }, palette: 'neon' })
+    normalize(settings, { character: 'constructor', options: { payload: { density: 'comfortable' } }, palette: 'neon' })
   ).toEqual({})
 })
 
@@ -99,12 +114,12 @@ it('keeps only choices that differ from the defaults, per character and palette'
   expect(
     normalize(settings, {
       character: 'enhanced',
-      options: { enhanced: { density: 'compact', icons: 'payload' }, stock: {} },
+      options: { enhanced: { density: 'compact', icons: 'payload' }, payload: {} },
       palette: 'neutral'
     })
   ).toEqual({ options: { enhanced: { icons: 'payload' } } })
-  expect(normalize(settings, { character: 'stock', options: { enhanced: { icons: 'payload' } }, palette: 'payload' })).toEqual({
-    character: 'stock',
+  expect(normalize(settings, { character: 'payload', options: { enhanced: { icons: 'payload' } }, palette: 'payload' })).toEqual({
+    character: 'payload',
     options: { enhanced: { icons: 'payload' } },
     palette: 'payload'
   })
@@ -136,15 +151,16 @@ it('rejects text that is not a setup', () => {
   expect(parseChoices(settings, '["stock"]')).toBeUndefined()
   expect(parseChoices(settings, '{}')).toBeUndefined()
   expect(parseChoices(settings, '{"name":"stock"}')).toBeUndefined()
-  expect(parseChoices(settings, '{"character":"stock"}')).toEqual({ character: 'stock' })
+  expect(parseChoices(settings, '{"character":"payload"}')).toEqual({ character: 'payload' })
 })
 
 it('pastes a copied setup into the same resolved', () => {
-  const other: Settings = { ...settings, character: 'stock', palette: 'payload' }
+  const other: Settings = { ...settings, character: 'payload', palette: 'payload' }
   const cases = [
     resolve(settings, { custom, options: { enhanced: { icons: 'payload' } }, palette: 'custom' }),
     resolve(settings, { options: { enhanced: { icons: 'payload' } }, palette: 'payload' }),
-    resolve(settings, { character: 'stock' }),
+    resolve(settings, { character: 'payload' }),
+    resolve(settings, { personal: { density: 'comfortable' } }),
     resolve(settings, {})
   ]
 
@@ -160,9 +176,9 @@ it('copies a setup in the shape of the plugin config', () => {
     options: { enhanced: { density: 'compact', icons: 'lucide' } },
     palette: 'neutral'
   })
-  expect(setupOf(resolve(settings, { character: 'stock', custom }))).toEqual({ character: 'stock', palette: 'neutral' })
-  expect(setupOf(resolve(settings, { character: 'stock', custom, palette: 'custom' }))).toEqual({
-    character: 'stock',
+  expect(setupOf(resolve(settings, { character: 'payload', custom }))).toEqual({ character: 'payload', palette: 'neutral' })
+  expect(setupOf(resolve(settings, { character: 'payload', custom, palette: 'custom' }))).toEqual({
+    character: 'payload',
     custom,
     palette: 'custom'
   })

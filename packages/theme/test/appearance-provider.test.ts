@@ -67,11 +67,11 @@ it('renders the custom palette into the server HTML as the CSS block Copy as CSS
   expect(render(settings, {})).not.toContain('<style>')
 })
 
-it('renders the collapsed rail only while the nav option is icons', () => {
-  const withNav: Settings = { ...settings, options: { enhanced: { nav: 'icons' } } }
+it('renders the collapsed rail only while the nav option is rail', () => {
+  const withNav: Settings = { ...settings, options: { enhanced: { nav: 'rail' } } }
 
-  expect(runScript(withNav, {}, true)).toEqual({ character: 'enhanced', nav: 'icons', palette: 'neutral', rail: '' })
-  expect(runScript(withNav, { options: { enhanced: { nav: 'hidden' } } }, true)).toEqual({
+  expect(runScript(withNav, {}, true)).toEqual({ character: 'enhanced', nav: 'rail', palette: 'neutral', rail: '' })
+  expect(runScript(withNav, { personal: { nav: 'hidden' } }, true)).toEqual({
     character: 'enhanced',
     nav: 'hidden',
     palette: 'neutral'

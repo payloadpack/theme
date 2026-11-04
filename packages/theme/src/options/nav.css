@@ -1,5 +1,5 @@
 @layer payload {
-  html[data-nav='icons'] {
+  html[data-nav='rail'] {
     /* 1. Open nav */
     @media (min-width: 769px) {
       .template-default {

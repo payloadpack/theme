@@ -3,22 +3,24 @@ import { studio } from './studio/index.js'
 
 export const options = {
   radius: ['none', 'sm', 'md', 'lg', 'full'],
-  font: ['payload', 'geist', 'system'],
+  font: ['inter', 'geist', 'system'],
   frame: ['boxed', 'flat'],
   density: ['compact', 'comfortable'],
   icons: ['payload', 'lucide'],
-  motion: ['off', 'on'],
-  nav: ['icons', 'hidden']
+  motion: ['off', 'auto'],
+  nav: ['rail', 'hidden']
 } as const
 
 export type Option = keyof typeof options
+
+export const personalOptions: readonly Option[] = ['density', 'motion', 'nav']
 
 export type OptionValue<O extends Option> = (typeof options)[O][number]
 
 export type Values = { [O in Option]?: OptionValue<O> }
 
 export const characters = {
-  stock: { defaults: {} },
+  payload: { defaults: {} },
   enhanced,
   studio
 } satisfies Record<string, { defaults: Values }>

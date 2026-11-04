@@ -5,7 +5,7 @@ export const studio = {
     frame: 'boxed',
     density: 'comfortable',
     icons: 'lucide',
-    motion: 'on',
-    nav: 'icons'
+    motion: 'auto',
+    nav: 'rail'
   }
 } as const

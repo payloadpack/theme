@@ -1,5 +1,5 @@
 @layer payload {
-  html[data-motion='on'] {
+  html[data-motion='auto'] {
     @media (prefers-reduced-motion: no-preference) {
       --payloadpack-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
       --payloadpack-ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);

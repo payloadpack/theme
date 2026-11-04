@@ -11,8 +11,8 @@ const settingsOf = async (pluginConfig: ThemePluginConfig) => {
 }
 
 it('offers editors the allowed palettes, every built-in one by default', async () => {
-  expect((await settingsOf({})).palettes).toEqual(['payload', 'neutral', 'studio'])
-  expect((await settingsOf({ palette: 'studio', palettes: ['studio', 'neutral'] })).palettes).toEqual(['studio', 'neutral'])
+  expect((await settingsOf({})).palettes).toEqual(['payload', 'neutral', 'warm'])
+  expect((await settingsOf({ palette: 'warm', palettes: ['warm', 'neutral'] })).palettes).toEqual(['warm', 'neutral'])
 })
 
 it('gives every supported language the English panel labels, and lets the app override them', async () => {
@@ -26,7 +26,7 @@ it('gives every supported language the English panel labels, and lets the app ov
 
   expect(translations.en.payloadpack.appearance).toBe('Appearance')
   expect(translations.de.payloadpack.appearance).toBe('Darstellung')
-  expect(translations.de.payloadpack.colorMode).toBe('Color mode')
+  expect(translations.de.payloadpack.colorMode).toBe('Theme')
 })
 
 it('puts the rail toggle and the Appearance button after the app nav components', async () => {
@@ -40,7 +40,7 @@ it('puts the rail toggle and the Appearance button after the app nav components'
 })
 
 it('throws when the default character is not allowed', () => {
-  expect(() => themePlugin({ character: 'enhanced', characters: ['stock'] })).toThrow("character 'enhanced'")
+  expect(() => themePlugin({ character: 'enhanced', characters: ['payload'] })).toThrow("character 'enhanced'")
 })
 
 it('throws when the default palette is not allowed', () => {
