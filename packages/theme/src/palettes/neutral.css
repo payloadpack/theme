@@ -1,7 +1,7 @@
 @layer payload {
   [data-palette='neutral'] {
     /* 1. Light palette */
-    --payloadpack-background: oklch(97.5% 0 none);
+    --payloadpack-background: #f7f7f7;
     --payloadpack-surface: #ffffff;
     --payloadpack-text: #111111;
     --payloadpack-primary: var(--payloadpack-text);
