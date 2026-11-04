@@ -1,14 +1,14 @@
 import { RADIO_CARDS, SWITCH, VERTICAL_TABS } from '@payloadpack/theme'
 import { expect, type Page, test } from '@playwright/test'
 
-import { appearance, clearSetup, cookie, findShowcase, openAppearancePanel } from './demo'
+import { appearance, clearSetup, cookie, findShowcase, openAppearancePanel, openFineTune } from './demo'
 
 test.beforeEach(async ({ page }) => {
   await clearSetup(page)
 })
 
 const looks = {
-  stock: [appearance({ character: 'payload', palette: 'payload' })],
+  payload: [appearance({ character: 'payload', palette: 'payload' })],
   themed: [appearance({})]
 }
 
@@ -61,6 +61,7 @@ for (const theme of ['dark', 'light']) {
 
     await openShowcase(page, looks.themed, theme)
     const sheet = await openAppearancePanel(page)
+    await openFineTune(sheet)
     const height = await sheet.evaluate((element) =>
       [...element.children].reduce((sum, child) => sum + Math.max(child.scrollHeight, (child as HTMLElement).offsetHeight), 0)
     )
