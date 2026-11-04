@@ -3,6 +3,8 @@
     /* 1. Light colors */
     &:not([data-theme='dark']),
     [data-theme='light'] {
+      --payloadpack-hover-step: 6%;
+      --payloadpack-pressed-step: 10%;
       --color-bg: var(--payloadpack-surface);
       --color-bg-elevated: var(--payloadpack-surface);
       --ramp-grey-100: color-mix(in srgb, var(--payloadpack-text) 4.37%, var(--payloadpack-surface));
@@ -25,6 +27,8 @@
     /* 2. Dark colors */
     &[data-theme='dark'],
     [data-theme='dark'] {
+      --payloadpack-hover-step: 10%;
+      --payloadpack-pressed-step: 15%;
       --color-bg-elevated: color-mix(in srgb, var(--payloadpack-text) 4%, var(--payloadpack-surface));
       --color-bg-menu: var(--color-bg-elevated);
       --color-bg-tooltip: var(--color-bg-elevated);
@@ -75,8 +79,14 @@
       box-shadow: none;
     }
 
+    .nav {
+      --color-bg-hover: color-mix(in oklab, var(--payloadpack-text) var(--payloadpack-hover-step), var(--payloadpack-background));
+      --color-bg-pressed: color-mix(in oklab, var(--payloadpack-text) var(--payloadpack-pressed-step), var(--payloadpack-background));
+    }
+
+    a.nav__link:not(.nav__link--selected):hover::before,
     .nav-group__toggle:hover::before {
-      background-color: var(--color-bg-secondary);
+      background-color: var(--color-bg-hover);
     }
 
     .sidebar-tabs__tab {
@@ -279,7 +289,7 @@
 
     /* 10. Menus */
     .popup-button-list {
-      --popup-item-bg-hover: var(--color-bg-hover);
+      --popup-item-bg-hover: color-mix(in oklab, var(--color-text) var(--payloadpack-hover-step), var(--color-bg-menu));
       --popup-item-color-hover: var(--color-text);
     }
 

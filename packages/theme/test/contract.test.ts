@@ -217,6 +217,8 @@ const hardCodedByPayload = [
 
 const readByDescendants: Record<string, string[]> = {
   '--button-height': ['.btn--size-medium', '.sidebar-tabs__tab'],
+  '--color-bg-hover': ['.sidebar-toggle'],
+  '--color-bg-pressed': ['.sidebar-toggle'],
   '--content-editable-padding-block-start': ['.LexicalEditorTheme__placeholder'],
   '--elevation-400-menu-panel': ['.payload-toast-item'],
   '--lexical-h4-font-size': ['.LexicalEditorTheme__h4'],

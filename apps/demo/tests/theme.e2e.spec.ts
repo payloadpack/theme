@@ -1053,24 +1053,21 @@ test.describe('Every palette but Payload', () => {
       test.beforeEach(({ page }) => page.context().addCookies([appearance({ palette })]))
 
       for (const theme of ['light', 'dark']) {
-        test(`menu items light up in the menu's own hover, icon and background at once, in ${theme} mode`, async ({ page }) => {
+        test(`menu items light up neutral and visible against the menu, icon and background at once, in ${theme} mode`, async ({ page }) => {
           await page.context().addCookies([cookie('theme', theme)])
           await page.goto((await findShowcase(page)).path)
           await page.getByRole('button', { name: 'More options' }).first().click()
           const item = page.locator('#action-duplicate')
           await item.hover()
 
-          const { hovered, menu } = await item.evaluate((element) => {
+          const colors = await item.evaluate((element) => {
+            const [style, icon, menu] = [getComputedStyle(element), getComputedStyle(element, '::before'), getComputedStyle(element.closest('.popup__content')!)]
             const probe = document.createElement('div')
-            probe.style.cssText = 'background-color: var(--color-bg-hover); color: var(--color-text)'
-            element.parentElement!.append(probe)
-            const [item, icon, expected] = [getComputedStyle(element), getComputedStyle(element, '::before'), getComputedStyle(probe)]
-            const colors = {
-              hovered: [item.backgroundColor, item.color, icon.opacity],
-              menu: [expected.backgroundColor, expected.color, '1']
-            }
+            probe.style.color = 'var(--color-text)'
+            element.append(probe)
+            const text = getComputedStyle(probe).color
             probe.remove()
-            return colors
+            return { color: style.color, hovered: style.backgroundColor, icon: icon.opacity, menu: menu.backgroundColor, text }
           })
           const [[hoveredLightness, hoveredChroma], [menuLightness]] = [
             await channels(page, 'oklch', colors.hovered),
