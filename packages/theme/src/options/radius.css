@@ -34,7 +34,10 @@
     --popup-radius: calc(var(--popup-item-radius) + min(var(--popup-item-radius), var(--spacer-1)));
 
     .payload-toast-item,
-    .slash-menu-popup {
+    .slash-menu-popup,
+    .table-action-menu-dropdown,
+    .timezone-picker__menu,
+    .toolbar-popup__dropdown-items {
       border-radius: var(--popup-radius);
     }
   }

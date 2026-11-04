@@ -805,6 +805,10 @@ test.describe('Radius', () => {
     await page.locator('[data-lexical-editor="true"]').first().click()
     await page.keyboard.type('/')
     await expect(page.locator('.slash-menu-popup')).toHaveCSS('border-radius', '12px')
+    await page.keyboard.press('Escape')
+
+    await page.locator('.toolbar-popup__dropdown').first().click()
+    await expect(page.locator('.toolbar-popup__dropdown-items').first()).toHaveCSS('border-radius', '12px')
 
     await page.goto('/admin/toasts')
     await page.getByRole('button', { name: 'Error', exact: true }).click()
