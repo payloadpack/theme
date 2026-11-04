@@ -1,9 +1,12 @@
 @layer payload {
   html[data-motion='on'] {
     @media (prefers-reduced-motion: no-preference) {
+      --payloadpack-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+      --payloadpack-ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
       /* 1. Drawers */
       .drawer__blur-bg {
-        transition: opacity 200ms linear;
+        transition: opacity 300ms var(--payloadpack-ease-drawer);
 
         @starting-style {
           opacity: 0;
@@ -13,8 +16,8 @@
       .drawer__content {
         transition:
           transform 100ms ease-out,
-          opacity 200ms linear,
-          translate 200ms linear;
+          opacity 300ms var(--payloadpack-ease-drawer),
+          translate 300ms var(--payloadpack-ease-drawer);
 
         @starting-style {
           opacity: 0;
@@ -25,11 +28,13 @@
       /* 2. Tooltips */
       .tooltip {
         transition:
-          opacity 0.2s ease-in-out,
-          visibility 0.2s ease-in-out;
+          opacity 100ms var(--payloadpack-ease-out),
+          visibility 100ms var(--payloadpack-ease-out);
       }
 
       .tooltip--show {
+        transition-duration: 150ms;
+
         @starting-style {
           opacity: 0;
         }
@@ -64,9 +69,9 @@
       .react-datepicker-popper {
         transform-origin: var(--caret-left, 50%) top;
         transition:
-          opacity 150ms ease-out,
-          scale 150ms ease-out,
-          translate 150ms ease-out;
+          opacity 150ms var(--payloadpack-ease-out),
+          scale 150ms var(--payloadpack-ease-out),
+          translate 150ms var(--payloadpack-ease-out);
 
         @starting-style {
           opacity: 0;
@@ -96,19 +101,12 @@
         }
       }
 
-      .popup--side-right:popover-open {
-        transform-origin: left top;
-
-        @starting-style {
-          translate: calc(-1 * var(--spacer-2)) 0;
-        }
-      }
-
+      .popup--side-right:popover-open,
       .popup--side-left:popover-open {
-        transform-origin: right top;
+        transform-origin: top;
 
         @starting-style {
-          translate: var(--spacer-2) 0;
+          translate: 0;
         }
       }
 
@@ -116,9 +114,9 @@
         opacity: 0;
         scale: 0.95;
         transition:
-          all 150ms step-end allow-discrete,
-          opacity 150ms ease-in,
-          scale 150ms ease-in;
+          all 100ms step-end allow-discrete,
+          opacity 100ms var(--payloadpack-ease-out),
+          scale 100ms var(--payloadpack-ease-out);
       }
 
       /* 7. Nav */
@@ -184,14 +182,14 @@
       .payloadpack-appearance-panel__sheet {
         translate: 100% 0;
         transition:
-          translate 150ms ease-in,
-          display 150ms allow-discrete,
-          overlay 150ms allow-discrete;
+          translate 200ms var(--payloadpack-ease-out),
+          display 200ms allow-discrete,
+          overlay 200ms allow-discrete;
 
         &:popover-open {
           translate: 0;
-          transition-duration: 200ms;
-          transition-timing-function: ease-out;
+          transition-duration: 300ms;
+          transition-timing-function: var(--payloadpack-ease-drawer);
 
           @starting-style {
             translate: 100% 0;

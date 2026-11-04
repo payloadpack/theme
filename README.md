@@ -95,7 +95,7 @@ The panel opens as a sheet on the right and fills the screen on phones. Every ch
 - **Centered** caps every view at 880px and centers it. **Full** lets it fill the width.
 - **Comfortable** sets 14px body text, 36px fields and buttons, 32px menu items and 18px checkboxes and radios, gives dialogs more room, and fixes Payload components that hard-code their sizes.
 - **Lucide** replaces Payload's icons with [Lucide](https://lucide.dev) and adds icons to the nav and the document menu. The icons are bundled, so nothing loads from a CDN.
-- **Motion** brings back the transitions Payload 3 had: drawers fade and slide in, tooltips fade, and fields, buttons and cards ease between states. Popups, select menus and the date picker fade in too. It stays off when the operating system asks for reduced motion.
+- **Motion** brings back the transitions Payload 3 had: drawers fade and slide in, tooltips fade, and fields, buttons and cards ease between states. Popups, select menus and the date picker fade and scale in from their trigger, and the Appearance panel slides in like a drawer. It stays off when the operating system asks for reduced motion.
 - **Icons** as the collapsed nav turns the nav's collapse button into a 64px rail of Lucide icons, with each label as a tooltip. The rail is kept per browser in a `<cookiePrefix>-nav-rail` cookie, so Reset leaves it alone. Below 768px the nav is Payload's own drawer. **Hidden** keeps Payload's own collapse.
 
 A signed-in editor's setup is saved in Payload's own preferences, so it follows them to every browser. It is mirrored in one cookie, `<cookiePrefix>-appearance`, next to Payload's own theme cookie, which the server uses on the login page and until a setup is saved. The server renders the setup, so pages never flash.

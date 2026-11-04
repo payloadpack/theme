@@ -710,6 +710,22 @@ test.describe('Motion', () => {
     })
   }
 
+  test('popovers open in 150ms and close in 100ms, and the panel slides in over 300ms', async ({ page }) => {
+    await openShowcase(page)
+    const easeOut = 'cubic-bezier(0.23, 1, 0.32, 1)'
+
+    await moreOptions(page).click()
+    const popup = page.locator('.popup__content:popover-open')
+    await expect(popup).toHaveCSS('transition-duration', '0.15s, 0.15s, 0.15s')
+    await expect(popup).toHaveCSS('transition-timing-function', `${easeOut}, ${easeOut}, ${easeOut}`)
+    await page.keyboard.press('Escape')
+    await expect(page.locator('.popup__hidden-content').first()).toHaveCSS('transition-duration', '0.1s, 0.1s, 0.1s')
+
+    const sheet = await openAppearancePanel(page)
+    await expect(sheet).toHaveCSS('transition-duration', '0.3s')
+    await expect(sheet).toHaveCSS('transition-timing-function', /^cubic-bezier\(0\.32, 0\.72, 0, 1\)/)
+  })
+
   test('tooltips fade in and out', async ({ page }) => {
     const transitions = await recordTransitions(page, ['tooltip'])
     await page.goto('/admin')
