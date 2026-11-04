@@ -1,0 +1,43 @@
+@layer payload {
+  html:is([data-character='enhanced'], [data-character='studio']) {
+    /* 1. Focus */
+    &,
+    [data-theme] {
+      --accessibility-outline: var(--stroke-width-medium) solid var(--accessibility-focus-color);
+    }
+
+    .sidebar-tabs__tab:focus-visible,
+    .doc-controls__meta .btn:focus-visible {
+      outline-offset: calc(-1 * var(--stroke-width-medium));
+    }
+
+    .nav__close:focus-visible .sidebar-toggle {
+      outline: var(--accessibility-outline);
+      outline-offset: calc(-1 * var(--stroke-width-medium));
+    }
+
+    .nav__close:focus-visible::after {
+      content: none;
+    }
+
+    /* 2. Sidebar tabs */
+    .sidebar-tabs__tabs {
+      gap: 2px;
+      padding: 3px;
+      border: var(--stroke-width-small) solid var(--color-border);
+      border-radius: calc(var(--radius-medium) + 3px);
+    }
+
+    .sidebar-tabs__tab {
+      height: calc(var(--field-min-height-large) - 6px);
+      border: 0;
+      border-radius: var(--radius-medium);
+    }
+
+    /* 3. Nav groups */
+    .nav-group__indicator {
+      inset-inline: auto var(--spacer-3);
+      transform: none;
+    }
+  }
+}

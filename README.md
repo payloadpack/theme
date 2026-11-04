@@ -83,8 +83,9 @@ The panel opens as a sheet on the right and fills the screen on phones. Every ch
 | Motion        | Off, On                | On               | On             |
 | Collapsed nav | Icons, Hidden          | Icons            | Icons          |
 
-- **Enhanced** draws a 2px focus ring, rounds popups and toasts a little more, lifts the date picker and toasts like menus, insets the sidebar tabs, and moves each nav group's chevron to the end of its row.
-- **Studio** keeps the nav on the field, puts the collapse button at its top left, moves the user menu to the bottom of it, and ends each nav group with its chevron like Enhanced.
+- **Enhanced** and **Studio** both draw a 2px focus ring, inset the sidebar tabs and move each nav group's chevron to the end of its row.
+- **Enhanced** rounds popups and toasts a little more and lifts the date picker and toasts like menus.
+- **Studio** keeps the nav on the field, puts the collapse button at its top left, and moves the user menu to the bottom of it.
 - Every palette except Payload's draws the focus ring in the text color, gives all fields one border color, fades disabled and read-only fields to half their colors, softens checkbox and radio rings, marks the selected nav link and the hovered menu item with a neutral fill instead of the accent, fills a hovered nav group heading like a link, and raises the active sidebar tab like the panel's segments.
 - **Neutral** gives dark mode a near-black palette and swaps Payload's blue selection for neutral greys. It fills checked checkboxes and selected radios with the text color instead of the accent.
 - **Studio**, the palette, mixes a faint share of the accent into a warm off-white field and nav, with white cards and lines tinted the same way. Dark mode mixes it into near-black. Selected items take a soft fill of the accent.

@@ -1,49 +1,14 @@
 @layer payload {
   html[data-character='enhanced'] {
-    /* 1. Focus */
-    &,
-    [data-theme] {
-      --accessibility-outline: var(--stroke-width-medium) solid var(--accessibility-focus-color);
-    }
+    /* 1. Shape */
+    --popup-radius: calc(var(--radius-medium) + min(var(--radius-medium), var(--spacer-1)));
 
-    .sidebar-tabs__tab:focus-visible,
-    .doc-controls__meta .btn:focus-visible {
-      outline-offset: calc(-1 * var(--stroke-width-medium));
-    }
-
-    .nav__close:focus-visible .sidebar-toggle {
-      outline: var(--accessibility-outline);
-      outline-offset: calc(-1 * var(--stroke-width-medium));
-    }
-
-    .nav__close:focus-visible::after {
-      content: none;
-    }
-
-    /* 2. Shape */
-    & {
-      --popup-radius: calc(var(--radius-medium) + min(var(--radius-medium), var(--spacer-1)));
-    }
-
-    .sidebar-tabs__tabs {
-      gap: 2px;
-      padding: 3px;
-      border: var(--stroke-width-small) solid var(--color-border);
-      border-radius: calc(var(--radius-medium) + 3px);
-    }
-
-    .sidebar-tabs__tab {
-      height: calc(var(--field-min-height-large) - 6px);
-      border: 0;
-      border-radius: var(--radius-medium);
-    }
-
-    /* 3. Date picker */
+    /* 2. Date picker */
     .react-datepicker {
       box-shadow: var(--elevation-400-menu-panel);
     }
 
-    /* 4. Checkbox and radio */
+    /* 3. Checkbox and radio */
     .checkbox-input__mark-halo {
       display: none;
     }
@@ -52,7 +17,7 @@
       border-width: var(--stroke-width-small);
     }
 
-    /* 5. Toasts */
+    /* 4. Toasts */
     .payload-toast-item {
       border-radius: var(--popup-radius);
       box-shadow: var(--elevation-400-menu-panel);
@@ -73,7 +38,7 @@
       }
     }
 
-    /* 6. Nav */
+    /* 5. Nav */
     --payloadpack-nav-button-area: inline-start;
 
     .nav__close {
@@ -82,11 +47,6 @@
 
     .nav__header .user-menu {
       margin-inline-end: calc(var(--spacer-5) + var(--spacer-1));
-    }
-
-    .nav-group__indicator {
-      inset-inline: auto var(--spacer-3);
-      transform: none;
     }
 
     @media (min-width: 769px) {
