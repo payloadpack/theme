@@ -325,6 +325,13 @@ test.describe('Appearance panel', () => {
     })
   }
 
+  test('opens from the nav on a custom view, which renders no header actions', async ({ page }) => {
+    await page.goto('/admin/toasts')
+    await page.locator('.payloadpack-appearance-panel--nav .payloadpack-appearance-panel__trigger').click()
+
+    await expect(page.getByRole('dialog', { name: 'Appearance' })).toBeVisible()
+  })
+
   test('draws the bundled Lucide palette icon on the header button', async ({ page }) => {
     await page.goto('/admin')
 

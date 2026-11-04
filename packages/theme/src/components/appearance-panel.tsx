@@ -55,24 +55,18 @@ const readPalette = (cards: Element, name: string): CustomPalette => {
   return { accent: light.accent, dark: dark.base, light: light.base }
 }
 
-function Trigger() {
+export function AppearanceButton({ place }: { place?: 'nav' }) {
   const { t } = useTranslation<object, TranslationKey>()
 
   return (
-    <button
-      aria-label={t('payloadpack:appearance')}
-      className="payloadpack-appearance-panel__trigger"
-      popoverTarget={SHEET_ID}
-      type="button">
-      <span aria-hidden="true" className="payloadpack-appearance-panel__palette-icon" />
-    </button>
-  )
-}
-
-export function AppearanceNavButton() {
-  return (
-    <div className="payloadpack-appearance-panel payloadpack-appearance-panel--nav">
-      <Trigger />
+    <div className={`payloadpack-appearance-panel${place === 'nav' ? ' payloadpack-appearance-panel--nav' : ''}`}>
+      <button
+        aria-label={t('payloadpack:appearance')}
+        className="payloadpack-appearance-panel__trigger"
+        popoverTarget={SHEET_ID}
+        type="button">
+        <span aria-hidden="true" className="payloadpack-appearance-panel__palette-icon" />
+      </button>
     </div>
   )
 }
@@ -109,7 +103,7 @@ function ChoiceGroup<V extends string>({ children, choices, className, label, on
   )
 }
 
-export function AppearancePanel() {
+export function AppearanceSheet() {
   const {
     character,
     characters,
@@ -154,7 +148,6 @@ export function AppearancePanel() {
 
   return (
     <div className="payloadpack-appearance-panel">
-      <Trigger />
       <dialog
         aria-labelledby={`${SHEET_ID}-title`}
         className="payloadpack-appearance-panel__sheet"

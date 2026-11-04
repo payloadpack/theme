@@ -5,6 +5,7 @@ import type { ReactNode } from 'react'
 
 import { isEditable, normalize, type Panel, parseChoices, preferenceKey, type Settings } from '../lib/appearance.js'
 import '../styles/index.css'
+import { AppearanceSheet } from './appearance-panel.js'
 import { AppearanceProvider } from './appearance-provider.js'
 
 const geist = Geist({ preload: false, subsets: ['latin'] })
@@ -25,7 +26,8 @@ export async function AppearanceServerProvider(props: Props) {
   const { children, codeEditorFontSize, panel, payload, server, settings, user } = props
   const cookieName = `${payload.config.cookiePrefix}-appearance`
   const railCookieName = `${payload.config.cookiePrefix}-nav-rail`
-  const choices = isEditable(panel, user) ? await savedChoices({ ...props, cookieName }) : {}
+  const editable = isEditable(panel, user)
+  const choices = editable ? await savedChoices({ ...props, cookieName }) : {}
   const initialRail = (await server.getCookies()).get(railCookieName)?.value === 'true'
 
   return (
@@ -38,6 +40,7 @@ export async function AppearanceServerProvider(props: Props) {
       railCookieName={railCookieName}
       settings={settings}>
       {children}
+      {user && editable && <AppearanceSheet />}
     </AppearanceProvider>
   )
 }
