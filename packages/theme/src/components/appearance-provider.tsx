@@ -44,13 +44,11 @@ const writeCookie = (name: string, value: string | undefined) => {
 
 type AppearanceContextValue = ReturnType<typeof resolve> & {
   characters: Character[]
-  choices: Choices
   palettes: Palette[]
   paste: (text: string) => boolean
   rail: boolean
   removeCustom: () => void
-  reset: () => void
-  restore: (choices: Choices) => void
+  reset: () => () => void
   setCustom: (custom: CustomPalette, persist?: boolean) => void
   setCharacter: (character: Character) => void
   setOption: <O extends Option>(option: O, value: OptionValue<O>) => void
@@ -85,6 +83,7 @@ export function AppearanceProvider({
   settings
 }: AppearanceProviderProps) {
   const [choices, setChoices] = useState(initialChoices)
+  const latest = useRef(choices)
   const [rail, setRail] = useState(initialRail)
   const { user } = useAuth()
   const signedInAs = useRef(user?.id)
@@ -136,6 +135,10 @@ export function AppearanceProvider({
   }, [getPreference, loadsOnSignIn, settings, user])
 
   useEffect(() => {
+    latest.current = choices
+  }, [choices])
+
+  useEffect(() => {
     writeCookie(cookieName, Object.keys(choices).length ? encodeURIComponent(JSON.stringify(choices)) : undefined)
   }, [choices, cookieName])
 
@@ -161,7 +164,6 @@ export function AppearanceProvider({
     return {
       ...resolved,
       characters: Object.keys(settings.options) as Character[],
-      choices,
       palettes: settings.palettes,
       paste: (text: string) => {
         const pasted = parseChoices(settings, text)
@@ -180,8 +182,12 @@ export function AppearanceProvider({
       rail,
       removeCustom: () =>
         update({ ...choices, custom: undefined, palette: palette === customPalette ? undefined : choices.palette }),
-      reset: () => update({ ...choices, options: { ...choices.options, [character]: undefined }, personal: undefined }),
-      restore: update,
+      reset: () => {
+        const { options: before, personal } = choices
+        update({ ...choices, options: { ...choices.options, [character]: undefined }, personal: undefined })
+        return () =>
+          update({ ...latest.current, options: { ...latest.current.options, [character]: before?.[character] }, personal })
+      },
       setCharacter: (next: Character) => update({ ...choices, character: next }),
       setCustom: (next: CustomPalette, persist?: boolean) =>
         update({ ...choices, custom: next, palette: customPalette }, persist),

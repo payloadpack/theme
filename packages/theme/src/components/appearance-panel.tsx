@@ -186,14 +186,12 @@ export function AppearanceSheet() {
     changed,
     character,
     characters,
-    choices,
     custom,
     palette,
     palettes,
     paste,
     removeCustom,
     reset,
-    restore,
     setCharacter,
     setCustom,
     setOption,
@@ -222,11 +220,7 @@ export function AppearanceSheet() {
     )
   }
 
-  const resetCharacter = () => {
-    const previous = choices
-    reset()
-    setStatus({ message: t('payloadpack:resetDone', { character: characterName }), undo: () => restore(previous) })
-  }
+  const resetCharacter = () => setStatus({ message: t('payloadpack:resetDone', { character: characterName }), undo: reset() })
 
   const share = (action: () => Promise<void>) => (event: { currentTarget: HTMLElement }) => {
     event.currentTarget.closest<HTMLElement>('[popover]')?.hidePopover()

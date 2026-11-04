@@ -264,10 +264,12 @@ test.describe('Appearance panel', () => {
     await expect(html).toHaveAttribute('data-radius', 'md')
     await expect(reset).toBeDisabled()
     await expect(status).toContainText('Enhanced is back to its defaults.')
+    await pickAndSave(page, label(choice(sheet, 'Palette', 'Warm')))
 
     await pickAndSave(page, status.getByRole('button', { name: 'Undo' }))
     await expect(html).toHaveAttribute('data-density', 'compact')
     await expect(html).toHaveAttribute('data-radius', 'sm')
+    await expect(html).toHaveAttribute('data-palette', 'warm')
     await expect(status).toBeEmpty()
 
     await page.reload()
