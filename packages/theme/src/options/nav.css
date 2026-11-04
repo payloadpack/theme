@@ -78,7 +78,7 @@
 
         .sidebar-tabs:has(.sidebar-tabs__tab--active:first-child) > .sidebar-tabs__tabs {
           width: calc(var(--nav-width) - 2 * var(--spacer-2-5));
-          margin-block-end: calc(-1 * (var(--button-height) + var(--spacer-2-5)));
+          margin-block-end: calc(-1 * (var(--field-min-height-large) + 2 * var(--stroke-width-small) + var(--spacer-2-5)));
         }
 
         .nav-group:not(.nav-group--collapsed) > .nav-group__toggle {

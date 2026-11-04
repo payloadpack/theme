@@ -252,7 +252,6 @@ Each toolbar sizes its buttons from its own token. All but the menu items and si
 | `--payloadpack-list-controls-button-height` | List toolbar: Filters, Group by, Columns |
 | `--payloadpack-row-button-height`           | Array and block rows                     |
 | `--payloadpack-menu-item-height`            | Popup menu items, 32px                   |
-| `--payloadpack-sidebar-tabs-height`         | Collections and Folders tabs, 38px       |
 
 Checkboxes and radios share their size and, on every palette but Payload's, their colors:
 

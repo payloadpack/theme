@@ -472,19 +472,34 @@ test.describe('Theme values', () => {
     expect(await style(page, '.nav__link', 'mask-image', '::after')).toContain('data:image/svg+xml')
   })
 
-  test('sidebar tabs sit 3px inside their track', async ({ page }) => {
-    await page.goto('/admin')
-    const inset = await page.locator('.sidebar-tabs__tabs').evaluate((track) => {
-      const outer = track.getBoundingClientRect()
-      const inner = track.querySelector('.sidebar-tabs__tab--active')!.getBoundingClientRect()
-      return [inner.top - outer.top, outer.bottom - inner.bottom, inner.left - outer.left]
-    })
+  for (const character of ['enhanced', 'studio']) {
+    for (const theme of ['light', 'dark']) {
+      test(`sidebar tabs match the panel's segments under ${character} in ${theme} mode`, async ({ page }) => {
+        await page.context().addCookies([appearance({ character }), cookie('theme', theme)])
+        await page.goto('/admin')
+        const segments = (await openAppearancePanel(page)).locator('.payloadpack-appearance-panel__segments').first()
+        const look = (locator: Locator) =>
+          locator.evaluate((element) => {
+            const style = getComputedStyle(element)
+            const properties = ['padding-top', 'padding-left', 'gap', 'border-top-width', 'border-top-color', 'border-top-left-radius']
+            return {
+              height: element.getBoundingClientRect().height,
+              ...Object.fromEntries(
+                [...properties, 'background-color', 'box-shadow', 'color'].map((name) => [name, style.getPropertyValue(name)])
+              )
+            }
+          })
 
-    expect(inset).toEqual([3, 3, 3])
-    await expect(page.locator('.sidebar-tabs__tabs')).toHaveCSS('height', '38px')
-    await expect(page.locator('.sidebar-tabs__tabs')).toHaveCSS('border-radius', '8px')
-    await expect(page.locator('.sidebar-tabs__tab--active')).toHaveCSS('border-radius', '5px')
-  })
+        for (const [tab, segment] of [
+          ['.sidebar-tabs__tabs', segments],
+          ['.sidebar-tabs__tab--active', segments.locator('[aria-pressed="true"]')],
+          ['.sidebar-tabs__tab:not(.sidebar-tabs__tab--active)', segments.locator('[aria-pressed="false"]').first()]
+        ] as const) {
+          expect(await look(page.locator(tab)), tab).toEqual(await look(segment))
+        }
+      })
+    }
+  }
 
   test('hide sidebar button shows the focus ring', async ({ page }) => {
     await page.context().addCookies([appearance({ options: { enhanced: { nav: 'hidden' } } })])
