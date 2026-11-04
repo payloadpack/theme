@@ -13,6 +13,10 @@
       .app-header__sidebar-toggle {
         display: none;
       }
+
+      .nav__scroll {
+        overflow-x: hidden;
+      }
     }
 
     /* 2. Toggle */

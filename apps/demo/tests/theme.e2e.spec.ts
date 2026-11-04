@@ -1392,6 +1392,19 @@ test.describe('Rail', () => {
     }
   })
 
+  test('never scrolls the rail sideways', async ({ page }) => {
+    await page.goto('/admin')
+    await page.getByRole('button', { name: 'Hide sidebar' }).click()
+    await expect.poll(() => navWidth(page)).toBe(64)
+
+    const scroller = page.locator('.nav__scroll')
+    const box = (await scroller.boundingBox())!
+    await page.mouse.move(box.x + box.width / 2, box.y + 200)
+    await page.mouse.wheel(200, 0)
+    await afterNextFrame(page)
+    expect(await scroller.evaluate((element) => element.scrollLeft)).toBe(0)
+  })
+
   test('hides the sidebar tabs, and shows them only to switch back from another tab', async ({ page }) => {
     await page.goto('/admin')
     await page.getByRole('tab').nth(1).click()
