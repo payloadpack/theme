@@ -896,18 +896,17 @@ test.describe('Motion', () => {
 })
 
 test.describe('Neutral palette', () => {
-  test("keeps Payload's own blue shades and the text color on selected nav links", async ({ page }) => {
-    await page.context().addCookies([cookie('theme', 'light')])
-    await page.goto('/admin/collections/showcase')
+  test('takes its text color as primary and accent, so no blue is left in light or dark', async ({ page }) => {
+    for (const theme of ['light', 'dark']) {
+      await page.context().addCookies([cookie('theme', theme)])
+      await page.goto('/admin/collections/showcase')
 
-    for (const [token, value] of [
-      ['--ramp-blue-200', '#e5f4ff'],
-      ['--ramp-blue-500', '#0d99ff'],
-      ['--ramp-pale-blue-800', '#394360']
-    ]) {
-      expect(await style(page, 'html', token)).toBe(value)
+      for (const token of ['--color-bg-selected', '--color-text-selected', '--color-icon-brand', '--color-text-brand', '--ramp-blue-500']) {
+        const [, chroma] = await channels(page, 'oklch', await computedColor(page, `var(${token})`))
+        expect(chroma, `${theme} ${token}`).toBeLessThan(0.02)
+      }
+      expect(await style(page, '.nav__link--selected', 'color')).toBe(await style(page, 'body', 'color'))
     }
-    expect(await style(page, '.nav__link--selected', 'color')).toBe(await style(page, 'body', 'color'))
   })
 
   test('checked checkboxes fill with the text color and use the Lucide tick', async ({ page }) => {
@@ -1073,8 +1072,15 @@ test.describe('Every palette but Payload', () => {
             probe.remove()
             return colors
           })
+          const [[hoveredLightness, hoveredChroma], [menuLightness]] = [
+            await channels(page, 'oklch', colors.hovered),
+            await channels(page, 'oklch', colors.menu)
+          ]
 
-          expect(hovered).toEqual(menu)
+          expect(Math.abs(hoveredLightness - menuLightness)).toBeGreaterThan(0.04)
+          expect(hoveredChroma).toBeLessThan(0.02)
+          expect(colors.color).toBe(colors.text)
+          expect(colors.icon).toBe('1')
         })
       }
 
@@ -1237,12 +1243,12 @@ test.describe('Custom palette', () => {
       'aria-pressed',
       'true'
     )
-    await expect(field(sheet, 'Light', 'Background')).toHaveValue('#f3f4f1')
+    await expect(field(sheet, 'Light', 'Background')).toHaveValue('#f5f5f5')
     await expect(field(sheet, 'Light', 'Primary')).toHaveValue('#111111')
     await expect(field(sheet, 'Dark', 'Primary')).toHaveValue('#f3f2ed')
     await expect(field(sheet, 'Dark', 'Background')).toHaveValue('#0a0a09')
     await expect(field(sheet, 'Dark', 'Text')).toHaveValue('#f3f2ed')
-    await expect(sheet.getByLabel('Accent')).toHaveValue('#0d99ff')
+    await expect(sheet.getByLabel('Accent')).toHaveValue('#111111')
 
     await Promise.all([saved(page), field(sheet, 'Light', 'Background').fill('#eae6df')])
     await expect(header).toHaveCSS('background-color', 'rgb(234, 230, 223)')
