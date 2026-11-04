@@ -1987,7 +1987,9 @@ test.describe('Studio character', () => {
     expect(((await popup.boundingBox())?.y ?? 0) + ((await popup.boundingBox())?.height ?? 0)).toBeLessThanOrEqual(menu?.y ?? 0)
   })
 
-  test('loads the bundled Geist for the body font and switches to Inter or the system font', async ({ page }) => {
+  test("loads the bundled Geist for the body font and Payload's widgets, and switches to Inter or the system font", async ({
+    page
+  }) => {
     const fonts: string[] = []
     page.on('request', (request) => {
       if (request.resourceType() === 'font') {
@@ -1999,6 +2001,8 @@ test.describe('Studio character', () => {
     const body = page.locator('body')
 
     await expect(body).toHaveCSS('font-family', /^payloadpack-geist, payloadpack-geist-fallback,/)
+    await page.goto('/admin')
+    await expect(page.locator('.activity-widget__tab').first()).toHaveCSS('font-family', /^payloadpack-geist,/)
     expect(
       await page.evaluate(async () => {
         await document.fonts.ready
