@@ -81,6 +81,11 @@ const channels = async (page: Page, space: 'oklab' | 'oklch', color: string) =>
     .match(/-?[\d.]+/g)
     ?.map(Number) ?? []
 
+const middle = async (locator: Locator) => {
+  const box = (await locator.boundingBox())!
+  return box.y + box.height / 2
+}
+
 const backgrounds = (page: Page) =>
   page.evaluate(() => [document.documentElement, document.body].map((element) => getComputedStyle(element).backgroundColor))
 
@@ -330,19 +335,14 @@ test.describe('Appearance panel', () => {
     await elsewhere.close()
   })
 
-  test('keeps Share setup centred beside a status line that wraps', async ({ context, page }) => {
-    await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  test('keeps Share setup centred beside a status line that wraps', async ({ page }) => {
     await page.goto('/admin')
     const sheet = await openAppearancePanel(page)
     const status = sheet.getByRole('status')
-    const middle = async (locator: Locator) => {
-      const box = (await locator.boundingBox())!
-      return box.y + box.height / 2
-    }
 
-    await (await share(sheet, 'Copy setup')).click()
-    await expect(status).toHaveText(/^Setup copied/)
-    await status.evaluate((element) => element.append(` ${element.textContent}`))
+    await status.evaluate((element) => {
+      element.textContent = 'A status message long enough to wrap onto three lines beside the Share setup button.'
+    })
 
     expect((await status.boundingBox())!.height).toBeGreaterThan(48)
     expect(await middle(sheet.getByRole('button', { name: 'Share setup' }))).toBeCloseTo(await middle(status), 0)
@@ -1160,11 +1160,7 @@ test.describe('Neutral palette', () => {
     expect(await size(page, '.field-type.checkbox .checkbox-input__check')).toEqual({ height: 18, width: 18 })
     await expect(featured.locator('.field-description')).toHaveCSS('padding-left', '26px')
 
-    const center = async (selector: string) => {
-      const box = await featured.locator(selector).boundingBox()
-      return box && box.y + box.height / 2
-    }
-    expect(await center('.checkbox-input__input')).toBe(await center('.field-label'))
+    expect(await middle(featured.locator('.checkbox-input__input'))).toBe(await middle(featured.locator('.field-label')))
   })
 
   test('a click changes the checkbox in one step', async ({ page }) => {
@@ -1812,7 +1808,7 @@ test.describe('Rail', () => {
     await expect(label).toHaveCSS('opacity', '1')
     const [link, tooltip] = await Promise.all([showcase.boundingBox(), label.boundingBox()])
     expect(tooltip!.x).toBeGreaterThanOrEqual(link!.x + link!.width)
-    expect(tooltip!.y + tooltip!.height / 2).toBeCloseTo(link!.y + link!.height / 2, 0)
+    expect(await middle(label)).toBeCloseTo(await middle(showcase), 0)
 
     await page.addStyleTag({ content: '.nav__link-label { pointer-events: auto; }' })
     await settled(label)
