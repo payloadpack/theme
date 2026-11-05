@@ -194,7 +194,7 @@ export function AppearanceProvider({
       setup: setupOf(resolved),
       toggleRail: () => setRail(!rail)
     }
-  }, [character, choices, resolved, rail, setPreference, settings])
+  }, [character, choices, palette, resolved, rail, setPreference, settings])
 
   return (
     <AppearanceContext value={context}>
