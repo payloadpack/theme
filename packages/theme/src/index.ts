@@ -1,4 +1,4 @@
-import type { Plugin } from 'payload'
+import type { Field, Plugin } from 'payload'
 import { deepMergeSimple } from 'payload/shared'
 
 import {
@@ -17,6 +17,25 @@ const PACKAGE_NAME = '@payloadpack/theme'
 export const VERTICAL_TABS = 'payloadpack-vertical-tabs'
 export const RADIO_CARDS = 'payloadpack-radio-cards'
 export const SWITCH = 'payloadpack-switch'
+
+const withCheckboxCells = (fields: Field[]): Field[] =>
+  fields.map((field) => {
+    if (field.type === 'checkbox') {
+      return field.admin?.components?.Cell
+        ? field
+        : {
+            ...field,
+            admin: { ...field.admin, components: { ...field.admin?.components, Cell: `${PACKAGE_NAME}/client#CheckboxCell` } }
+          }
+    }
+    if (field.type === 'tabs') {
+      return { ...field, tabs: field.tabs.map((tab) => ({ ...tab, fields: withCheckboxCells(tab.fields) })) }
+    }
+    if ('fields' in field) {
+      return { ...field, fields: withCheckboxCells(field.fields) }
+    }
+    return field
+  })
 
 type OptionsConfig = {
   [C in Character as keyof (typeof registry)[C]['defaults'] extends never ? never : C]?: CharacterValues<C>
@@ -60,6 +79,7 @@ export function themePlugin(pluginConfig: ThemePluginConfig = {}): Plugin {
 
   return (config) => ({
     ...config,
+    collections: config.collections?.map((collection) => ({ ...collection, fields: withCheckboxCells(collection.fields) })),
     admin: {
       ...config.admin,
       suppressHydrationWarning: true,

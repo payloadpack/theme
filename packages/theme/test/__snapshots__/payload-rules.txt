@@ -653,6 +653,9 @@ html[data-enhanced-contrast] .nav-group__toggle .nav-group__indicator { opacity:
 == @payloadcms/ui/elements/StepNav/index.css
 .step-nav__item:not(.btn):not(:has(.btn)) { padding-inline: var(--spacer-2); border: var(--stroke-width-small) solid transparent; }
 
+== @payloadcms/ui/elements/Table/DefaultCell/fields/Checkbox/index.css
+.bool-cell { display: inline-flex; align-items: center; justify-content: center; padding: 0 var(--spacer-1); border-radius: var(--radius-medium); font-size: var(--text-body-medium-font-size); font-weight: var(--text-body-medium-font-weight); line-height: var(--text-body-medium-line-height); white-space: nowrap; background: var(--color-bg-tertiary); color: var(--color-text); }
+
 == @payloadcms/ui/elements/TimezonePicker/index.css
 .timezone-picker-wrapper .timezone-picker.react-select { display: inline-flex; position: static; }
 .timezone-picker-wrapper .timezone-picker.react-select .rs__value-container { padding: 0; }

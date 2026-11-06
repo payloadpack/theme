@@ -46,3 +46,26 @@ it('throws when the default character is not allowed', () => {
 it('throws when the default palette is not allowed', () => {
   expect(() => themePlugin({ palettes: ['payload'] })).toThrow("palette 'neutral'")
 })
+
+it('gives every checkbox field without its own list cell the checkbox cell', async () => {
+  type Node = { admin?: { components?: { Cell?: unknown } }; fields?: Node[]; tabs?: { fields: Node[] }[] }
+  const config = await themePlugin()({
+    collections: [
+      {
+        slug: 'posts',
+        fields: [
+          { name: 'featured', type: 'checkbox' },
+          { type: 'row', fields: [{ name: 'pinned', type: 'checkbox' }] },
+          { type: 'tabs', tabs: [{ label: 'Meta', fields: [{ name: 'hidden', type: 'checkbox' }] }] },
+          { name: 'archived', type: 'checkbox', admin: { components: { Cell: '/cells#Archived' } } }
+        ]
+      }
+    ]
+  } as unknown as Config)
+  const [featured, row, tabs, archived] = config.collections?.[0].fields as unknown as Node[]
+
+  expect(featured.admin?.components?.Cell).toBe('@payloadpack/theme/client#CheckboxCell')
+  expect(row.fields?.[0].admin?.components?.Cell).toBe('@payloadpack/theme/client#CheckboxCell')
+  expect(tabs.tabs?.[0].fields[0].admin?.components?.Cell).toBe('@payloadpack/theme/client#CheckboxCell')
+  expect(archived.admin?.components?.Cell).toBe('/cells#Archived')
+})
