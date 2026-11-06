@@ -2316,3 +2316,32 @@ test.describe('Soft palette', () => {
     }
   })
 })
+
+test.describe('Checkbox cells', () => {
+  test('show a check or a muted x, and keep true or false for screen readers', async ({ page }) => {
+    await page.goto('/admin/collections/products')
+    await hydrated(page)
+    const yes = page.locator('.bool-cell[data-value="true"]').first()
+    const no = page.locator('.bool-cell[data-value="false"]').first()
+    const mask = (cell: Locator) => cell.evaluate((element) => getComputedStyle(element, '::before').maskImage)
+
+    await expect(yes).toHaveText('true')
+    await expect(no).toHaveText('false')
+    expect(await mask(yes)).toContain('data:image/svg+xml')
+    expect(await mask(no)).toContain('data:image/svg+xml')
+    expect(await mask(no)).not.toBe(await mask(yes))
+    await expect(no).toHaveCSS('opacity', '0.4')
+    expect(await yes.locator('span').evaluate((element) => element.getBoundingClientRect().width)).toBe(1)
+  })
+
+  test("keep Payload's own text under the Payload style, and read an empty value as false", async ({ page }) => {
+    await page.context().addCookies([appearance({ character: 'payload' })])
+    await page.goto('/admin/collections/showcase')
+    await hydrated(page)
+    const cell = page.locator('.bool-cell').first()
+
+    await expect(cell).toHaveText('false')
+    await expect(cell).toHaveAttribute('data-value', 'false')
+    expect(await cell.evaluate((element) => getComputedStyle(element, '::before').content)).toBe('none')
+  })
+})
