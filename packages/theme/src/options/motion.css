@@ -225,3 +225,13 @@
     }
   }
 }
+
+        @media (width <= 768px) {
+          translate: 0 100%;
+
+          &:popover-open {
+            @starting-style {
+              translate: 0 100%;
+            }
+          }
+        }

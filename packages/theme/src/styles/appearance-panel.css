@@ -66,13 +66,13 @@
         flex-direction: column;
       }
 
-      @media (width < 768px) {
+      @media (width <= 768px) {
         inset: auto 0 0;
         width: 100%;
         height: min(70dvh, 100%);
         border-inline-start: 0;
         border-top: var(--stroke-width-small) solid var(--color-border);
-        border-radius: 1rem 1rem 0 0;
+        border-radius: var(--radius-large) var(--radius-large) 0 0;
         box-shadow: var(--payloadpack-elevation-dialog, 0 -16px 40px rgb(0 0 0 / 0.16));
       }
     }
@@ -552,7 +552,7 @@
         font-weight: 500;
       }
 
-      @media (width < 768px) {
+      @media (width <= 768px) {
         &[data-option='nav'] {
           display: none;
         }
