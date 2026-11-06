@@ -37,7 +37,7 @@ export async function AppearanceServerProvider(props: Props) {
       railCookieName={railCookieName}
       settings={settings}>
       {children}
-      {panel && <AppearanceSheet />}
+      {editable && <AppearanceSheet />}
     </AppearanceProvider>
   )
 }

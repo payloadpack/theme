@@ -85,13 +85,13 @@ it('pasting a setup replaces the personal options its style declares and keeps t
   }
   const mine = { personal: { density: 'compact', nav: 'hidden' } } as const
 
-  expect(pasteSetup(both, mine, JSON.stringify({ character: 'payload', palette: 'neutral' }))?.personal).toEqual(mine.personal)
+  expect(pasteSetup(both, mine, { character: 'payload', palette: 'neutral' }).personal).toEqual(mine.personal)
   const studio = pasteSetup(
     both,
     mine,
-    JSON.stringify({ character: 'studio', options: { studio: { density: 'compact', nav: 'rail' } } })
+    normalize(both, { character: 'studio', options: { studio: { density: 'compact', nav: 'rail' } } })
   )
-  expect(resolve(both, studio ?? {}).values).toEqual({ density: 'compact', nav: 'rail' })
+  expect(resolve(both, studio).values).toEqual({ density: 'compact', nav: 'rail' })
 })
 
 it('reads a cookie that holds only personal choices', () => {

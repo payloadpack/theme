@@ -135,11 +135,7 @@ export const setupOf = ({ character, custom, palette, values }: ReturnType<typeo
   ...(palette === customPalette ? { custom } : {})
 })
 
-export function pasteSetup(settings: Settings, choices: Choices, text: string): Choices | undefined {
-  const pasted = parseChoices(settings, text)
-  if (!pasted) {
-    return undefined
-  }
+export function pasteSetup(settings: Settings, choices: Choices, pasted: Choices): Choices {
   const character = pasted.character ?? settings.character
   const declared = settings.options[character] ?? {}
   return normalize(settings, {

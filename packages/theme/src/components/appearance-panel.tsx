@@ -200,6 +200,7 @@ export function AppearanceSheet() {
     setOption,
     setPalette,
     setup,
+    unsaved,
     values
   } = useAppearance()
   const { autoMode, setTheme, theme } = useTheme()
@@ -207,6 +208,7 @@ export function AppearanceSheet() {
   const { t } = useTranslation<object, TranslationKey>()
   const [focusEditor, setFocusEditor] = useState(false)
   const [status, setStatus] = useStatus()
+  const shown: Status | undefined = unsaved ? { message: t('payloadpack:setupUnsaved'), tone: 'error' } : status
   const characterName = t(`payloadpack:character${capitalize(character)}` as TranslationKey)
   const css = custom && paletteCss(customPalette, custom)
   const supported = Object.keys(registry[character].defaults) as Option[]
@@ -425,12 +427,12 @@ export function AppearanceSheet() {
             type="button">
             {t('payloadpack:shareSetup')}
           </button>
-          <p className="payloadpack-appearance-panel__status" data-tone={status?.tone} role="status">
-            {status?.message}
-            {status?.undo && (
+          <p className="payloadpack-appearance-panel__status" data-tone={shown?.tone} role="status">
+            {shown?.message}
+            {shown?.undo && (
               <button
                 onClick={() => {
-                  status.undo?.()
+                  shown.undo?.()
                   setStatus(undefined)
                 }}
                 type="button">

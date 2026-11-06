@@ -22,6 +22,7 @@ import {
   isPersonal,
   normalize,
   paletteCss,
+  parseChoices,
   pasteSetup,
   preferenceKey,
   resolve,
@@ -55,11 +56,15 @@ type AppearanceContextValue = ReturnType<typeof resolve> & {
   setPalette: (palette: Palette | typeof customPalette) => void
   setup: Choices
   toggleRail: () => void
+  unsaved: boolean
 }
 
 const AppearanceContext = createContext<AppearanceContextValue | null>(null)
 
 const subscribeToNothing = () => () => {}
+
+const accountOf = (user: null | undefined | { collection: string; id: number | string }) =>
+  user ? `${user.collection}:${user.id}` : undefined
 
 type AppearanceProviderProps = {
   children: ReactNode
@@ -83,10 +88,10 @@ export function AppearanceProvider({
   settings
 }: AppearanceProviderProps) {
   const [choices, setChoices] = useState(initialChoices)
-  const latest = useRef(choices)
   const [rail, setRail] = useState(initialRail)
+  const [unsaved, setUnsaved] = useState(false)
   const { user } = useAuth()
-  const signedInAs = useRef(user?.id)
+  const signedInAs = useRef(accountOf(user))
   const { getPreference, setPreference } = usePreferences()
   const resolved = useMemo(() => resolve(settings, choices), [settings, choices])
   const { character, custom, palette, values } = resolved
@@ -123,20 +128,17 @@ export function AppearanceProvider({
   }, [attributes])
 
   useEffect(() => {
-    if (!loadsOnSignIn || !user || user.id === signedInAs.current) {
+    const account = accountOf(user)
+    if (!loadsOnSignIn || !account || account === signedInAs.current) {
       return
     }
-    signedInAs.current = user.id
+    signedInAs.current = account
     void getPreference<unknown>(preferenceKey).then((saved) => {
       if (saved) {
         setChoices(normalize(settings, saved))
       }
     })
   }, [getPreference, loadsOnSignIn, settings, user])
-
-  useEffect(() => {
-    latest.current = choices
-  }, [choices])
 
   useEffect(() => {
     writeCookie(cookieName, Object.keys(choices).length ? encodeURIComponent(JSON.stringify(choices)) : undefined)
@@ -153,12 +155,14 @@ export function AppearanceProvider({
   }, [keepsNavOpen, navOpen, setNavOpen])
 
   const context = useMemo(() => {
-    const update = (next: Choices, persist = true) => {
-      const normalized = normalize(settings, next)
+    const update = (change: (current: Choices) => Choices, persist = true) => {
+      setChoices((current) => normalize(settings, change(current)))
       if (persist) {
-        void setPreference(preferenceKey, () => normalized)
+        setPreference(preferenceKey, (saved: unknown) => normalize(settings, change(normalize(settings, saved)))).then(
+          () => setUnsaved(false),
+          () => setUnsaved(true)
+        )
       }
-      setChoices(normalized)
     }
 
     return {
@@ -166,35 +170,43 @@ export function AppearanceProvider({
       characters: Object.keys(settings.options) as Character[],
       palettes: settings.palettes,
       paste: (text: string) => {
-        const next = pasteSetup(settings, choices, text)
-        if (next) {
-          update(next)
+        const pasted = parseChoices(settings, text)
+        if (pasted) {
+          update((current) => pasteSetup(settings, current, pasted))
         }
-        return next !== undefined
+        return pasted !== undefined
       },
       rail,
       removeCustom: () =>
-        update({ ...choices, custom: undefined, palette: palette === customPalette ? undefined : choices.palette }),
+        update((current) => ({
+          ...current,
+          custom: undefined,
+          palette: current.palette === customPalette ? undefined : current.palette
+        })),
       reset: () => {
         const { options: before, personal } = choices
-        update({ ...choices, options: { ...choices.options, [character]: undefined }, personal: undefined })
+        update((current) => ({ ...current, options: { ...current.options, [character]: undefined }, personal: undefined }))
         return () =>
-          update({ ...latest.current, options: { ...latest.current.options, [character]: before?.[character] }, personal })
+          update((current) => ({ ...current, options: { ...current.options, [character]: before?.[character] }, personal }))
       },
-      setCharacter: (next: Character) => update({ ...choices, character: next }),
+      setCharacter: (next: Character) => update((current) => ({ ...current, character: next })),
       setCustom: (next: CustomPalette, persist?: boolean) =>
-        update({ ...choices, custom: next, palette: customPalette }, persist),
+        update((current) => ({ ...current, custom: next, palette: customPalette }), persist),
       setOption: <O extends Option>(option: O, value: OptionValue<O>) =>
-        update(
+        update((current) =>
           isPersonal(option)
-            ? { ...choices, personal: { ...choices.personal, [option]: value } }
-            : { ...choices, options: { ...choices.options, [character]: { ...choices.options?.[character], [option]: value } } }
+            ? { ...current, personal: { ...current.personal, [option]: value } }
+            : {
+                ...current,
+                options: { ...current.options, [character]: { ...current.options?.[character], [option]: value } }
+              }
         ),
-      setPalette: (next: Palette | typeof customPalette) => update({ ...choices, palette: next }),
+      setPalette: (next: Palette | typeof customPalette) => update((current) => ({ ...current, palette: next })),
       setup: setupOf(resolved),
-      toggleRail: () => setRail(!rail)
+      toggleRail: () => setRail(!rail),
+      unsaved
     }
-  }, [character, choices, palette, resolved, rail, setPreference, settings])
+  }, [character, choices, resolved, rail, setPreference, settings, unsaved])
 
   return (
     <AppearanceContext value={context}>
