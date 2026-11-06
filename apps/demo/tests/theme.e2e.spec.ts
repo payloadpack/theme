@@ -204,12 +204,30 @@ test.describe('Appearance panel', () => {
     await expect(sheet).toBeHidden()
 
     await page.setViewportSize({ height: 800, width: 375 })
+    expect(await page.locator('#payloadpack-appearance').evaluate((element) => getComputedStyle(element).translate)).toBe(
+      '0px 100%'
+    )
     await openAppearancePanel(page)
 
     expect(await sheet.boundingBox()).toEqual({ height: 560, width: 375, x: 0, y: 240 })
 
     await sheet.getByRole('button', { name: 'Close' }).click()
     await expect(sheet).toBeHidden()
+  })
+
+  test('treats 768px as a phone, and rounds the phone sheet with the style corners', async ({ page }) => {
+    await page.setViewportSize({ height: 800, width: 768 })
+    await page.goto('/admin')
+    const sheet = await openAppearancePanel(page)
+
+    expect(await sheet.boundingBox()).toEqual({ height: 560, width: 768, x: 0, y: 240 })
+    await expect(sheet).toHaveCSS('border-top-left-radius', '13px')
+    await openFineTune(sheet)
+    await expect(sheet.locator('[data-option="nav"]')).toBeHidden()
+
+    await reloadWith(page, [appearance({ options: { enhanced: { radius: 'none' } } })])
+    await expect(page.locator('html')).toHaveAttribute('data-radius', 'none')
+    await expect(await openAppearancePanel(page)).toHaveCSS('border-top-left-radius', '0px')
   })
 
   test('picks Payload with nothing to fine-tune and no option attributes, and keeps it after a reload', async ({ page }) => {
@@ -302,6 +320,31 @@ test.describe('Appearance panel', () => {
 
     await expect(other.locator('html')).toHaveAttribute('data-density', 'compact')
     await elsewhere.close()
+  })
+
+  test('saves each change on top of what another tab saved since', async ({ page }) => {
+    await page.goto('/admin')
+    const sheet = await openAppearancePanel(page)
+    await saveSetup(page.request, { palette: 'warm' })
+
+    await openFineTune(sheet)
+    await pickAndSave(page, label(choice(sheet, 'Density', 'Compact')))
+
+    const preference = await (await page.request.get('/api/payload-preferences/payloadpack-appearance')).json()
+    expect(preference.value).toEqual({ palette: 'warm', personal: { density: 'compact' } })
+  })
+
+  test('says in the panel when a change could not be saved', async ({ page }) => {
+    await page.goto('/admin')
+    const sheet = await openAppearancePanel(page)
+    await page.route('**/api/payload-preferences/payloadpack-appearance', (route) =>
+      route.request().method() === 'POST' ? route.abort() : route.continue()
+    )
+
+    await label(choice(sheet, 'Palette', 'Warm')).click()
+
+    await expect(sheet.getByRole('status')).toHaveText('Your setup could not be saved, so it resets on the next page load.')
+    await expect(sheet.getByRole('status')).toHaveAttribute('data-tone', 'error')
   })
 
   test('copies the setup in one browser and pastes it in another', async ({ browser, context, page }) => {
@@ -720,6 +763,24 @@ test.describe('Theme values', () => {
     expect(await style(page, '.nav__link', 'mask-image', '::after')).toContain('data:image/svg+xml')
   })
 
+  test('lets a click on a Lucide icon reach the control under it', async ({ page }) => {
+    await page.goto('/admin/collections/products')
+    await hydrated(page)
+    const clickIcon = async (name: string) => {
+      const box = await page.locator(`.segmented-control__option:has(input[value="${name}"]) svg`).boundingBox()
+      await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2)
+    }
+
+    try {
+      await clickIcon('grid')
+      await expect(page.getByRole('radio', { name: 'Grid' })).toBeChecked()
+      await clickIcon('table')
+      await expect(page.getByRole('radio', { name: 'Table' })).toBeChecked()
+    } finally {
+      await page.request.delete('/api/payload-preferences/collection-products')
+    }
+  })
+
   for (const character of ['enhanced', 'studio']) {
     for (const theme of ['light', 'dark']) {
       test(`sidebar tabs match the panel's segments under ${character} in ${theme} mode`, async ({ page }) => {
@@ -993,12 +1054,12 @@ test.describe('Motion', () => {
     expect(await transitions()).toEqual([])
   })
 
-  test('popups scale in from their trigger and out, and select menus scale in', async ({ page }) => {
+  test('popups fade in from their trigger at full size and scale out, and select menus scale in', async ({ page }) => {
     const transitions = await recordTransitions(page, menus)
     await openShowcase(page)
 
     await moreOptions(page).click()
-    await expect.poll(transitions).toEqual(['popup__content opacity', 'popup__content scale', 'popup__content translate'])
+    await expect.poll(transitions).toEqual(['popup__content opacity', 'popup__content translate'])
     const popup = page.locator('.popup__content:popover-open')
     const caret = await popup.evaluate((element) => (element as HTMLElement).style.getPropertyValue('--caret-left'))
     await expect(popup).toHaveCSS('transform-origin', `${caret} 0px`)
@@ -1507,7 +1568,7 @@ test.describe('Payload palette', () => {
         .flatMap((sheet) => [...sheet.cssRules])
         .filter((rule): rule is CSSLayerBlockRule => rule instanceof CSSLayerBlockRule && rule.name === 'payload')
         .flatMap((layer) => styleRules(layer.cssRules))
-      const elementSelector = (selector: string) => selector.replace(/::[\w-]+/g, '')
+      const elementSelector = (selector: string) => selector.replace(/(^|[\s>+~(,])::[\w-]+/g, '$1*').replace(/::[\w-]+/g, '')
       return {
         applied: rules
           .map((rule) => rule.selectorText)
@@ -1547,6 +1608,7 @@ test.describe('Custom palette', () => {
     const tile = grid.getByRole('button', { name: 'Custom colors' })
 
     await expect(grid).toHaveCSS('grid-template-columns', /^[\d.]+px [\d.]+px [\d.]+px$/)
+    await expect(sheet.getByRole('radiogroup', { name: 'Palette' }).getByRole('button')).toHaveCount(0)
     await expect(tile).toHaveCSS('border-top-style', 'dashed')
     await expect(tile).toHaveText('Custom')
     const [card, add] = [await grid.locator('label').first().boundingBox(), await tile.boundingBox()]
@@ -1586,6 +1648,30 @@ test.describe('Custom palette', () => {
     await expect(header).toHaveCSS('background-color', 'rgb(234, 230, 223)')
     await page.reload()
     await expect(header).toHaveCSS('background-color', 'rgb(234, 230, 223)')
+  })
+
+  test('keeps focus in a hex field after Enter, and saves nothing for a field left as it was', async ({ page }) => {
+    await page.context().addCookies(custom('#c2410c'))
+    await page.goto('/admin')
+    const sheet = await openAppearancePanel(page)
+    const hex = sheet.getByLabel('Background, Light hex', { exact: true })
+    const saves: string[] = []
+    page.on('request', (request) => {
+      if (request.url().endsWith('/api/payload-preferences/payloadpack-appearance') && request.method() === 'POST') {
+        saves.push(request.url())
+      }
+    })
+
+    await hex.focus()
+    await page.keyboard.press('Tab')
+    await page.waitForLoadState('networkidle')
+    expect(saves).toHaveLength(0)
+
+    await hex.fill('112233')
+    await Promise.all([saved(page), hex.press('Enter')])
+    await expect(hex).toBeFocused()
+    await expect(hex).toHaveValue('#112233')
+    await expect(page.locator('.nav__header')).toHaveCSS('background-color', 'rgb(17, 34, 51)')
   })
 
   test('saves a dragged color once, when the picker commits', async ({ page }) => {
@@ -2048,7 +2134,9 @@ test.describe('Studio character', () => {
     await trigger.click()
     const popup = page.locator('.user-menu .popup__content')
     await expect(popup).toBeVisible()
-    expect(((await popup.boundingBox())?.y ?? 0) + ((await popup.boundingBox())?.height ?? 0)).toBeLessThanOrEqual(menu?.y ?? 0)
+    await settled(popup)
+    const box = await popup.boundingBox()
+    expect((box?.y ?? 0) + (box?.height ?? 0)).toBeLessThanOrEqual(menu?.y ?? 0)
   })
 
   test('keeps the user menu and the toggle in place while a long nav scrolls between them', async ({ page }) => {
@@ -2318,30 +2406,46 @@ test.describe('Soft palette', () => {
 })
 
 test.describe('Checkbox cells', () => {
-  test('show a check or a muted x, and keep true or false for screen readers', async ({ page }) => {
+  const firstColumn = (accessor: string) =>
+    `/admin/collections/products?columns=${encodeURIComponent(JSON.stringify([accessor, 'title']))}`
+
+  test.afterEach(({ page }) => page.request.delete('/api/payload-preferences/collection-products'))
+
+  test("show a check or a muted x, and keep Payload's text for screen readers", async ({ page }) => {
     await page.goto('/admin/collections/products')
     await hydrated(page)
-    const yes = page.locator('.bool-cell[data-value="true"]').first()
-    const no = page.locator('.bool-cell[data-value="false"]').first()
+    const yes = page.locator('.payloadpack-checkbox-cell[data-value="true"] > *').first()
+    const no = page.locator('.payloadpack-checkbox-cell[data-value="false"] > *').first()
     const mask = (cell: Locator) => cell.evaluate((element) => getComputedStyle(element, '::before').maskImage)
 
     await expect(yes).toHaveText('true')
     await expect(no).toHaveText('false')
+    await expect(yes).toHaveCSS('font-size', '0px')
     expect(await mask(yes)).toContain('data:image/svg+xml')
     expect(await mask(no)).toContain('data:image/svg+xml')
     expect(await mask(no)).not.toBe(await mask(yes))
-    await expect(no).toHaveCSS('opacity', '0.4')
-    expect(await yes.locator('span').evaluate((element) => element.getBoundingClientRect().width)).toBe(1)
+    await expect(no).toHaveCSS('opacity', '0.6')
   })
 
-  test("keep Payload's own text under the Payload style, and read an empty value as false", async ({ page }) => {
-    await page.context().addCookies([appearance({ character: 'payload' })])
-    await page.goto('/admin/collections/showcase')
+  test('keep a checkbox in the first column a link to its document', async ({ page }) => {
+    await page.goto(firstColumn('inStock'))
     await hydrated(page)
-    const cell = page.locator('.bool-cell').first()
+    const link = page.locator('.payloadpack-checkbox-cell > a').first()
 
-    await expect(cell).toHaveText('false')
-    await expect(cell).toHaveAttribute('data-value', 'false')
-    expect(await cell.evaluate((element) => getComputedStyle(element, '::before').content)).toBe('none')
+    await expect(link).toHaveAttribute('href', /\/admin\/collections\/products\/\d+$/)
+    await expect(page.locator('.payloadpack-checkbox-cell > a')).toHaveCount(await page.locator('tbody tr').count())
+    await link.click()
+    await expect(page).toHaveURL(/\/admin\/collections\/products\/\d+$/)
+  })
+
+  test("keep Payload's own cell under the Payload style", async ({ page }) => {
+    await page.context().addCookies([appearance({ character: 'payload' })])
+    await page.goto('/admin/collections/products')
+    await hydrated(page)
+    const cell = page.locator('.payloadpack-checkbox-cell .bool-cell').first()
+
+    await expect(cell).toHaveText(/^(true|false)$/)
+    await expect(cell).toHaveCSS('display', 'inline-flex')
+    expect(await cell.evaluate((element) => getComputedStyle(element.parentElement!, '::before').content)).toBe('none')
   })
 })
