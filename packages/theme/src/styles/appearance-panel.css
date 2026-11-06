@@ -671,38 +671,40 @@
       display: none;
     }
 
-    @media (min-width: 769px) {
-      :is(html[data-nav='rail'], html[data-nav='hidden']:has(.template-default--nav-open)) & {
-        .payloadpack-appearance-panel__trigger {
-          display: none;
-        }
-
-        &.payloadpack-appearance-panel--nav {
-          position: absolute;
-          position-anchor: --payloadpack-nav-close;
-          position-area: var(--payloadpack-nav-button-area);
-          position-visibility: always;
-          display: block;
-          margin: var(--spacer-1);
-
+    @supports (anchor-name: --a) {
+      @media (min-width: 769px) {
+        :is(html[data-nav='rail'], html[data-nav='hidden']:has(.template-default--nav-open)) & {
           .payloadpack-appearance-panel__trigger {
-            display: grid;
-            width: var(--spacer-5);
-            height: var(--spacer-5);
-            border: 0;
-            color: var(--color-icon);
+            display: none;
+          }
 
-            &:hover {
-              background-color: var(--color-bg-hover);
-            }
+          &.payloadpack-appearance-panel--nav {
+            position: absolute;
+            position-anchor: --payloadpack-nav-close;
+            position-area: var(--payloadpack-nav-button-area);
+            position-visibility: always;
+            display: block;
+            margin: var(--spacer-1);
 
-            &:active {
-              background-color: var(--color-bg-pressed);
-            }
+            .payloadpack-appearance-panel__trigger {
+              display: grid;
+              width: var(--spacer-5);
+              height: var(--spacer-5);
+              border: 0;
+              color: var(--color-icon);
 
-            &:focus-visible {
-              outline: var(--accessibility-outline);
-              outline-offset: calc(-1 * var(--stroke-width-medium));
+              &:hover {
+                background-color: var(--color-bg-hover);
+              }
+
+              &:active {
+                background-color: var(--color-bg-pressed);
+              }
+
+              &:focus-visible {
+                outline: var(--accessibility-outline);
+                outline-offset: calc(-1 * var(--stroke-width-medium));
+              }
             }
           }
         }
@@ -761,9 +763,6 @@
     }
 
     .payloadpack-appearance-panel__menu {
-      position-anchor: --payloadpack-share;
-      position-area: block-start span-inline-end;
-      margin: 0 0 var(--spacer-1);
       padding: var(--spacer-1);
       border: var(--stroke-width-small) solid var(--color-border);
       border-radius: var(--popup-radius);
@@ -771,6 +770,12 @@
       color: var(--color-text);
       box-shadow: var(--elevation-400-menu-panel);
       font-size: 0.75rem;
+
+      @supports (anchor-name: --a) {
+        position-anchor: --payloadpack-share;
+        position-area: block-start span-inline-end;
+        margin: 0 0 var(--spacer-1);
+      }
 
       &:popover-open {
         display: flex;

@@ -568,6 +568,18 @@ describe('theme contract with Payload', () => {
     expect(unique(loose)).toEqual([])
   })
 
+  it('keeps every anchor-positioned rule behind a check for anchor positioning', () => {
+    const unguarded = (css: string, scope = ''): string[] =>
+      topLevelBlocks(css).blocks.flatMap(({ body, prelude }) => {
+        const nested = `${scope} ${prelude}`.trim()
+        const anchored = /position-anchor|position-area|anchor\(/.test(topLevelBlocks(body).outside)
+        return [...(anchored && !nested.includes('@supports (anchor-name: --a)') ? [nested] : []), ...unguarded(body, nested)]
+      })
+    expect(
+      Object.entries(themeCss).flatMap(([file, css]) => unguarded(stripComments(css)).map((scope) => `${file}: ${scope}`))
+    ).toEqual([])
+  })
+
   it('falls back to the step Payload maps each color to in each mode', () => {
     const colors = read(path.join(uiDist, 'css/colors.css'))
     const palette = themeCss['palettes/palette.css']

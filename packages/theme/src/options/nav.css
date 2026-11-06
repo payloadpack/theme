@@ -1,156 +1,159 @@
 @layer payload {
   html[data-nav='rail'] {
-    /* 1. Open nav */
-    @media (min-width: 769px) {
-      .template-default {
-        grid-template-columns: var(--nav-width) auto;
-      }
-
-      .template-default .nav {
-        display: flex;
-      }
-
-      .app-header__sidebar-toggle {
-        display: none;
-      }
-
-      .nav__scroll {
-        overflow-x: hidden;
-      }
-    }
-
-    /* 2. Toggle */
+    /* 1. Toggle */
     .payloadpack-rail-toggle {
       display: none;
     }
 
-    @media (min-width: 769px) {
-      .nav__close {
-        visibility: hidden;
-      }
-
-      .payloadpack-rail-toggle {
-        position: absolute;
-        position-anchor: --payloadpack-nav-close;
-        inset: anchor(top) anchor(right) anchor(bottom) anchor(left);
-        position-visibility: always;
-        display: flex;
-        align-items: center;
-        padding: 0;
-        background: none;
-        border: 0;
-        border-radius: var(--button-radius);
-        outline: 0;
-
-        &:focus-visible .sidebar-toggle {
-          outline: var(--accessibility-outline);
-          outline-offset: calc(-1 * var(--stroke-width-medium));
-        }
-      }
-    }
-
-    /* 3. Rail */
-    @media (min-width: 769px) {
-      &[data-rail] {
-        --payloadpack-rail-width: 4rem;
-
+    @supports (anchor-name: --a) {
+      /* 2. Open nav */
+      @media (min-width: 769px) {
         .template-default {
-          grid-template-columns: var(--payloadpack-rail-width) auto;
+          grid-template-columns: var(--nav-width) auto;
         }
 
-        .nav {
-          z-index: var(--z-popup);
-          width: var(--payloadpack-rail-width);
+        .template-default .nav {
+          display: flex;
         }
 
-        .nav__header {
-          padding-inline-end: calc((var(--payloadpack-rail-width) - var(--spacer-5)) / 2);
-        }
-
-        .nav__header .user-menu {
-          width: 0;
-          opacity: 0;
-          visibility: hidden;
-        }
-
-        .sidebar-tabs:has(.sidebar-tabs__tab--active:first-child) > .sidebar-tabs__tabs,
-        .nav-group:not(.nav-group--collapsed) > .nav-group__toggle {
-          opacity: 0;
-          filter: blur(4px);
-          visibility: hidden;
-        }
-
-        .sidebar-tabs:has(.sidebar-tabs__tab--active:first-child) > .sidebar-tabs__tabs {
-          width: calc(var(--nav-width) - 2 * var(--spacer-2-5));
-          margin-block-end: calc(-1 * (var(--field-min-height-large) + 2 * var(--stroke-width-small) + var(--spacer-2-5)));
-        }
-
-        .nav-group:not(.nav-group--collapsed) > .nav-group__toggle {
-          margin-block-end: calc(-2 * var(--spacer-2) - 1lh);
-        }
-
-        .sidebar-tabs:not(:has(.sidebar-tabs__tab--active:first-child)) {
-          > .sidebar-tabs__tabs {
-            flex-direction: column;
-          }
-
-          .sidebar-tabs__tab {
-            flex: none;
-          }
-        }
-
-        .sidebar-tabs__content > :not(:first-child) {
+        .app-header__sidebar-toggle {
           display: none;
         }
 
-        .nav__link,
-        .nav-group__toggle {
-          padding-inline: calc((var(--payloadpack-rail-width) - 1rem) / 2) 0;
-          anchor-name: --payloadpack-rail-item;
-          anchor-scope: --payloadpack-rail-item;
+        .nav__scroll {
+          overflow-x: hidden;
+        }
+      }
+
+      /* 3. Anchored toggle */
+      @media (min-width: 769px) {
+        .nav__close {
+          visibility: hidden;
         }
 
-        .nav__link::after {
-          content: '';
-          width: 1rem;
-          height: 1lh;
-          margin: 0;
-          background-color: currentColor;
-          opacity: 0.5;
-          mask: var(--payloadpack-icon) center / contain no-repeat;
-        }
+        .payloadpack-rail-toggle {
+          position: absolute;
+          position-anchor: --payloadpack-nav-close;
+          inset: anchor(top) anchor(right) anchor(bottom) anchor(left);
+          position-visibility: always;
+          display: flex;
+          align-items: center;
+          padding: 0;
+          background: none;
+          border: 0;
+          border-radius: var(--button-radius);
+          outline: 0;
 
-        .nav__link:is(:hover, :focus-visible, .nav__link--selected)::after {
-          opacity: 1;
+          &:focus-visible .sidebar-toggle {
+            outline: var(--accessibility-outline);
+            outline-offset: calc(-1 * var(--stroke-width-medium));
+          }
         }
+      }
 
-        .nav-group__indicator {
-          position: static;
-          height: 1lh;
-          transform: none;
-          opacity: 1;
-        }
+      /* 4. Rail */
+      @media (min-width: 769px) {
+        &[data-rail] {
+          --payloadpack-rail-width: 4rem;
 
-        .nav__link-label,
-        .nav-group__label {
-          position: fixed;
-          position-anchor: --payloadpack-rail-item;
-          position-area: inline-end;
-          margin-inline-start: var(--spacer-1);
-          padding-block: var(--spacer-1);
-          padding-inline: var(--spacer-2);
-          font-size: var(--text-body-medium-font-size);
-          font-weight: var(--text-body-medium-font-weight);
-          line-height: var(--text-body-medium-line-height);
-          white-space: nowrap;
-          border-radius: var(--radius-medium);
-          box-shadow: var(--elevation-300-tooltip);
-          pointer-events: none;
-          opacity: 0;
-        }
+          .template-default {
+            grid-template-columns: var(--payloadpack-rail-width) auto;
+          }
 
-        :is(.nav__link, .nav-group__toggle):is(:hover, :focus-visible) :is(.nav__link-label, .nav-group__label) {
-          opacity: 1;
+          .nav {
+            z-index: var(--z-popup);
+            width: var(--payloadpack-rail-width);
+          }
+
+          .nav__header {
+            padding-inline-end: calc((var(--payloadpack-rail-width) - var(--spacer-5)) / 2);
+          }
+
+          .nav__header .user-menu {
+            width: 0;
+            opacity: 0;
+            visibility: hidden;
+          }
+
+          .sidebar-tabs:has(.sidebar-tabs__tab--active:first-child) > .sidebar-tabs__tabs,
+          .nav-group:not(.nav-group--collapsed) > .nav-group__toggle {
+            opacity: 0;
+            filter: blur(4px);
+            visibility: hidden;
+          }
+
+          .sidebar-tabs:has(.sidebar-tabs__tab--active:first-child) > .sidebar-tabs__tabs {
+            width: calc(var(--nav-width) - 2 * var(--spacer-2-5));
+            margin-block-end: calc(-1 * (var(--field-min-height-large) + 2 * var(--stroke-width-small) + var(--spacer-2-5)));
+          }
+
+          .nav-group:not(.nav-group--collapsed) > .nav-group__toggle {
+            margin-block-end: calc(-2 * var(--spacer-2) - 1lh);
+          }
+
+          .sidebar-tabs:not(:has(.sidebar-tabs__tab--active:first-child)) {
+            > .sidebar-tabs__tabs {
+              flex-direction: column;
+            }
+
+            .sidebar-tabs__tab {
+              flex: none;
+            }
+          }
+
+          .sidebar-tabs__content > :not(:first-child) {
+            display: none;
+          }
+
+          .nav__link,
+          .nav-group__toggle {
+            padding-inline: calc((var(--payloadpack-rail-width) - 1rem) / 2) 0;
+            anchor-name: --payloadpack-rail-item;
+            anchor-scope: --payloadpack-rail-item;
+          }
+
+          .nav__link::after {
+            content: '';
+            width: 1rem;
+            height: 1lh;
+            margin: 0;
+            background-color: currentColor;
+            opacity: 0.5;
+            mask: var(--payloadpack-icon) center / contain no-repeat;
+          }
+
+          .nav__link:is(:hover, :focus-visible, .nav__link--selected)::after {
+            opacity: 1;
+          }
+
+          .nav-group__indicator {
+            position: static;
+            height: 1lh;
+            transform: none;
+            opacity: 1;
+          }
+
+          .nav__link-label,
+          .nav-group__label {
+            position: fixed;
+            position-anchor: --payloadpack-rail-item;
+            position-area: inline-end;
+            margin-inline-start: var(--spacer-1);
+            padding-block: var(--spacer-1);
+            padding-inline: var(--spacer-2);
+            font-size: var(--text-body-medium-font-size);
+            font-weight: var(--text-body-medium-font-weight);
+            line-height: var(--text-body-medium-line-height);
+            white-space: nowrap;
+            border-radius: var(--radius-medium);
+            box-shadow: var(--elevation-300-tooltip);
+            pointer-events: none;
+            opacity: 0;
+          }
+
+          :is(.nav__link, .nav-group__toggle):is(:hover, :focus-visible) :is(.nav__link-label, .nav-group__label) {
+            opacity: 1;
+          }
         }
       }
     }

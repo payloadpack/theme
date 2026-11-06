@@ -163,7 +163,7 @@ export function AppearanceProvider({
   }, [rail, railCookieName])
 
   useLayoutEffect(() => {
-    if (keepsNavOpen && !navOpen) {
+    if (keepsNavOpen && !navOpen && CSS.supports('anchor-name: --a')) {
       setNavOpen(true)
     }
   }, [keepsNavOpen, navOpen, setNavOpen])
