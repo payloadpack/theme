@@ -37,8 +37,12 @@ A named set of colors, in a light and a dark version, plus one accent. Payload's
 _Avoid_: theme, preset, color scheme, colorway
 
 **Accent**:
-The one color a palette marks links, the active tab and selection borders with, in both versions. Fills use the primary or grey instead. It belongs to the palette: editors change it by making their own palette.
+The one color a palette marks links and statuses with, in both versions. Fills, selection borders and the active tab use the primary or grey instead. It belongs to the palette: editors change it by making their own palette.
 _Avoid_: primary, brand color
+
+**Token sheet**:
+The short list of `--payloadpack-` tokens in the README's Customize section. Palettes set only these, a developer can override them in their own CSS, and the theme maps them onto Payload's own color, shadow, corner and motion tokens.
+_Avoid_: design tokens, theme variables, CSS variables
 
 **Setup**:
 What one editor picked: a character, its options, a palette and, when they made one, their own palette's colors. It can be copied and pasted between editors, and, on a built-in palette, pasted into the plugin config as the site default.
