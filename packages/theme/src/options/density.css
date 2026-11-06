@@ -183,8 +183,7 @@
     }
 
     .collapsible__toggle-wrap {
-      height: calc(var(--button-height) + 2 * var(--spacer-2));
-      padding-inline-end: var(--spacer-2);
+      height: calc(var(--button-height) + 2 * var(--spacer-1));
     }
 
     /* 4. Buttons */

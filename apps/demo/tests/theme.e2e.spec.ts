@@ -611,7 +611,7 @@ test.describe('Theme values', () => {
     expect(await size(page, '.field-type.text input')).toMatchObject({ height: 36 })
     expect(await size(page, '.doc-controls__controls .btn')).toMatchObject({ height: 36 })
     expect(await size(page, '.nav__link')).toMatchObject({ height: 36 })
-    expect(await size(page, '.collapsible__toggle-wrap')).toMatchObject({ height: 52 })
+    expect(await size(page, '.collapsible__toggle-wrap')).toMatchObject({ height: 44 })
     expect(await size(page, '.collapsible__indicator')).toEqual({ height: 36, width: 36 })
     expect(await size(page, '.collapsible__actions .popup-button')).toEqual({ height: 36, width: 36 })
     expect(await size(page, '.slug-field-component__action-btn')).toEqual({ height: 28, width: 28 })
@@ -924,7 +924,7 @@ test.describe('Theme values', () => {
 
     expect(await size(page, '.collapsible__indicator')).toEqual({ height: 40, width: 40 })
     expect(await size(page, '.collapsible__actions .popup-button')).toEqual({ height: 40, width: 40 })
-    expect(await size(page, '.collapsible__toggle-wrap')).toMatchObject({ height: 56 })
+    expect(await size(page, '.collapsible__toggle-wrap')).toMatchObject({ height: 48 })
     expect(await size(page, '.doc-controls__controls .btn')).toMatchObject({ height: 36 })
     expect(await size(page, '.doc-header .doc-tab')).toMatchObject({ height: 36 })
   })
