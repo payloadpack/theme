@@ -201,6 +201,10 @@
       }
     }
 
+    .payloadpack-appearance-panel__palettes {
+      display: contents;
+    }
+
     .payloadpack-appearance-panel__add {
       display: flex;
       flex-direction: column;

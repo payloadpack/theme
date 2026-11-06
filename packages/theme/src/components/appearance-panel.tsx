@@ -140,14 +140,12 @@ function useStatus() {
 type Choice<V extends string> = { label: ReactNode; name?: string; value: V }
 
 function RadioGroup<V extends string>({
-  children,
   choices,
   className,
   labelledBy,
   onChange,
   selected
 }: {
-  children?: ReactNode
   choices: Choice<V>[]
   className: string
   labelledBy: string
@@ -171,7 +169,6 @@ function RadioGroup<V extends string>({
           {choice.label}
         </label>
       ))}
-      {children}
     </div>
   )
 }
@@ -273,28 +270,30 @@ export function AppearanceSheet() {
             <Section label={t('payloadpack:palette')}>
               {(labelId) => (
                 <>
-                  <RadioGroup
-                    choices={[...palettes, ...(custom ? [customPalette] : [])].map((name) => ({
-                      label: (
-                        <>
-                          <span aria-hidden="true" className="payloadpack-appearance-panel__halves">
-                            {halves.map((half) => (
-                              <span data-palette={name} data-theme={half} key={half}>
-                                <span />
-                                <span />
-                                <span />
-                              </span>
-                            ))}
-                          </span>
-                          {t(`payloadpack:palette${capitalize(name)}` as TranslationKey)}
-                        </>
-                      ),
-                      value: name
-                    }))}
-                    className="payloadpack-appearance-panel__cards"
-                    labelledBy={labelId}
-                    onChange={setPalette}
-                    selected={palette}>
+                  <div className="payloadpack-appearance-panel__cards">
+                    <RadioGroup
+                      choices={[...palettes, ...(custom ? [customPalette] : [])].map((name) => ({
+                        label: (
+                          <>
+                            <span aria-hidden="true" className="payloadpack-appearance-panel__halves">
+                              {halves.map((half) => (
+                                <span data-palette={name} data-theme={half} key={half}>
+                                  <span />
+                                  <span />
+                                  <span />
+                                </span>
+                              ))}
+                            </span>
+                            {t(`payloadpack:palette${capitalize(name)}` as TranslationKey)}
+                          </>
+                        ),
+                        value: name
+                      }))}
+                      className="payloadpack-appearance-panel__palettes"
+                      labelledBy={labelId}
+                      onChange={setPalette}
+                      selected={palette}
+                    />
                     {!custom && (
                       <button
                         aria-label={t('payloadpack:customColors')}
@@ -312,7 +311,7 @@ export function AppearanceSheet() {
                         {t('payloadpack:paletteCustom')}
                       </button>
                     )}
-                  </RadioGroup>
+                  </div>
                   {palette === customPalette && custom && css && (
                     <div className="payloadpack-appearance-panel__editor">
                       <span />
