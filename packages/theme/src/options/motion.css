@@ -1,83 +1,104 @@
 @layer payload {
   html[data-motion='auto'] {
     @media (prefers-reduced-motion: no-preference) {
+      /* 1. Tokens */
+      --payloadpack-duration-fast: 100ms;
+      --payloadpack-duration-normal: 150ms;
+      --payloadpack-duration-slow: 200ms;
+      --payloadpack-duration-slower: 300ms;
+      --payloadpack-duration-slowest: 500ms;
+      --payloadpack-ease-state: cubic-bezier(0, 0.2, 0.2, 1);
       --payloadpack-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
       --payloadpack-ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+      --payloadpack-ease-toggle: cubic-bezier(0.645, 0.045, 0.355, 1);
+      --payloadpack-motion-hover-duration: var(--payloadpack-duration-fast);
+      --payloadpack-motion-hover-easing: var(--payloadpack-ease-state);
+      --payloadpack-motion-enter-duration: var(--payloadpack-duration-normal);
+      --payloadpack-motion-enter-easing: var(--payloadpack-ease-out);
+      --payloadpack-motion-panel-duration: var(--payloadpack-duration-slow);
+      --payloadpack-motion-panel-easing: ease-out;
+      --payloadpack-duration-exit: calc(var(--payloadpack-motion-enter-duration) * 2 / 3);
+      --payloadpack-duration-label: calc(var(--payloadpack-motion-panel-duration) * 0.75);
 
-      /* 1. Tooltips */
+      /* 2. Tooltips */
       .tooltip {
         transition:
-          opacity 100ms var(--payloadpack-ease-out),
-          visibility 100ms var(--payloadpack-ease-out);
+          opacity var(--payloadpack-duration-exit) var(--payloadpack-motion-enter-easing),
+          visibility var(--payloadpack-duration-exit) var(--payloadpack-motion-enter-easing);
       }
 
       .tooltip--show {
-        transition-duration: 150ms;
+        transition:
+          opacity var(--payloadpack-motion-enter-duration) var(--payloadpack-motion-enter-easing),
+          visibility var(--payloadpack-motion-enter-duration) var(--payloadpack-motion-enter-easing);
 
         @starting-style {
           opacity: 0;
         }
       }
 
-      /* 2. Fields */
+      /* 3. Fields */
       .form-input,
       .form-input-group,
       .react-select .rs__control,
       .code-editor,
       .search-input,
       .react-datepicker__input-container input {
-        transition-property: border, box-shadow, background-color;
-        transition-duration: 100ms, 100ms, 500ms;
-        transition-timing-function: cubic-bezier(0, 0.2, 0.2, 1);
+        transition:
+          border var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing),
+          box-shadow var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing),
+          background-color var(--payloadpack-duration-slowest) var(--payloadpack-ease-state);
       }
 
       .checkbox-input__visuals,
       .radio-input__styled-radio {
-        transition: box-shadow 100ms cubic-bezier(0, 0.2, 0.2, 1);
+        transition: box-shadow var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing);
       }
 
       .checkbox-input__control:is(:checked, :indeterminate) + .checkbox-input__visuals,
       .radio-input--is-selected .radio-input__styled-radio {
         transition:
-          background-color 100ms cubic-bezier(0.645, 0.045, 0.355, 1),
-          box-shadow 100ms cubic-bezier(0, 0.2, 0.2, 1);
+          background-color var(--payloadpack-duration-fast) var(--payloadpack-ease-toggle),
+          box-shadow var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing);
       }
 
       .payloadpack-switch .checkbox-input__visuals {
         transition:
-          grid-template-columns 200ms,
-          box-shadow 100ms cubic-bezier(0, 0.2, 0.2, 1);
+          grid-template-columns var(--payloadpack-duration-slow),
+          box-shadow var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing);
       }
 
       .payloadpack-switch .checkbox-input__control:is(:checked, :indeterminate) + .checkbox-input__visuals {
         transition:
-          grid-template-columns 200ms,
-          background-color 100ms cubic-bezier(0.645, 0.045, 0.355, 1),
-          box-shadow 100ms cubic-bezier(0, 0.2, 0.2, 1);
+          grid-template-columns var(--payloadpack-duration-slow),
+          background-color var(--payloadpack-duration-fast) var(--payloadpack-ease-toggle),
+          box-shadow var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing);
       }
 
-      /* 3. Buttons */
+      /* 4. Buttons */
       .btn {
-        transition-property: border, color, background;
-        transition-duration: 100ms;
-        transition-timing-function: cubic-bezier(0, 0.2, 0.2, 1);
+        transition:
+          border var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing),
+          color var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing),
+          background var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing);
       }
 
-      /* 4. Cards */
+      /* 5. Cards */
       .card {
-        transition-property: border, box-shadow, background;
-        transition-duration: 100ms;
-        transition-timing-function: cubic-bezier(0, 0.2, 0.2, 1);
+        transition:
+          border var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing),
+          box-shadow var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing),
+          background var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing);
       }
 
-      /* 5. Popups and menus */
+      /* 6. Popups and menus */
       .popup__content:popover-open,
       .rs__menu {
         transform-origin: var(--caret-left, 50%) top;
         transition:
-          opacity 150ms var(--payloadpack-ease-out),
-          scale 150ms var(--payloadpack-ease-out),
-          translate 150ms var(--payloadpack-ease-out);
+          opacity var(--payloadpack-motion-enter-duration) var(--payloadpack-motion-enter-easing),
+          scale var(--payloadpack-motion-enter-duration) var(--payloadpack-motion-enter-easing),
+          translate var(--payloadpack-motion-enter-duration) var(--payloadpack-motion-enter-easing);
 
         @starting-style {
           opacity: 0;
@@ -108,35 +129,34 @@
         opacity: 0;
         scale: 0.95;
         transition:
-          all 100ms step-end allow-discrete,
-          opacity 100ms var(--payloadpack-ease-out),
-          scale 100ms var(--payloadpack-ease-out);
+          all 0s var(--payloadpack-duration-exit) allow-discrete,
+          opacity var(--payloadpack-duration-exit) var(--payloadpack-motion-enter-easing),
+          scale var(--payloadpack-duration-exit) var(--payloadpack-motion-enter-easing);
       }
 
-      /* 6. Nav */
+      /* 7. Nav */
       .template-default {
-        transition: grid-template-columns 200ms ease-out;
+        transition: grid-template-columns var(--payloadpack-motion-panel-duration) var(--payloadpack-motion-panel-easing);
       }
 
       .template-default__wrap {
-        transition: margin 200ms ease-out;
+        transition: margin var(--payloadpack-motion-panel-duration) var(--payloadpack-motion-panel-easing);
       }
 
       .nav {
         interpolate-size: allow-keywords;
         transition:
-          width 200ms ease-out,
-          visibility 200ms;
+          width var(--payloadpack-motion-panel-duration) var(--payloadpack-motion-panel-easing),
+          visibility var(--payloadpack-motion-panel-duration);
       }
 
       .nav__header,
       .nav__close,
       .user-menu,
-      .sidebar-tabs__tabs,
       .nav__link,
       .nav-group__toggle {
-        transition-duration: 200ms;
-        transition-timing-function: ease-out;
+        transition-duration: var(--payloadpack-motion-panel-duration);
+        transition-timing-function: var(--payloadpack-motion-panel-easing);
       }
 
       .nav__header,
@@ -149,48 +169,52 @@
         transition-property: width, opacity, visibility;
       }
 
+      .nav-group__toggle {
+        transition-property: margin, opacity, filter, visibility;
+      }
+
       .sidebar-tabs__tabs {
-        transition-property: width, margin, opacity, filter, visibility;
-        transition-timing-function: step-end, ease-out, ease-out, ease-out, ease-out;
+        transition:
+          width 0s var(--payloadpack-motion-panel-duration),
+          margin var(--payloadpack-motion-panel-duration) var(--payloadpack-motion-panel-easing),
+          opacity var(--payloadpack-motion-panel-duration) var(--payloadpack-motion-panel-easing),
+          filter var(--payloadpack-motion-panel-duration) var(--payloadpack-motion-panel-easing),
+          visibility var(--payloadpack-motion-panel-duration) var(--payloadpack-motion-panel-easing);
       }
 
       &[data-rail] .sidebar-tabs__tabs {
-        transition-timing-function: step-start, ease-out, ease-out, ease-out, ease-out;
-      }
-
-      .nav-group__toggle {
-        transition-property: margin, opacity, filter, visibility;
+        transition-delay: 0s;
       }
 
       .nav__link-label,
       .nav-group__label {
         transition:
-          opacity 150ms ease-out,
-          white-space 200ms step-end allow-discrete;
+          opacity var(--payloadpack-duration-label) var(--payloadpack-motion-panel-easing),
+          white-space 0s var(--payloadpack-motion-panel-duration) allow-discrete;
       }
 
       .nav-group__indicator .icon--chevron {
-        transition: transform 200ms var(--payloadpack-ease-out);
+        transition: transform var(--payloadpack-duration-slow) var(--payloadpack-ease-out);
       }
 
       &[data-rail] :is(.nav__link-label, .nav-group__label) {
         transition:
-          all 200ms step-end allow-discrete,
-          opacity 150ms ease-out,
+          all 0s var(--payloadpack-motion-panel-duration) allow-discrete,
+          opacity var(--payloadpack-duration-label) var(--payloadpack-motion-panel-easing),
           white-space 0s allow-discrete;
       }
 
-      /* 7. Appearance panel */
+      /* 8. Appearance panel */
       .payloadpack-appearance-panel__sheet {
         translate: 100% 0;
         transition:
-          translate 200ms var(--payloadpack-ease-out),
-          display 200ms allow-discrete,
-          overlay 200ms allow-discrete;
+          translate var(--payloadpack-duration-slow) var(--payloadpack-ease-out),
+          display var(--payloadpack-duration-slow) allow-discrete,
+          overlay var(--payloadpack-duration-slow) allow-discrete;
 
         &:popover-open {
           translate: 0;
-          transition-duration: 300ms;
+          transition-duration: var(--payloadpack-duration-slower);
           transition-timing-function: var(--payloadpack-ease-drawer);
 
           @starting-style {

@@ -23,6 +23,13 @@ export const bases = ['background', 'surface', 'text', 'primary'] as const
 
 export type Base = Record<(typeof bases)[number], string>
 
+export const baseTokens: Base = {
+  background: '--payloadpack-bg-app',
+  primary: '--payloadpack-action-primary',
+  surface: '--payloadpack-bg-surface',
+  text: '--payloadpack-text-primary'
+}
+
 export type CustomPalette = { accent: string; dark: Base; light: Base }
 
 export type Choices = {
@@ -145,10 +152,10 @@ export function pasteSetup(settings: Settings, choices: Choices, text: string): 
 }
 
 const declarations = (base: Base, indent: string) =>
-  bases.map((name) => `${indent}--payloadpack-${name}: ${base[name]};\n`).join('')
+  bases.map((name) => `${indent}${baseTokens[name]}: ${base[name]};\n`).join('')
 
 export const paletteCss = (name: string, { accent, dark, light }: CustomPalette) =>
-  `[data-palette='${name}'] {\n${declarations(light, '  ')}  --payloadpack-accent: ${accent};\n\n  &[data-theme='dark'],\n  [data-theme='dark']:not([data-palette]) {\n${declarations(dark, '    ')}  }\n}\n`
+  `[data-palette='${name}'] {\n${declarations(light, '  ')}  --payloadpack-accent: ${accent};\n\n  &[data-theme='dark'] {\n${declarations(dark, '    ')}  }\n}\n`
 
 const setupKeys = ['character', 'custom', 'options', 'palette', 'personal']
 

@@ -235,6 +235,18 @@
       height: var(--button-height);
     }
 
+    .file-toolbar__filename-btn {
+      min-height: var(--button-height);
+    }
+
+    .file-toolbar__right :is(.copy-to-clipboard, .file-toolbar__icon-link) {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: var(--button-height);
+      height: var(--button-height);
+    }
+
     .list-header__content {
       min-height: var(--button-height);
     }

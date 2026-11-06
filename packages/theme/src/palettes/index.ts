@@ -1,4 +1,4 @@
-export const palettes = ['payload', 'neutral', 'warm'] as const
+export const palettes = ['payload', 'neutral', 'warm', 'soft'] as const
 
 export type Palette = (typeof palettes)[number]
 

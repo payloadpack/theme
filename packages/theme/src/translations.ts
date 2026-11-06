@@ -51,6 +51,7 @@ const payloadpack = {
   paletteCustom: 'Custom',
   paletteNeutral: 'Neutral',
   palettePayload: 'Payload',
+  paletteSoft: 'Soft',
   paletteWarm: 'Warm',
   pasteSetup: 'Paste setup',
   primary: 'Primary',

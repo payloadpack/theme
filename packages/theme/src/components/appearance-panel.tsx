@@ -4,7 +4,7 @@ import { PayloadIcon, useConfig, useTheme, useTranslation, XIcon } from '@payloa
 import { Fragment, type ReactNode, useEffect, useId, useRef, useState } from 'react'
 
 import { characters as registry, type Option, options } from '../characters/index.js'
-import { type Base, bases, type CustomPalette, customPalette, isHex, paletteCss } from '../lib/appearance.js'
+import { type Base, bases, baseTokens, type CustomPalette, customPalette, isHex, paletteCss } from '../lib/appearance.js'
 import type { TranslationKey } from '../translations.js'
 import { useAppearance } from './appearance-provider.js'
 
@@ -41,7 +41,7 @@ const readPalette = (cards: Element, name: string): CustomPalette => {
     const probe = document.createElement('span')
     Object.assign(probe.dataset, { palette: name, theme: half })
     cards.append(probe)
-    const base = Object.fromEntries(bases.map((key) => [key, color(probe, `var(--payloadpack-${key})`)])) as Base
+    const base = Object.fromEntries(bases.map((key) => [key, color(probe, `var(${baseTokens[key]})`)])) as Base
     const accent = color(probe, 'var(--payloadpack-accent, var(--ramp-blue-500))')
     probe.remove()
     return { accent, base }
@@ -137,12 +137,14 @@ function useStatus() {
 type Choice<V extends string> = { label: ReactNode; name?: string; value: V }
 
 function RadioGroup<V extends string>({
+  children,
   choices,
   className,
   labelledBy,
   onChange,
   selected
 }: {
+  children?: ReactNode
   choices: Choice<V>[]
   className: string
   labelledBy: string
@@ -166,6 +168,7 @@ function RadioGroup<V extends string>({
           {choice.label}
         </label>
       ))}
+      {children}
     </div>
   )
 }
@@ -286,24 +289,25 @@ export function AppearanceSheet() {
                     className="payloadpack-appearance-panel__cards"
                     labelledBy={labelId}
                     onChange={setPalette}
-                    selected={palette}
-                  />
-                  {!custom && (
-                    <button
-                      className="payloadpack-appearance-panel__link"
-                      onClick={(event) => {
-                        const cards = event.currentTarget
-                          .closest('section')
-                          ?.querySelector('.payloadpack-appearance-panel__halves')
-                        if (cards) {
-                          setFocusEditor(true)
-                          setCustom(readPalette(cards, palette))
-                        }
-                      }}
-                      type="button">
-                      {t('payloadpack:customColors')}
-                    </button>
-                  )}
+                    selected={palette}>
+                    {!custom && (
+                      <button
+                        aria-label={t('payloadpack:customColors')}
+                        className="payloadpack-appearance-panel__add"
+                        onClick={(event) => {
+                          const cards = event.currentTarget
+                            .closest('section')
+                            ?.querySelector('.payloadpack-appearance-panel__halves')
+                          if (cards) {
+                            setFocusEditor(true)
+                            setCustom(readPalette(cards, palette))
+                          }
+                        }}
+                        type="button">
+                        {t('payloadpack:paletteCustom')}
+                      </button>
+                    )}
+                  </RadioGroup>
                   {palette === customPalette && custom && css && (
                     <div className="payloadpack-appearance-panel__editor">
                       <span />

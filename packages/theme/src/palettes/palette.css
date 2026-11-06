@@ -1,66 +1,253 @@
 @layer payload {
   :where([data-palette]:not([data-palette='payload'])) {
     /* 1. Light colors */
-    &:not([data-theme='dark']),
-    [data-theme='light'] {
+    &:not([data-theme='dark']) {
       --payloadpack-hover-step: 6%;
       --payloadpack-pressed-step: 10%;
-      --color-bg: var(--payloadpack-surface);
-      --color-bg-elevated: var(--payloadpack-surface);
-      --ramp-grey-100: color-mix(in srgb, var(--payloadpack-text) 4.37%, var(--payloadpack-surface));
-      --ramp-grey-200: color-mix(in srgb, var(--payloadpack-text) 10.92%, var(--payloadpack-surface));
-      --ramp-grey-300: color-mix(in srgb, var(--payloadpack-text) 16.59%, var(--payloadpack-surface));
-      --ramp-grey-500: color-mix(in srgb, var(--payloadpack-text) 60.26%, var(--payloadpack-surface));
-      --ramp-grey-600: color-mix(in srgb, var(--payloadpack-text) 81.66%, var(--payloadpack-surface));
-      --ramp-grey-700: color-mix(in srgb, var(--payloadpack-text) 86.9%, var(--payloadpack-surface));
-      --ramp-grey-800: color-mix(in srgb, var(--payloadpack-text) 92.14%, var(--payloadpack-surface));
-      --ramp-grey-900: color-mix(in srgb, var(--payloadpack-text) 98.25%, var(--payloadpack-surface));
-      --ramp-black-100: color-mix(in srgb, var(--payloadpack-text) 5.56%, transparent);
-      --ramp-black-200: color-mix(in srgb, var(--payloadpack-text) 11.11%, transparent);
-      --ramp-black-300: color-mix(in srgb, var(--payloadpack-text) 22.22%, transparent);
-      --ramp-black-400: color-mix(in srgb, var(--payloadpack-text) 33.33%, transparent);
-      --ramp-black-500: color-mix(in srgb, var(--payloadpack-text) 55.56%, transparent);
-      --ramp-black-600: color-mix(in srgb, var(--payloadpack-text) 88.89%, transparent);
-      --ramp-black-800: var(--payloadpack-text);
+      --payloadpack-raised-bg: var(--color-bg-elevated);
+      --payloadpack-raised-shadow: var(--payloadpack-elevation-card, 0 1px 2px rgb(0 0 0 / 0.08));
+      --color-bg: var(--payloadpack-bg-surface);
+      --color-bg-elevated: var(--payloadpack-bg-surface);
+      --color-border: var(--payloadpack-border-default, var(--ramp-grey-200));
+      --color-text-secondary: var(--payloadpack-text-secondary, var(--ramp-black-500));
+      --color-text-tertiary: var(--payloadpack-text-muted, var(--ramp-black-400));
+      --color-text-disabled: var(--payloadpack-text-disabled, var(--ramp-black-400));
+      --field-color-bg: var(--payloadpack-bg-field, var(--color-bg));
+      --accessibility-focus-color: var(--payloadpack-focus-ring, oklch(from var(--color-bg-brand) min(l, 0.6) c h));
+      --field-color-border-focus: oklch(from var(--color-bg-brand) 0.7 calc(c * 0.6) h);
+      --elevation-400-menu-panel: var(
+        --payloadpack-elevation-popover,
+        0 0 0 1px rgba(0, 0, 0, 0.04),
+        0 0 0.5px rgba(0, 0, 0, 0.12),
+        0 10px 16px rgba(0, 0, 0, 0.08),
+        0 2px 6px rgba(0, 0, 0, 0.12)
+      );
+      --elevation-500-modal-window: var(
+        --payloadpack-elevation-dialog,
+        0 0 0.5px 0 rgba(0, 0, 0, 0.08),
+        0 10px 24px 0 rgba(0, 0, 0, 0.18),
+        0 2px 5px 0 rgba(0, 0, 0, 0.15)
+      );
+      --ramp-grey-100: var(
+        --payloadpack-bg-subtle,
+        color-mix(in srgb, var(--payloadpack-text-primary) 4.37%, var(--payloadpack-bg-surface))
+      );
+      --ramp-grey-200: color-mix(in srgb, var(--payloadpack-text-primary) 6.85%, var(--ramp-grey-100));
+      --ramp-grey-300: color-mix(in srgb, var(--payloadpack-text-primary) 16.59%, var(--payloadpack-bg-surface));
+      --ramp-grey-500: color-mix(in srgb, var(--payloadpack-text-primary) 60.26%, var(--payloadpack-bg-surface));
+      --ramp-grey-600: color-mix(in srgb, var(--payloadpack-text-primary) 81.66%, var(--payloadpack-bg-surface));
+      --ramp-grey-700: color-mix(in srgb, var(--payloadpack-text-primary) 86.9%, var(--payloadpack-bg-surface));
+      --ramp-grey-800: color-mix(in srgb, var(--payloadpack-text-primary) 92.14%, var(--payloadpack-bg-surface));
+      --ramp-grey-900: color-mix(in srgb, var(--payloadpack-text-primary) 98.25%, var(--payloadpack-bg-surface));
+      --ramp-black-100: color-mix(in srgb, var(--payloadpack-text-primary) 5.56%, transparent);
+      --ramp-black-200: color-mix(in srgb, var(--payloadpack-text-primary) 11.11%, transparent);
+      --ramp-black-300: color-mix(in srgb, var(--payloadpack-text-primary) 22.22%, transparent);
+      --ramp-black-400: color-mix(in srgb, var(--payloadpack-text-primary) 33.33%, transparent);
+      --ramp-black-500: color-mix(in srgb, var(--payloadpack-text-primary) 55.56%, transparent);
+      --ramp-black-600: color-mix(in srgb, var(--payloadpack-text-primary) 88.89%, transparent);
+      --ramp-black-800: var(--payloadpack-text-primary);
     }
 
     /* 2. Dark colors */
-    &[data-theme='dark'],
-    [data-theme='dark'] {
+    &[data-theme='dark'] {
       --payloadpack-hover-step: 10%;
       --payloadpack-pressed-step: 15%;
-      --color-bg-elevated: color-mix(in srgb, var(--payloadpack-text) 4%, var(--payloadpack-surface));
-      --color-bg-menu: var(--color-bg-elevated);
-      --color-bg-tooltip: var(--color-bg-elevated);
-      --field-color-bg: var(--color-bg-elevated);
-      --ramp-grey-500: color-mix(in srgb, var(--payloadpack-text) 43%, var(--payloadpack-surface));
-      --ramp-grey-600: color-mix(in srgb, var(--payloadpack-text) 12%, var(--payloadpack-surface));
-      --ramp-grey-700: color-mix(in srgb, var(--payloadpack-text) 7.5%, var(--payloadpack-surface));
-      --ramp-grey-800: var(--payloadpack-surface);
-      --ramp-grey-900: var(--payloadpack-background);
-      --ramp-white-100: color-mix(in srgb, var(--payloadpack-text) 5%, transparent);
-      --ramp-white-200: color-mix(in srgb, var(--payloadpack-text) 10%, transparent);
-      --ramp-white-300: color-mix(in srgb, var(--payloadpack-text) 20%, transparent);
-      --ramp-white-400: color-mix(in srgb, var(--payloadpack-text) 40%, transparent);
-      --ramp-white-500: color-mix(in srgb, var(--payloadpack-text) 70%, transparent);
-      --ramp-white-600: color-mix(in srgb, var(--payloadpack-text) 80%, transparent);
-      --ramp-white-800: color-mix(in srgb, var(--payloadpack-text) 90%, transparent);
-      --ramp-white-1000: var(--payloadpack-text);
-      --elevation-400-menu-panel: 0 0 0 1px var(--color-border), 0 10px 24px rgb(0 0 0 / 0.5), 0 2px 6px rgb(0 0 0 / 0.4);
+      --payloadpack-raised-bg: color-mix(in oklab, var(--color-text) 14%, var(--color-bg-secondary));
+      --payloadpack-raised-shadow: var(--payloadpack-elevation-card, none);
+      --color-bg-elevated: color-mix(in srgb, var(--payloadpack-text-primary) 4%, var(--payloadpack-bg-surface));
+      --color-bg-tooltip: var(--color-bg-menu);
+      --color-bg-disabled: var(--color-bg-tertiary);
+      --color-border: var(--payloadpack-border-default, var(--ramp-grey-600));
+      --color-text-secondary: var(--payloadpack-text-secondary, var(--ramp-white-500));
+      --color-text-tertiary: var(--payloadpack-text-muted, var(--ramp-white-400));
+      --color-text-disabled: var(--payloadpack-text-disabled, var(--ramp-white-400));
+      --color-text-ondisabled: var(--color-text-disabled);
+      --color-icon-ondisabled: var(--color-text-disabled);
+      --field-color-bg: var(--payloadpack-bg-field, var(--color-bg-elevated));
+      --accessibility-focus-color: var(--payloadpack-focus-ring, oklch(from var(--color-bg-brand) max(l, 0.6) c h));
+      --field-color-border-focus: oklch(from var(--color-bg-brand) 0.55 c h);
+      --ramp-grey-500: color-mix(in srgb, var(--payloadpack-text-primary) 43%, var(--payloadpack-bg-surface));
+      --ramp-grey-600: color-mix(in srgb, var(--payloadpack-text-primary) 4.86%, var(--ramp-grey-700));
+      --ramp-grey-700: var(
+        --payloadpack-bg-subtle,
+        color-mix(in srgb, var(--payloadpack-text-primary) 7.5%, var(--payloadpack-bg-surface))
+      );
+      --ramp-grey-800: var(--payloadpack-bg-surface);
+      --ramp-grey-900: var(--payloadpack-bg-app);
+      --ramp-white-100: color-mix(in srgb, var(--payloadpack-text-primary) 5%, transparent);
+      --ramp-white-200: color-mix(in srgb, var(--payloadpack-text-primary) 10%, transparent);
+      --ramp-white-300: color-mix(in srgb, var(--payloadpack-text-primary) 20%, transparent);
+      --ramp-white-400: color-mix(in srgb, var(--payloadpack-text-primary) 40%, transparent);
+      --ramp-white-500: color-mix(in srgb, var(--payloadpack-text-primary) 70%, transparent);
+      --ramp-white-600: color-mix(in srgb, var(--payloadpack-text-primary) 80%, transparent);
+      --ramp-white-800: color-mix(in srgb, var(--payloadpack-text-primary) 90%, transparent);
+      --ramp-white-1000: var(--payloadpack-text-primary);
+      --elevation-400-menu-panel: var(
+        --payloadpack-elevation-popover,
+        0 0 0 1px var(--color-border),
+        0 10px 24px rgb(0 0 0 / 0.5),
+        0 2px 6px rgb(0 0 0 / 0.4)
+      );
+      --elevation-500-modal-window: var(
+        --payloadpack-elevation-dialog,
+        0 0.5px 0 0 rgba(255, 255, 255, 0.08) inset,
+        0 10px 24px 0 rgba(0, 0, 0, 0.45),
+        0 0 0.5px 0 rgba(255, 255, 255, 0.35) inset,
+        0 3px 5px 0 rgba(0, 0, 0, 0.35)
+      );
     }
 
-    /* 3. Canvas */
+    /* 3. Enhanced contrast */
+    &[data-enhanced-contrast]:not([data-theme='dark']) {
+      --color-border: var(--color-border-control);
+      --color-text-secondary: var(--ramp-black-600);
+      --color-text-tertiary: var(--ramp-grey-600);
+      --color-text-disabled: var(--ramp-grey-600);
+    }
+
+    &[data-enhanced-contrast][data-theme='dark'] {
+      --color-border: var(--color-border-control);
+      --color-text-secondary: var(--ramp-white-500);
+      --color-text-tertiary: var(--ramp-white-500);
+      --color-text-disabled: var(--ramp-white-500);
+      --color-text-ondisabled: var(--ramp-white-1000);
+    }
+
+    /* 4. Icons */
+    & {
+      --color-icon-secondary: var(--color-text-secondary);
+      --color-icon-tertiary: var(--color-text-tertiary);
+      --color-icon-disabled: var(--color-text-disabled);
+    }
+
+    /* 5. Nested themes */
+    [data-theme]:not([data-palette]) {
+      --color-bg: inherit;
+      --color-bg-brand: inherit;
+      --color-bg-brand-hover: inherit;
+      --color-bg-brand-pressed: inherit;
+      --color-bg-brand-tertiary: inherit;
+      --color-bg-brand-tertiary-hover: inherit;
+      --color-bg-danger: inherit;
+      --color-bg-danger-hover: inherit;
+      --color-bg-danger-pressed: inherit;
+      --color-bg-danger-tertiary: inherit;
+      --color-bg-danger-tertiary-hover: inherit;
+      --color-bg-danger-tertiary-pressed: inherit;
+      --color-bg-disabled: inherit;
+      --color-bg-elevated: inherit;
+      --color-bg-hover: inherit;
+      --color-bg-inverse: inherit;
+      --color-bg-pressed: inherit;
+      --color-bg-secondary: inherit;
+      --color-bg-secondary-hover: inherit;
+      --color-bg-secondary-pressed: inherit;
+      --color-bg-selected: inherit;
+      --color-bg-selected-hover: inherit;
+      --color-bg-selected-pressed: inherit;
+      --color-bg-selected-strong: inherit;
+      --color-bg-selected-strong-hover: inherit;
+      --color-bg-success-tertiary: inherit;
+      --color-bg-success-tertiary-hover: inherit;
+      --color-bg-tertiary: inherit;
+      --color-bg-transparent-hover: inherit;
+      --color-bg-transparent-pressed: inherit;
+      --color-bg-warning-tertiary: inherit;
+      --color-bg-warning-tertiary-hover: inherit;
+      --color-border: inherit;
+      --color-border-brand: inherit;
+      --color-border-brand-strong: inherit;
+      --color-border-control: inherit;
+      --color-border-control-strong: inherit;
+      --color-border-danger: inherit;
+      --color-border-danger-strong: inherit;
+      --color-border-disabled: inherit;
+      --color-border-menu-separator: inherit;
+      --color-border-selected: inherit;
+      --color-border-selected-strong: inherit;
+      --color-border-strong: inherit;
+      --color-border-success: inherit;
+      --color-border-success-strong: inherit;
+      --color-border-warning: inherit;
+      --color-icon: inherit;
+      --color-icon-brand: inherit;
+      --color-icon-danger: inherit;
+      --color-icon-disabled: inherit;
+      --color-icon-favorite: inherit;
+      --color-icon-ondisabled: inherit;
+      --color-icon-secondary: inherit;
+      --color-icon-secondary-hover: inherit;
+      --color-icon-selected: inherit;
+      --color-icon-tertiary: inherit;
+      --color-icon-warning: inherit;
+      --color-text: inherit;
+      --color-text-brand: inherit;
+      --color-text-danger: inherit;
+      --color-text-disabled: inherit;
+      --color-text-ondisabled: inherit;
+      --color-text-oninverse: inherit;
+      --color-text-secondary: inherit;
+      --color-text-selected: inherit;
+      --color-text-tertiary: inherit;
+      --color-text-warning: inherit;
+      --diff-create-pill-color: inherit;
+      --diff-delete-parent-color: inherit;
+      --diff-delete-pill-color: inherit;
+      --elevation-100-canvas: inherit;
+      --elevation-300-tooltip: inherit;
+      --elevation-400-menu-panel: inherit;
+      --elevation-500-modal-window: inherit;
+      --field-color-bg: inherit;
+      --field-color-bg-disabled: inherit;
+      --field-color-bg-readonly: inherit;
+      --field-color-border: inherit;
+      --field-color-border-disabled: inherit;
+      --field-color-border-error: inherit;
+      --field-color-border-focus: inherit;
+      --field-color-border-hover: inherit;
+      --field-color-border-readonly: inherit;
+      --field-color-description: inherit;
+      --field-color-error-bg: inherit;
+      --field-color-error-text: inherit;
+      --field-color-label: inherit;
+      --field-color-label-required: inherit;
+      --field-color-placeholder: inherit;
+      --field-color-text: inherit;
+      --field-color-text-disabled: inherit;
+      --field-color-text-readonly: inherit;
+      --field-color-toggle-bg-checked: inherit;
+      --field-color-toggle-border: inherit;
+      --field-color-toggle-border-checked: inherit;
+      --field-color-toggle-border-disabled: inherit;
+      --field-color-toggle-icon: inherit;
+      --field-color-upload-bg: inherit;
+      --field-color-upload-border: inherit;
+      --special-border-translucent: inherit;
+      --special-border-translucent-strong: inherit;
+    }
+
+    /* 6. Canvas */
     .template-default,
     .nav,
     .nav__header {
-      background-color: var(--payloadpack-background);
+      background-color: var(--payloadpack-bg-app);
     }
 
     :is(.nav__close, .payloadpack-rail-toggle) .sidebar-toggle:not(:hover, :active) {
       background-color: transparent;
     }
 
-    /* 4. Nav */
+    @media (min-width: 769px) {
+      &[data-frame='boxed'] .template-default .template-default__wrap {
+        box-shadow: var(
+          --payloadpack-elevation-card,
+          0 0 0 var(--stroke-width-small) var(--color-border),
+          0 1px 2px rgb(0 0 0 / 0.08)
+        );
+      }
+    }
+
+    /* 7. Nav */
     .nav__link:not(.nav__link--selected) {
       color: var(--color-text-secondary);
 
@@ -70,23 +257,20 @@
     }
 
     .nav__link--selected::before {
-      background-color: var(--color-bg-elevated);
-      box-shadow:
-        0 1px 2px rgb(0 0 0 / 0.1),
-        0 2px 8px rgb(0 0 0 / 0.08);
-    }
-
-    &[data-theme='dark'] .nav__link--selected::before {
-      background-color: var(--color-bg-tertiary);
-      box-shadow: none;
+      background-color: var(--payloadpack-bg-selected, var(--payloadpack-raised-bg));
+      box-shadow: var(--payloadpack-elevation-selected, var(--payloadpack-raised-shadow));
     }
 
     .nav {
-      --color-bg-hover: color-mix(in oklab, var(--payloadpack-text) var(--payloadpack-hover-step), var(--payloadpack-background));
+      --color-bg-hover: color-mix(
+        in oklab,
+        var(--payloadpack-text-primary) var(--payloadpack-hover-step),
+        var(--payloadpack-bg-app)
+      );
       --color-bg-pressed: color-mix(
         in oklab,
-        var(--payloadpack-text) var(--payloadpack-pressed-step),
-        var(--payloadpack-background)
+        var(--payloadpack-text-primary) var(--payloadpack-pressed-step),
+        var(--payloadpack-bg-app)
       );
     }
 
@@ -103,31 +287,19 @@
       }
     }
 
+    .sidebar-tabs__tabs,
+    .payloadpack-appearance-panel__segments {
+      --color-bg-secondary: var(--color-bg-tertiary);
+    }
+
     .sidebar-tabs__tab--active {
       border-color: transparent;
-      background-color: var(--color-bg-elevated);
-      box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+      background-color: var(--color-bg);
+      box-shadow: var(--payloadpack-raised-shadow);
       color: var(--color-text);
     }
 
-    &[data-theme='dark'] .sidebar-tabs__tab--active {
-      background-color: color-mix(in oklab, var(--color-text) 14%, var(--color-bg-secondary));
-      box-shadow: none;
-    }
-
-    /* 5. Focus */
-    &:not([data-theme='dark']),
-    [data-theme='light'] {
-      --accessibility-focus-color: oklch(from var(--color-bg-brand) min(l, 0.6) c h);
-      --field-color-border-focus: oklch(from var(--color-bg-brand) 0.7 calc(c * 0.6) h);
-    }
-
-    &[data-theme='dark'],
-    [data-theme='dark'] {
-      --accessibility-focus-color: oklch(from var(--color-bg-brand) max(l, 0.6) c h);
-      --field-color-border-focus: oklch(from var(--color-bg-brand) 0.55 c h);
-    }
-
+    /* 8. Focus */
     .form-input:focus:not(:read-only, .form-input-group *),
     .form-input-group:has(input:focus:not(:read-only)),
     .rs__control--is-focused,
@@ -137,9 +309,8 @@
       box-shadow: 0 0 0 3px color-mix(in srgb, var(--field-color-border-focus) 50%, transparent);
     }
 
-    /* 6. Fields */
-    &,
-    [data-theme] {
+    /* 9. Fields */
+    & {
       --field-color-border: var(--color-border);
       --field-color-bg-disabled: color-mix(in srgb, var(--field-color-bg) 50%, transparent);
       --field-color-border-disabled: color-mix(in srgb, var(--field-color-border) 50%, transparent);
@@ -151,14 +322,8 @@
       color: var(--field-color-text-disabled);
     }
 
-    /* 7. Date picker */
-    .react-datepicker {
-      background-color: var(--color-bg-elevated);
-    }
-
-    /* 8. Checkbox and radio */
-    &,
-    [data-theme] {
+    /* 10. Checkbox and radio */
+    & {
       --payloadpack-toggle-bg: var(--color-bg-secondary);
       --payloadpack-toggle-bg-hover: var(--color-bg-secondary-hover);
       --payloadpack-toggle-border: var(--color-border-control-strong);
@@ -177,6 +342,9 @@
       --color-bg-brand: var(--payloadpack-toggle-checked-bg);
       --color-bg-brand-hover: var(--payloadpack-toggle-checked-bg);
       --color-icon-onbrand: var(--payloadpack-toggle-mark);
+      --field-color-toggle-bg-checked: var(--payloadpack-toggle-checked-bg);
+      --field-color-toggle-border-checked: var(--payloadpack-toggle-checked-border);
+      --field-color-toggle-icon: var(--payloadpack-toggle-mark);
     }
 
     .checkbox-input__control:focus-visible + .checkbox-input__visuals,
@@ -223,18 +391,7 @@
       background-color: var(--color-bg-disabled);
     }
 
-    /* 9. Toasts */
-    &[data-theme='light'] .payload-toast-container[data-theme='dark'] {
-      --color-text: inherit;
-      --color-icon: inherit;
-      --color-bg-elevated: inherit;
-      --color-bg-hover: inherit;
-      --color-bg-pressed: inherit;
-      --color-icon-warning: inherit;
-      --elevation-100-canvas: inherit;
-      --elevation-400-menu-panel: inherit;
-    }
-
+    /* 11. Toasts */
     .payload-toast-item {
       --normal-text: var(--color-icon);
     }
@@ -249,19 +406,19 @@
     }
 
     .toast-success {
-      --payloadpack-toast-icon: oklch(0.627 0.194 149.214);
+      --payloadpack-toast-icon: var(--payloadpack-status-success, oklch(0.627 0.194 149.214));
     }
 
     .toast-info {
-      --payloadpack-toast-icon: oklch(0.546 0.245 262.881);
+      --payloadpack-toast-icon: var(--payloadpack-status-info, oklch(0.546 0.245 262.881));
     }
 
     .toast-warning {
-      --payloadpack-toast-icon: oklch(0.666 0.179 58.318);
+      --payloadpack-toast-icon: var(--payloadpack-status-warning, oklch(0.666 0.179 58.318));
     }
 
     .toast-error {
-      --payloadpack-toast-icon: oklch(0.577 0.245 27.325);
+      --payloadpack-toast-icon: var(--payloadpack-status-error, oklch(0.577 0.245 27.325));
       --color-bg-danger: var(--color-bg-elevated);
       --color-bg-danger-hover: var(--color-bg-hover);
       --color-bg-danger-pressed: var(--color-bg-pressed);
@@ -270,19 +427,19 @@
 
     &[data-theme='dark'] {
       .toast-success {
-        --payloadpack-toast-icon: oklch(0.792 0.209 151.711);
+        --payloadpack-toast-icon: var(--payloadpack-status-success, oklch(0.792 0.209 151.711));
       }
 
       .toast-info {
-        --payloadpack-toast-icon: oklch(0.707 0.165 254.624);
+        --payloadpack-toast-icon: var(--payloadpack-status-info, oklch(0.707 0.165 254.624));
       }
 
       .toast-warning {
-        --payloadpack-toast-icon: oklch(0.828 0.189 84.429);
+        --payloadpack-toast-icon: var(--payloadpack-status-warning, oklch(0.828 0.189 84.429));
       }
 
       .toast-error {
-        --payloadpack-toast-icon: oklch(0.704 0.191 22.216);
+        --payloadpack-toast-icon: var(--payloadpack-status-error, oklch(0.704 0.191 22.216));
       }
     }
 
@@ -290,7 +447,52 @@
       color: var(--payloadpack-toast-icon);
     }
 
-    /* 10. Menus */
+    /* 12. Popovers */
+    & {
+      --color-bg-menu: var(--payloadpack-bg-popover, var(--color-bg-elevated));
+    }
+
+    .popup__content {
+      background: var(--popup-bg, var(--color-bg-menu));
+      color: var(--popup-text, var(--color-text));
+    }
+
+    .rs__menu,
+    .react-datepicker,
+    .slash-menu-popup {
+      background-color: var(--color-bg-menu);
+    }
+
+    .link-editor {
+      --color-text-onbrand: var(--color-text);
+      --color-text-onbrand-secondary: var(--color-text-secondary);
+      --color-icon-onbrand: var(--color-icon);
+      --color-icon-onbrand-secondary: var(--color-icon-secondary);
+    }
+
+    .table-action-menu-dropdown {
+      hr {
+        background-color: var(--color-border);
+      }
+
+      .item {
+        color: var(--color-text);
+
+        &:is(:hover, :active) {
+          color: var(--color-text-onbrand);
+        }
+      }
+    }
+
+    .table-grid-popup__tooltip {
+      color: var(--color-text);
+    }
+
+    .LexicalEditorTheme__upload__floater,
+    .table-grid-popup__tooltip {
+      box-shadow: var(--elevation-400-menu-panel);
+    }
+
     .popup-button-list,
     .timezone-picker__menu {
       --popup-item-bg-hover: color-mix(in oklab, var(--color-text) var(--payloadpack-hover-step), var(--color-bg-menu));
@@ -320,33 +522,37 @@
       }
     }
 
-    /* 11. Primary */
-    &,
-    [data-theme] {
-      --color-bg-brand: var(--payloadpack-primary, var(--payloadpack-text));
-      --color-bg-brand-hover: color-mix(in oklab, var(--color-bg-brand) 88%, var(--payloadpack-surface));
-      --color-bg-brand-pressed: color-mix(in oklab, var(--color-bg-brand) 80%, var(--payloadpack-surface));
-      --payloadpack-on-primary: oklch(from var(--color-bg-brand) clamp(0, (0.72 - l) * 1000, 1) 0 0);
-      --color-text-onbrand: var(--payloadpack-on-primary);
-      --color-text-onbrand-secondary: rgb(from var(--payloadpack-on-primary) r g b / 0.8);
-      --color-icon-onbrand: var(--payloadpack-on-primary);
-      --color-icon-onbrand-secondary: rgb(from var(--payloadpack-on-primary) r g b / 0.8);
+    /* 13. Primary */
+    & {
+      --color-bg-brand: var(--payloadpack-action-primary);
+      --color-bg-brand-hover: color-mix(in oklab, var(--color-bg-brand) 88%, var(--payloadpack-bg-surface));
+      --color-bg-brand-pressed: color-mix(in oklab, var(--color-bg-brand) 80%, var(--payloadpack-bg-surface));
+      --color-text-onbrand: var(
+        --payloadpack-action-primary-text,
+        oklch(from var(--color-bg-brand) clamp(0, (0.72 - l) * 1000, 1) 0 0)
+      );
+      --color-text-onbrand-secondary: rgb(from var(--color-text-onbrand) r g b / 0.8);
+      --color-icon-onbrand: var(--color-text-onbrand);
+      --color-icon-onbrand-secondary: var(--color-text-onbrand-secondary);
       --color-bg-selected-strong: var(--color-bg-brand);
       --color-bg-selected-strong-hover: var(--color-bg-brand-hover);
       --color-bg-selected-strong-pressed: var(--color-bg-brand-pressed);
       --color-text-onselected-strong: var(--color-text-onbrand);
+      --color-border-selected: var(--color-bg-brand);
+      --color-border-selected-strong: var(--color-bg-brand);
+      --color-border-brand-strong: var(--color-bg-brand);
+      --color-icon-brand: var(--color-bg-brand);
     }
 
     &:not([data-theme='dark']) .btn--style-primary {
       border-color: oklch(from var(--color-bg-brand) 0 0 0 / clamp(0, (l - 0.9) * 2, 0.15));
     }
 
-    /* 12. Selection */
-    &,
-    [data-theme] {
-      --color-bg-selected: var(--color-bg-tertiary);
-      --color-bg-selected-hover: var(--color-bg-tertiary);
-      --color-bg-selected-pressed: var(--color-bg-tertiary);
+    /* 14. Selection */
+    & {
+      --color-bg-selected: var(--payloadpack-bg-selected, var(--color-bg-tertiary));
+      --color-bg-selected-hover: var(--color-bg-selected);
+      --color-bg-selected-pressed: var(--color-bg-selected);
       --color-text-selected: var(--color-text);
       --color-icon-selected: var(--color-icon);
     }

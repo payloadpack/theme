@@ -11,7 +11,7 @@ const settingsOf = async (pluginConfig: ThemePluginConfig) => {
 }
 
 it('offers editors the allowed palettes, every built-in one by default', async () => {
-  expect((await settingsOf({})).palettes).toEqual(['payload', 'neutral', 'warm'])
+  expect((await settingsOf({})).palettes).toEqual(['payload', 'neutral', 'warm', 'soft'])
   expect((await settingsOf({ palette: 'warm', palettes: ['warm', 'neutral'] })).palettes).toEqual(['warm', 'neutral'])
 })
 

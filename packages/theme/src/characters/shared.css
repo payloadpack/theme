@@ -24,7 +24,6 @@
     .sidebar-tabs__tabs {
       gap: 2px;
       padding: 3px;
-      border: var(--stroke-width-small) solid var(--color-border);
       border-radius: calc(var(--button-radius) + min(var(--button-radius), 3px));
     }
 

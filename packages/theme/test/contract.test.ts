@@ -42,12 +42,15 @@ const scopes: Record<string, string> = {
   'palettes/palette.css': ":where([data-palette]:not([data-palette='payload']))",
   'palettes/warm.css': "[data-palette='warm']",
   'palettes/neutral.css': "[data-palette='neutral']",
+  'palettes/soft.css': "[data-palette='soft']",
   'styles/appearance-panel.css': '.payloadpack-appearance-panel',
   'styles/rail.css': 'html[data-rail]',
   'styles/fields/radio-cards.css': `.${RADIO_CARDS}`,
   'styles/fields/switch.css': `.${SWITCH}`,
   'styles/fields/vertical-tabs.css': `.${VERTICAL_TABS}`
 }
+
+const paletteFiles = ['palettes/neutral.css', 'palettes/soft.css', 'palettes/warm.css']
 
 const keptPayloadIcons = ['dots', 'error', 'eye', 'minimize-maximize', 'sort', 'spinner', 'success']
 
@@ -213,7 +216,12 @@ const hardCodedByPayload = [
     selector: '.dialog__footer',
     declaration: 'padding-block: var(--spacer-2); padding-inline-start: var(--spacer-3); padding-inline-end: var(--spacer-2);'
   },
-  { file: 'icons/Dots/index.css', selector: '.dots', declaration: 'height: var(--spacer-4);' }
+  { file: 'icons/Dots/index.css', selector: '.dots', declaration: 'height: var(--spacer-4);' },
+  {
+    file: 'elements/FileManager/FileToolbar/index.css',
+    selector: '.file-toolbar__filename-btn',
+    declaration: 'padding: var(--spacer-1) var(--spacer-2);'
+  }
 ]
 
 const readByDescendants: Record<string, string[]> = {
@@ -231,6 +239,26 @@ const readByDescendants: Record<string, string[]> = {
 }
 
 const readByTheme = ['--elevation-400-menu-panel']
+
+const copiedFromPayload = [
+  {
+    token: '--elevation-400-menu-panel',
+    value:
+      '0 0 0 1px rgba(0, 0, 0, 0.04), 0 0 0.5px rgba(0, 0, 0, 0.12), 0 10px 16px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.12)'
+  },
+  {
+    token: '--elevation-500-modal-window',
+    value: '0 0 0.5px 0 rgba(0, 0, 0, 0.08), 0 10px 24px 0 rgba(0, 0, 0, 0.18), 0 2px 5px 0 rgba(0, 0, 0, 0.15)'
+  },
+  {
+    token: '--elevation-500-modal-window',
+    value:
+      '0 0.5px 0 0 rgba(255, 255, 255, 0.08) inset, 0 10px 24px 0 rgba(0, 0, 0, 0.45), 0 0 0.5px 0 rgba(255, 255, 255, 0.35) inset, 0 3px 5px 0 rgba(0, 0, 0, 0.35)'
+  },
+  { token: '--field-color-bg', value: 'var(--color-bg)' },
+  { token: '--radius-medium', value: '0.3125rem' },
+  { token: '--radius-large', value: '0.8125rem' }
+]
 
 const read = (file: string) => readFileSync(file, 'utf8')
 const stripComments = (css: string) => css.replace(/\/\*[\s\S]*?\*\//g, '')
@@ -253,6 +281,18 @@ const matchAll = (text: string, pattern: RegExp) => unique([...text.matchAll(pat
 
 const declaredProperties = (css: string) => matchAll(css, /(?<![\w-])(--[\w-]+)\s*:/g)
 const referencedProperties = (css: string) => matchAll(css, /var\(\s*(--[\w-]+)/g)
+const optionalProperties = (css: string) => matchAll(css, /var\(\s*(--payloadpack-[\w-]+)\s*,/g)
+const documented = matchAll(read(path.join(root, '../../README.md')), /^\| `(--payloadpack-[\w-]+)`/gm)
+const tight = (css: string) => squash(css).replace(/\(\s+/g, '(').replace(/\s+\)/g, ')')
+const onRoot = (selector: string, scope: string) =>
+  selector
+    .replace('@layer payload', '')
+    .replace(scope, '')
+    .replace(/@media\s*\([^)]*\)/g, '')
+    .replace(/\[[^\]]*\]/g, '[]')
+    .replace(/\([^()]*\)/g, '()')
+    .split(/[\s,]+/)
+    .every((part) => part === '' || part.startsWith('&'))
 const selectors = (css: string) =>
   [...css.matchAll(/([^{};]+)\{/g)]
     .map((match) => match[1].trim())
@@ -269,8 +309,8 @@ const topLevelBlocks = (css: string) => {
   for (let index = 0; index < css.length; index++) {
     if (css[index] === '{') {
       if (depth === 0) {
-        outside += css.slice(preludeStart, index).replace(/[^{]*$/, '')
-        blocks.push({ body: '', prelude: css.slice(preludeStart, index).trim() })
+        outside += css.slice(preludeStart, index).split(';').slice(0, -1).join(';')
+        blocks.push({ body: '', prelude: css.slice(preludeStart, index).split(';').pop()!.trim() })
         bodyStart = index + 1
       }
       depth++
@@ -409,33 +449,210 @@ describe('theme contract with Payload', () => {
   })
 
   it('reads only tokens that Payload or the plugin declares', () => {
-    const setByProvider = matchAll(read(path.join(sourceDir, 'components/appearance-provider.tsx')), /'(--payloadpack-[\w-]+)'/g)
     const setByPayloadScripts = ['--caret-left']
     const known = new Set([
       ...declaredProperties(payloadCss),
+      ...referencedProperties(payloadCss),
       ...declaredProperties(allThemeCss),
-      ...setByProvider,
       ...setByPayloadScripts
     ])
-    expect(referencedProperties(allThemeCss).filter((token) => !known.has(token))).toEqual([])
+    expect(referencedProperties(allThemeCss).filter((token) => !known.has(token) && !documented.includes(token))).toEqual([])
   })
 
-  it('gives light-mode toasts back every dark token Payload pins on the toaster', () => {
-    const darkTokens = new Set(
-      payloadCssFiles
-        .flatMap((file) => rules(stripComments(read(file))))
-        .filter((rule) => /\[data-theme=['"]?dark['"]?\]$/.test(rule.selector))
-        .flatMap((rule) => rule.properties)
+  it('documents every token a user can set, and only those', () => {
+    const internal = new Set(
+      Object.keys(themeCss)
+        .filter((file) => !paletteFiles.includes(file))
+        .flatMap((file) => declaredProperties(themeCss[file]))
     )
-    const toastCss = ['providers/ToastContainer/index.css', 'elements/Toasts/index.css']
-      .map((file) => read(path.join(uiDist, file)))
-      .join('\n')
+    const settable = unique([
+      ...optionalProperties(allThemeCss).filter((token) => !internal.has(token)),
+      ...paletteFiles.flatMap((file) => declaredProperties(themeCss[file])),
+      ...declaredProperties(themeCss['options/motion.css']).filter((token) => token.startsWith('--payloadpack-motion-'))
+    ])
+    const onScopeRoot = unique(
+      Object.entries(scopes).flatMap(([file, scope]) =>
+        rules(themeCss[file])
+          .filter((rule) => onRoot(rule.selector, scope))
+          .flatMap((rule) => rule.properties)
+      )
+    )
+    expect(
+      documented.filter((token) => !referencedProperties(allThemeCss).includes(token)),
+      'documented but unused'
+    ).toEqual([])
+    expect(
+      documented.filter((token) => !settable.includes(token) && !onScopeRoot.includes(token)),
+      'documented without a default a user can override'
+    ).toEqual([])
+    expect(
+      settable.filter((token) => !documented.includes(token)),
+      'settable but undocumented'
+    ).toEqual([])
+    const belowRoot = rules(themeCss['palettes/palette.css'])
+      .filter((rule) => !onRoot(rule.selector, scopes['palettes/palette.css']))
+      .flatMap((rule) => rule.properties)
+    expect(
+      documented.filter((token) => belowRoot.includes(token)),
+      'sheet token declared below the palette root'
+    ).toEqual([])
+  })
+
+  it('has every palette set its background, surface and text for both modes, and its primary', () => {
+    const required = {
+      dark: ['--payloadpack-bg-app', '--payloadpack-bg-surface', '--payloadpack-text-primary'],
+      light: ['--payloadpack-action-primary', '--payloadpack-bg-app', '--payloadpack-bg-surface', '--payloadpack-text-primary']
+    }
+    const missing = paletteFiles.flatMap((file) => {
+      const [light, dark] = rules(themeCss[file]).filter((rule) => rule.selector.includes('[data-palette='))
+      return [
+        ...required.light.filter((token) => !light.properties.includes(token)).map((token) => `${file} light ${token}`),
+        ...required.dark.filter((token) => !dark.properties.includes(token)).map((token) => `${file} dark ${token}`)
+      ]
+    })
+    expect(missing).toEqual([])
+  })
+
+  it('sets each Payload token on the palette root from one stylesheet only', () => {
+    const owners = new Map<string, string[]>()
+    for (const file of Object.keys(themeCss).filter((name) => name.startsWith('palettes/'))) {
+      const tokens = rules(themeCss[file])
+        .filter((rule) => onRoot(rule.selector, scopes[file]))
+        .flatMap((rule) => rule.properties)
+        .filter((name) => name.startsWith('--') && !name.startsWith('--payloadpack-'))
+      for (const token of unique(tokens)) {
+        owners.set(token, [...(owners.get(token) ?? []), file])
+      }
+    }
+    expect([...owners].filter(([, files]) => files.length > 1).map(([token, files]) => `${token}: ${files.join(', ')}`)).toEqual(
+      []
+    )
+  })
+
+  it('lets palettes set only their own tokens', () => {
+    expect(
+      paletteFiles.flatMap((file) => declaredProperties(themeCss[file])).filter((token) => !token.startsWith('--payloadpack-'))
+    ).toEqual([])
+  })
+
+  it('gives every light color a palette sets a dark value, so it never leaks into dark mode', () => {
+    const declarations = (text: string) =>
+      Object.fromEntries([...text.matchAll(/(?:^|;)\s*(--[\w-]+)\s*:([^;]*)/g)].map(([, token, value]) => [token, value.trim()]))
+    const leaks = paletteFiles.flatMap((file) => {
+      const [light, dark] = rules(themeCss[file])
+        .filter((rule) => rule.selector.includes('[data-palette='))
+        .map((rule) => declarations(rule.declarations))
+      return Object.entries(light)
+        .filter(
+          ([token, value]) =>
+            token !== '--payloadpack-accent' &&
+            /#[\da-f]{3,8}\b|\b(?:rgba?|hsla?|oklab|oklch|color-mix)\(/i.test(value) &&
+            !(token in dark)
+        )
+        .map(([token]) => `${file}: ${token}`)
+    })
+    expect(leaks).toEqual([])
+  })
+
+  it('keeps every duration and easing in the motion tokens', () => {
+    const timing =
+      /(?<![\w.-])(?:\d*\.)?\d+m?s(?![\w-])|(?<![\w-])(?:ease(?:-in|-out|-in-out)?|linear|step-start|step-end)(?![\w-])|(?:cubic-bezier|steps|linear)\(/
+    const loose = Object.entries(themeCss).flatMap(([file, css]) =>
+      rules(css).flatMap(({ declarations }) =>
+        [...declarations.matchAll(/(?:^|;)\s*([\w-]+)\s*:([^;]*)/g)]
+          .filter(([, property, value]) => timing.test(value.replace(/(?<![\w.])0s/g, '')))
+          .filter(([, property]) => !(file === 'options/motion.css' && /^--payloadpack-(?:duration|ease|motion)-/.test(property)))
+          .map(([, property, value]) => `${file}: ${property}: ${value.trim()}`)
+      )
+    )
+    expect(unique(loose)).toEqual([])
+  })
+
+  it('falls back to the step Payload maps each color to in each mode', () => {
+    const colors = read(path.join(uiDist, 'css/colors.css'))
     const palette = themeCss['palettes/palette.css']
-    const handled = [
-      ...declaredProperties(ruleBody(palette, "&[data-theme='light'] .payload-toast-container[data-theme='dark']") ?? ''),
-      ...declaredProperties(ruleBody(palette, '.toast-error') ?? '')
+    const blocks = [
+      { payload: ':root', theme: "&:not([data-theme='dark'])" },
+      { payload: "[data-theme='dark']", theme: "&[data-theme='dark']" }
     ]
-    expect(referencedProperties(toastCss).filter((token) => darkTokens.has(token) && !handled.includes(token))).toEqual([])
+    const mappings = blocks.flatMap(({ payload, theme }) => {
+      const block = tight(ruleBody(palette, theme) ?? '')
+      return [
+        ...[...block.matchAll(/(--color-[\w-]+): var\(--payloadpack-[\w-]+, (var\(--ramp-[\w-]+\))\);/g)].map(
+          ([, token, ramp]) => ({ mapping: `${token}: ${ramp};`, payload })
+        ),
+        ...[...block.matchAll(/(--ramp-[\w-]+): var\(--payloadpack-bg-subtle,/g)].map(([, ramp]) => ({
+          mapping: `--color-bg-secondary: var(${ramp});`,
+          payload
+        }))
+      ]
+    })
+    expect(mappings).toHaveLength(10)
+    expect(mappings.filter(({ mapping, payload }) => !tight(ruleBody(colors, payload) ?? '').includes(mapping))).toEqual([])
+  })
+
+  it("keeps Payload's enhanced-contrast value for every color the mode blocks remap", () => {
+    const declarations = (body: string) =>
+      Object.fromEntries(
+        [...body.matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)].map(([, token, value]) => [token, squash(value.trim())])
+      )
+    const contrast = rules(stripComments(read(path.join(uiDist, 'css/colors.css')))).filter((rule) =>
+      rule.selector.includes('html[data-enhanced-contrast]')
+    )
+    const palette = themeCss['palettes/palette.css']
+    expect(contrast.length).toBeGreaterThan(0)
+    const blocks = {
+      dark: ["&[data-theme='dark']", "&[data-enhanced-contrast][data-theme='dark']"],
+      light: ["&:not([data-theme='dark'])", "&[data-enhanced-contrast]:not([data-theme='dark'])"]
+    }
+    const lost = (['light', 'dark'] as const).flatMap((mode) => {
+      const payload = Object.assign(
+        {},
+        ...contrast
+          .filter(
+            (rule) => !/\[data-theme='(?:light|dark)'\]/.test(rule.selector) || rule.selector.includes(`[data-theme='${mode}']`)
+          )
+          .map((rule) => declarations(rule.declarations))
+      )
+      const remapped = Object.keys(declarations(ruleBody(palette, blocks[mode][0]) ?? ''))
+      const theme = declarations(ruleBody(palette, blocks[mode][1]) ?? '')
+      expect(remapped.length, mode).toBeGreaterThan(0)
+      expect(Object.keys(theme).length, mode).toBeGreaterThan(0)
+      return remapped.filter((token) => token in payload && theme[token] !== payload[token]).map((token) => `${mode} ${token}`)
+    })
+    expect(lost).toEqual([])
+  })
+
+  it.each(copiedFromPayload)("falls back to Payload's own $token where the theme takes it over", ({ token, value }) => {
+    expect(tight(payloadCss), `${token} changed upstream, update the fallback`).toContain(`${token}: ${value};`)
+    expect(tight(allThemeCss)).toMatch(
+      new RegExp(`${token}: var\\(--payloadpack-[\\w-]+, ${value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\);`)
+    )
+  })
+
+  it('lets nested themes inherit every token Payload pins on them, and maps the palette on the root only', () => {
+    const payloadRules = payloadCssFiles.flatMap((file) => rules(stripComments(read(file))))
+    const readers = [...payloadRules, ...rules(allThemeCss)]
+    const pinned = unique(
+      payloadRules
+        .filter((rule) =>
+          rule.selector
+            .replace(/@layer [\w-]+/g, '')
+            .split(',')
+            .some((part) => /(^|[\s>+~])\[data-theme/.test(part.trim()))
+        )
+        .flatMap((rule) => rule.properties)
+        .filter((property) => property.startsWith('--'))
+        .filter((token) => readers.some((rule) => referencedProperties(rule.declarations).includes(token)))
+    )
+    const palette = themeCss['palettes/palette.css']
+    const nested = rules(palette).filter((rule) =>
+      /(^|[\s>+~,])\[data-theme/.test(rule.selector.replace('@layer payload', '').replace(scopes['palettes/palette.css'], ''))
+    )
+    expect(pinned.length).toBeGreaterThan(100)
+    expect(nested).toHaveLength(1)
+    expect(nested[0].selector).toContain('[data-theme]:not([data-palette])')
+    expect(nested[0].properties).toEqual(pinned)
   })
 
   it("falls back to Payload's own blue steps for a palette without an accent", () => {
@@ -534,6 +751,38 @@ describe('theme contract with Payload', () => {
       mapped.filter((icon) => !payloadIcons.includes(icon)),
       'mapped icons Payload no longer has'
     ).toEqual([])
+  })
+
+  it("records Payload's rules for every element the theme styles, so any upstream change shows up", async () => {
+    const styled = new Set(
+      matchAll(selectors(allThemeCss), /\.(-?[_a-zA-Z][\w-]*)/g).filter((name) => !name.startsWith('payloadpack-'))
+    )
+    const label = (file: string) =>
+      file.startsWith(uiDist)
+        ? `@payloadcms/ui/${path.relative(uiDist, file)}`
+        : file.startsWith(lexicalDist)
+          ? `@payloadcms/richtext-lexical/${path.relative(lexicalDist, file)}`
+          : 'sonner/dist/styles.css'
+    const sections = payloadCssFiles
+      .filter((file) => file !== path.join(uiDist, 'styles.css') && !file.endsWith('bundled.css'))
+      .flatMap((file) => {
+        const touched = rules(stripComments(read(file))).filter(
+          (rule) =>
+            rule.declarations.trim() && [...rule.selector.matchAll(/\.(-?[_a-zA-Z][\w-]*)/g)].some(([, name]) => styled.has(name))
+        )
+        return touched.length
+          ? [
+              [
+                `== ${label(file)}`,
+                ...touched.map(
+                  (rule) =>
+                    `${squash(rule.selector.replace(/@layer [\w-]+/g, '')).trim()} { ${squash(rule.declarations).trim()} }`
+                )
+              ].join('\n')
+            ]
+          : []
+      })
+    await expect(`${sections.sort().join('\n\n')}\n`).toMatchFileSnapshot('__snapshots__/payload-rules.txt')
   })
 
   it.each(hardCodedByPayload)('Payload still hard-codes $selector ($declaration)', ({ declaration, file, selector }) => {

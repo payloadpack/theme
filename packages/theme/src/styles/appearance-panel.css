@@ -1,12 +1,12 @@
 @layer payload {
   .payloadpack-appearance-panel {
-    /* 1. Measures */
+    /* 1. Tokens */
     --payloadpack-panel-gutter: 1.25rem;
     --payloadpack-panel-inset: 3px;
     --payloadpack-panel-radius: calc(var(--button-radius) + min(var(--button-radius), var(--payloadpack-panel-inset)));
     --payloadpack-panel-control-height: 1.875rem;
-    --payloadpack-panel-hover: color-mix(in oklab, var(--color-text) 4%, transparent);
     --payloadpack-panel-focus: var(--stroke-width-medium) solid var(--accessibility-focus-color);
+    --payloadpack-panel-card-radius: calc(var(--button-radius) + min(var(--button-radius), var(--spacer-1-5)));
 
     /* 2. Icon buttons */
     .payloadpack-appearance-panel__trigger,
@@ -55,7 +55,7 @@
       border-inline-start: var(--stroke-width-small) solid var(--color-border);
       background-color: var(--color-bg-elevated);
       color: var(--color-text);
-      box-shadow: -16px 0 40px rgb(0 0 0 / 0.16);
+      box-shadow: var(--payloadpack-elevation-dialog, -16px 0 40px rgb(0 0 0 / 0.16));
       font-family: var(--font-family-sans), system-ui, sans-serif;
       font-size: 0.75rem;
       line-height: 1rem;
@@ -73,7 +73,7 @@
         border-inline-start: 0;
         border-top: var(--stroke-width-small) solid var(--color-border);
         border-radius: 1rem 1rem 0 0;
-        box-shadow: 0 -16px 40px rgb(0 0 0 / 0.16);
+        box-shadow: var(--payloadpack-elevation-dialog, 0 -16px 40px rgb(0 0 0 / 0.16));
       }
     }
 
@@ -147,8 +147,7 @@
     /* 4. Cards */
     .payloadpack-appearance-panel__cards {
       display: grid;
-      grid-auto-columns: minmax(0, 1fr);
-      grid-auto-flow: column;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: var(--spacer-2);
 
       label {
@@ -157,7 +156,7 @@
         flex-direction: column;
         gap: var(--spacer-1-5);
         padding: var(--spacer-1-5);
-        border-radius: calc(var(--button-radius) + min(var(--button-radius), var(--spacer-1-5)));
+        border-radius: var(--payloadpack-panel-card-radius);
         background-color: var(--color-bg-secondary);
         box-shadow: 0 0 0 var(--stroke-width-small) var(--color-border);
         font-weight: 500;
@@ -189,15 +188,44 @@
           }
 
           &::after {
-            top: -0.0625rem;
-            right: -0.0625rem;
+            top: calc(1.25rem / 2 - 0.5rem);
+            right: calc(1.25rem / 2 - 0.5rem);
             width: 0.4375rem;
             height: 0.25rem;
             border-bottom: 2px solid var(--color-bg-elevated);
             border-left: 2px solid var(--color-bg-elevated);
+            translate: 50% calc(-50% - (0.25rem - 2px) / (2 * sqrt(2)));
             rotate: -45deg;
           }
         }
+      }
+    }
+
+    .payloadpack-appearance-panel__add {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: var(--spacer-1);
+      padding: var(--spacer-1-5);
+      border: var(--stroke-width-small) dashed var(--color-border-control);
+      border-radius: var(--payloadpack-panel-card-radius);
+      background-color: transparent;
+      color: var(--color-text-secondary);
+      font-weight: 500;
+      cursor: pointer;
+
+      &::before {
+        content: '';
+        width: 1rem;
+        height: 1rem;
+        background-color: currentColor;
+        mask: url('lucide-static/icons/plus.svg') center / contain no-repeat;
+      }
+
+      &:hover {
+        border-color: var(--color-border-control-strong);
+        color: var(--color-text);
       }
     }
 
@@ -313,7 +341,7 @@
         border: var(--stroke-width-small) solid var(--color-border);
         border-radius: 6px;
         background-color: var(--color-bg);
-        box-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
+        box-shadow: var(--payloadpack-elevation-card, 0 1px 2px rgb(0 0 0 / 0.08));
 
         > *,
         > :first-child,
@@ -329,8 +357,8 @@
       flex-direction: column;
       gap: 5px;
       padding: var(--spacer-2) var(--spacer-1-5);
-      background-color: var(--payloadpack-background);
-      color: var(--payloadpack-text);
+      background-color: var(--payloadpack-bg-app);
+      color: var(--payloadpack-text-primary);
 
       > * {
         height: 3px;
@@ -348,20 +376,20 @@
         width: 30%;
         height: 6px;
         border-radius: 2px;
-        background-color: var(--payloadpack-primary, currentColor);
+        background-color: var(--payloadpack-action-primary, currentColor);
       }
     }
 
     .payloadpack-appearance-panel__halves > [data-palette='payload'] {
-      --payloadpack-background: #ffffff;
-      --payloadpack-surface: #ffffff;
-      --payloadpack-text: #1a1a1a;
-      --payloadpack-primary: #0d99ff;
+      --payloadpack-bg-app: #ffffff;
+      --payloadpack-bg-surface: #ffffff;
+      --payloadpack-text-primary: #1a1a1a;
+      --payloadpack-action-primary: #0d99ff;
 
       &[data-theme='dark'] {
-        --payloadpack-background: #2c2c2c;
-        --payloadpack-surface: #2c2c2c;
-        --payloadpack-text: #ffffff;
+        --payloadpack-bg-app: #2c2c2c;
+        --payloadpack-bg-surface: #2c2c2c;
+        --payloadpack-text-primary: #ffffff;
       }
     }
 
@@ -370,7 +398,6 @@
       display: flex;
       gap: 2px;
       padding: var(--payloadpack-panel-inset);
-      border: var(--stroke-width-small) solid var(--color-border);
       border-radius: var(--payloadpack-panel-radius);
       background-color: var(--color-bg-secondary);
 
@@ -391,20 +418,15 @@
         cursor: pointer;
 
         &:hover {
-          background-color: var(--payloadpack-panel-hover);
+          background-color: var(--color-bg-transparent-hover);
           color: var(--color-text);
         }
 
         &:has(:checked) {
-          background-color: var(--color-bg-elevated);
-          box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+          background-color: var(--color-bg);
+          box-shadow: var(--payloadpack-raised-shadow, none);
           color: var(--color-text);
           font-weight: 600;
-        }
-
-        &:has(:checked):is([data-theme='dark'] *) {
-          background-color: color-mix(in oklab, var(--color-text) 14%, var(--color-bg-secondary));
-          box-shadow: none;
         }
       }
     }
@@ -452,7 +474,7 @@
     /* 6. Fine-tune */
     .payloadpack-appearance-panel__fine-tune {
       border: var(--stroke-width-small) solid var(--color-border);
-      border-radius: calc(var(--button-radius) + min(var(--button-radius), var(--spacer-1-5)));
+      border-radius: var(--payloadpack-panel-card-radius);
 
       summary {
         display: flex;
@@ -543,7 +565,7 @@
       cursor: pointer;
 
       &:hover:not(:disabled) {
-        background-color: var(--payloadpack-panel-hover);
+        background-color: var(--color-bg-transparent-hover);
       }
 
       &:disabled {
@@ -741,7 +763,7 @@
       padding: var(--spacer-1);
       border: var(--stroke-width-small) solid var(--color-border);
       border-radius: var(--popup-radius);
-      background-color: var(--color-bg-elevated);
+      background-color: var(--payloadpack-bg-popover, var(--color-bg-elevated));
       color: var(--color-text);
       box-shadow: var(--elevation-400-menu-panel);
       font-size: 0.75rem;
@@ -760,7 +782,7 @@
         cursor: pointer;
 
         &:hover {
-          background-color: color-mix(in oklab, var(--color-text) 6%, transparent);
+          background-color: var(--color-bg-transparent-hover);
         }
       }
     }

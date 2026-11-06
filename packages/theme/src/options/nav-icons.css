@@ -9,6 +9,7 @@
     .nav__link[id*='categor'] { --payloadpack-icon: url('lucide-static/icons/folder-tree.svg'); }
     .nav__link[id*='order'] { --payloadpack-icon: url('lucide-static/icons/package.svg'); }
     .nav__link[id*='product'] { --payloadpack-icon: url('lucide-static/icons/shopping-cart.svg'); }
+    .nav__link[id*='customer'] { --payloadpack-icon: url('lucide-static/icons/contact-round.svg'); }
     .nav__link[id*='media'] { --payloadpack-icon: url('lucide-static/icons/image.svg'); }
     .nav__link[id*='upload'] { --payloadpack-icon: url('lucide-static/icons/upload.svg'); }
     .nav__link[id*='form'] { --payloadpack-icon: url('lucide-static/icons/file-text.svg'); }
