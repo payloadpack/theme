@@ -645,10 +645,14 @@ html[data-enhanced-contrast] .nav-group__toggle .nav-group__indicator { opacity:
 .react-select--error .rs__control:hover { border-color: var(--field-color-border-error); }
 .react-select--error:focus-within div.rs__control { border-color: var(--field-color-border-focus); }
 
+== @payloadcms/ui/elements/RelationshipTable/cells/DrawerLink/index.css
+.drawer-link { display: flex; align-items: center; gap: var(--spacer-1); }
+
 == @payloadcms/ui/elements/RelationshipTable/index.css
 .relationship-table__toggle-columns .btn__icon { color: var(--color-icon-secondary); }
 .relationship-table__toggle-columns:hover .btn__icon { color: var(--color-text); }
 .relationship-table__add-new-polymorphic .btn__label { display: flex; text-wrap: nowrap; align-items: center; }
+.relationship-table .table &:not(.table--appearance-condensed) table [class^='cell'] > p, [class^='cell'] > span, [class^='cell'] > a { line-clamp: 4; -webkit-box-orient: vertical; -webkit-line-clamp: 4; overflow: hidden; display: -webkit-box; max-width: 100vw; }
 .field-type.error .relationship-table .table { border-color: var(--color-border-danger-strong); }
 
 == @payloadcms/ui/elements/Search/SearchInput/index.css
@@ -685,6 +689,28 @@ html[data-enhanced-contrast] .nav-group__toggle .nav-group__indicator { opacity:
 == @payloadcms/ui/elements/Table/DefaultCell/fields/Hierarchy/index.css
 .hierarchy-cell__button .btn__content { gap: 0; }
 .hierarchy-cell__button .btn__label { min-inline-size: 0; }
+
+== @payloadcms/ui/elements/Table/index.css
+.table--appearance-condensed { border: var(--stroke-width-small) solid var(--color-border); border-radius: var(--radius-medium); scrollbar-width: thin; scrollbar-color: var(--scrollbar-color) transparent; tbody tr { background: var(--color-bg); } }
+.table--appearance-condensed table { border-collapse: collapse; }
+.table--appearance-condensed thead { background: var(--color-bg-secondary); }
+.table--appearance-condensed thead th { height: var(--spacer-5); }
+.table--appearance-condensed thead th:first-child { border-top-left-radius: var(--radius-medium); }
+.table--appearance-condensed thead th:last-child { border-top-right-radius: var(--radius-medium); }
+.table--appearance-condensed tbody tr { background: var(--color-bg); }
+.table--appearance-condensed tbody tr &:last-child td:first-child { border-bottom-left-radius: var(--radius-medium); }
+.table--appearance-condensed tbody tr &:last-child td:last-child { border-bottom-right-radius: var(--radius-medium); }
+.table--appearance-condensed th, td { padding: 0 var(--spacer-2-5); min-width: 120px; height: var(--spacer-5); line-height: var(--text-body-medium-line-height); vertical-align: middle; border-right: var(--stroke-width-small) solid var(--color-border); }
+.table--appearance-condensed th, td &:last-child { border-right: none; }
+.table--appearance-condensed th, td &:first-child { padding-inline-start: var(--spacer-2-5); }
+.table--appearance-condensed th, td > span, > a { display: flex; align-items: center; height: 100%; }
+.table--appearance-condensed td.cell--linked { padding: 0; }
+.table--appearance-condensed td.cell--linked &:first-child, &:last-child { padding: 0; }
+.table--appearance-condensed td.cell--linked > :is(a, button, .drawer-link) { display: flex; align-items: center; width: 100%; padding: 0 var(--spacer-2-5); min-height: var(--spacer-5); }
+.table--appearance-condensed td.cell--linked > :is(a, button) { cursor: pointer; }
+.table--appearance-condensed td.cell--linked &:first-child > :is(a, button, .drawer-link) { padding-inline-start: var(--spacer-2-5); }
+.table--appearance-condensed tbody td { border-top: var(--stroke-width-small) solid var(--color-border); }
+.table--appearance-condensed th { border-bottom: var(--stroke-width-small) solid var(--color-border); }
 
 == @payloadcms/ui/elements/TimezonePicker/index.css
 .timezone-picker-wrapper .timezone-picker.react-select { display: inline-flex; position: static; }

@@ -20,9 +20,7 @@ export async function AppearanceServerProvider(props: Props) {
   const cookieName = `${payload.config.cookiePrefix}-appearance`
   const railCookieName = `${payload.config.cookiePrefix}-nav-rail`
   const editable = isEditable(panel, user)
-  const { choices, storedIsOlder } = editable
-    ? await savedChoices({ ...props, cookieName })
-    : { choices: {}, storedIsOlder: false }
+  const { choices, unsaved } = editable ? await savedChoices({ ...props, cookieName }) : { choices: {}, unsaved: false }
   const initialRail = (await server.getCookies()).get(railCookieName)?.value === 'true'
 
   return (
@@ -32,7 +30,7 @@ export async function AppearanceServerProvider(props: Props) {
       editable={editable}
       initialChoices={choices}
       initialRail={initialRail}
-      storedIsOlder={storedIsOlder}
+      initialUnsaved={unsaved}
       key={accountOf(user)}
       preferenceURL={formatAdminURL({ apiRoute: payload.config.routes.api, path: `/payload-preferences/${preferenceKey}` })}
       railCookieName={railCookieName}

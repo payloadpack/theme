@@ -36,7 +36,6 @@ export const baseTokens: Base = {
 export type CustomPalette = { accent: string; dark: Base; light: Base }
 
 export type Choices = {
-  at?: number
   character?: Character
   custom?: CustomPalette
   options?: Partial<Record<Character, Values>>
@@ -104,7 +103,6 @@ export function normalize(settings: Settings, input: unknown): Choices {
   const custom = customOf(raw.custom)
   const picksCustom = custom && settings.palettes.length > 1 && raw.palette === customPalette
   const choices = {
-    at: typeof raw.at === 'number' && Number.isFinite(raw.at) ? raw.at : undefined,
     character,
     custom,
     options: options.length ? Object.fromEntries(options) : undefined,
@@ -211,12 +209,13 @@ export function parseChoices(settings: Settings, text: string | undefined): Choi
 
 export function storedChoices(settings: Settings, preference: unknown, cookie: string | undefined, account: string | undefined) {
   const parsed = parseJson(cookie)
-  const fromCookie = isRecord(parsed) ? normalize(settings, parsed) : undefined
-  if (preference == null) {
-    return { choices: fromCookie ?? {}, storedIsOlder: false }
+  const fromCookie = isRecord(parsed) ? normalize(settings, parsed) : {}
+  const owner = isRecord(parsed) ? parsed.by : undefined
+  if (account !== undefined && owner === account && isRecord(parsed) && parsed.unsaved === true) {
+    return { choices: fromCookie, unsaved: true }
   }
-  const stored = normalize(settings, preference)
-  const newer =
-    fromCookie && account !== undefined && isRecord(parsed) && parsed.by === account && (fromCookie.at ?? 0) > (stored.at ?? 0)
-  return newer ? { choices: fromCookie, storedIsOlder: true } : { choices: stored, storedIsOlder: false }
+  if (preference != null) {
+    return { choices: normalize(settings, preference), unsaved: false }
+  }
+  return { choices: account === undefined || owner === undefined || owner === account ? fromCookie : {}, unsaved: false }
 }

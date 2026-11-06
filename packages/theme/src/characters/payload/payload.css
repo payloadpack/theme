@@ -2,7 +2,7 @@
   html[data-character='payload'] {
     /* 1. Nav */
     @media (min-width: 769px) {
-      .nav__header .user-menu {
+      .nav:has(.payloadpack-appearance-panel--nav) .nav__header .user-menu {
         margin-inline-end: calc(var(--spacer-5) + 2 * var(--spacer-1));
       }
 

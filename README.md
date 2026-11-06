@@ -258,7 +258,7 @@ Every palette but Payload's is drawn from one short sheet of tokens. Payload's s
 | `--payloadpack-bg-selected`           | Selected nav links, rows and options; flat with `--payloadpack-elevation-selected: none`            |
 | `--payloadpack-bg-field`              | Text fields, selects and code editors, a shade lighter than the surface in dark mode                |
 | `--payloadpack-bg-popover`            | Menus, select lists, the date picker and the slash menu; the surface, lighter in dark               |
-| `--payloadpack-border-default`        | Lines and field borders                                                                             |
+| `--payloadpack-border-default`        | Lines, field borders and the edge of menus, select lists and toasts                                 |
 | `--payloadpack-text-secondary`        | Labels, descriptions, the nav and secondary icons                                                   |
 | `--payloadpack-text-muted`            | Placeholders, group headings and hints                                                              |
 | `--payloadpack-text-disabled`         | Disabled buttons, options and their icons                                                           |

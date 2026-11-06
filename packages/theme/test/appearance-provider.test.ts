@@ -21,8 +21,8 @@ const render = (settings: Settings, initialChoices: Choices = {}, initialRail = 
         initialRail,
         preferenceURL: '/api/payload-preferences/payloadpack-appearance',
         railCookieName: 'payload-nav-rail',
-        settings,
-        storedIsOlder: false
+        initialUnsaved: false,
+        settings
       })
     })
   )

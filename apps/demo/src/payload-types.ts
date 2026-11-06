@@ -130,6 +130,7 @@ export interface Config {
   collectionsJoins: {
     categories: {
       posts: 'posts';
+      products: 'products';
     };
     customers: {
       orders: 'orders';
@@ -520,6 +521,11 @@ export interface Category {
     hasNextPage?: boolean;
     totalDocs?: number;
   };
+  products?: {
+    docs?: (number | Product)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
   slug: string;
   createdBy?: {
     relationTo: 'users';
@@ -531,22 +537,6 @@ export interface Category {
   } | null;
   updatedAt: string;
   createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "Faq".
- */
-export interface Faq {
-  items?:
-    | {
-        question: string;
-        answer?: string | null;
-        id?: string | null;
-      }[]
-    | null;
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'faq';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -595,6 +585,22 @@ export interface Product {
   } | null;
   updatedAt: string;
   createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "Faq".
+ */
+export interface Faq {
+  items?:
+    | {
+        question: string;
+        answer?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'faq';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -995,6 +1001,7 @@ export interface CategoriesSelect<T extends boolean = true> {
   description?: T;
   parent?: T;
   posts?: T;
+  products?: T;
   slug?: T;
   createdBy?: T;
   updatedBy?: T;

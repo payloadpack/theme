@@ -25,14 +25,15 @@
       --payloadpack-motion-panel-duration: var(--payloadpack-duration-slow);
       --payloadpack-motion-panel-easing: ease-out;
       --payloadpack-duration-exit: calc(var(--payloadpack-motion-enter-duration) * 2 / 3);
+      --payloadpack-duration-tooltip-exit: min(var(--payloadpack-duration-exit), 200ms);
       --payloadpack-duration-label: calc(var(--payloadpack-motion-panel-duration) * 0.75);
       --payloadpack-duration-avatar: calc(var(--payloadpack-motion-panel-duration) / 2);
 
       /* 2. Tooltips */
       .tooltip {
         transition:
-          opacity var(--payloadpack-duration-exit) var(--payloadpack-motion-enter-easing),
-          visibility var(--payloadpack-duration-exit) var(--payloadpack-motion-enter-easing);
+          opacity var(--payloadpack-duration-tooltip-exit) var(--payloadpack-motion-enter-easing),
+          visibility var(--payloadpack-duration-tooltip-exit) var(--payloadpack-motion-enter-easing);
       }
 
       .tooltip--show {
@@ -142,9 +143,10 @@
         opacity: 0;
         scale: 0.95;
         transition:
-          all 0s var(--payloadpack-duration-exit) allow-discrete,
+          all 0s var(--payloadpack-duration-exit),
           opacity var(--payloadpack-duration-exit) var(--payloadpack-motion-enter-easing),
           scale var(--payloadpack-duration-exit) var(--payloadpack-motion-enter-easing);
+        transition-behavior: allow-discrete, normal, normal;
       }
 
       /* 7. Nav */
@@ -234,9 +236,10 @@
         opacity: calc(1 - min(var(--payloadpack-avatar), 1 - var(--payloadpack-avatar)) * 2);
         transition:
           font-size 0s var(--payloadpack-duration-avatar),
-          line-height 0s var(--payloadpack-duration-avatar) allow-discrete,
+          line-height 0s var(--payloadpack-duration-avatar),
           --payloadpack-avatar var(--payloadpack-motion-panel-duration) var(--payloadpack-ease-linear),
-          text-transform var(--payloadpack-motion-panel-duration) var(--payloadpack-ease-linear) allow-discrete;
+          text-transform var(--payloadpack-motion-panel-duration) var(--payloadpack-ease-linear);
+        transition-behavior: normal, allow-discrete, normal, allow-discrete;
       }
 
       &[data-rail] .user-menu__trigger .btn__label {
@@ -264,7 +267,8 @@
       .nav-group__label {
         transition:
           opacity var(--payloadpack-duration-label) var(--payloadpack-motion-panel-easing),
-          white-space 0s var(--payloadpack-motion-panel-duration) allow-discrete;
+          white-space 0s var(--payloadpack-motion-panel-duration);
+        transition-behavior: normal, allow-discrete;
       }
 
       .nav-group__indicator .icon--chevron {
@@ -273,9 +277,10 @@
 
       &[data-rail] :is(.nav__link-label, .nav-group__label) {
         transition:
-          all 0s var(--payloadpack-motion-panel-duration) allow-discrete,
+          all 0s var(--payloadpack-motion-panel-duration),
           opacity var(--payloadpack-duration-label) var(--payloadpack-motion-panel-easing),
-          white-space 0s allow-discrete;
+          white-space 0s;
+        transition-behavior: allow-discrete, normal, allow-discrete;
       }
 
       /* 8. Appearance panel */
@@ -283,8 +288,9 @@
         translate: 100% 0;
         transition:
           translate var(--payloadpack-duration-slow) var(--payloadpack-ease-out),
-          display var(--payloadpack-duration-slow) allow-discrete,
-          overlay var(--payloadpack-duration-slow) allow-discrete;
+          display var(--payloadpack-duration-slow),
+          overlay var(--payloadpack-duration-slow);
+        transition-behavior: normal, allow-discrete, allow-discrete;
 
         &:popover-open {
           translate: 0;
@@ -302,6 +308,20 @@
           &:popover-open {
             @starting-style {
               translate: 0 100%;
+            }
+          }
+        }
+      }
+
+      @media (width > 768px) {
+        &[dir='rtl'] .payloadpack-appearance-panel__sheet {
+          translate: -100% 0;
+
+          &:popover-open {
+            translate: 0;
+
+            @starting-style {
+              translate: -100% 0;
             }
           }
         }

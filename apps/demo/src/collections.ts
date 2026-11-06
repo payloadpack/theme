@@ -138,6 +138,13 @@ export const collections: CollectionConfig[] = [
       { name: 'description', type: 'textarea' },
       { name: 'parent', type: 'relationship', relationTo: 'categories' },
       { name: 'posts', type: 'join', collection: 'posts', on: 'categories' },
+      {
+        name: 'products',
+        type: 'join',
+        collection: 'products',
+        on: 'categories',
+        admin: { defaultColumns: ['inStock', 'title', 'price'] }
+      },
       { name: 'slug', type: 'slug', useAsSlug: 'name' }
     ]
   },

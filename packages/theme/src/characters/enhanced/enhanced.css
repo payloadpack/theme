@@ -1,11 +1,6 @@
 @layer payload {
   html[data-character='enhanced'] {
-    /* 1. Date picker */
-    .react-datepicker {
-      box-shadow: var(--elevation-400-menu-panel);
-    }
-
-    /* 2. Checkbox and radio */
+    /* 1. Checkbox and radio */
     .checkbox-input__mark-halo {
       display: none;
     }
@@ -14,11 +9,7 @@
       border-width: var(--stroke-width-small);
     }
 
-    /* 3. Toasts */
-    .payload-toast-item {
-      box-shadow: var(--elevation-400-menu-panel);
-    }
-
+    /* 2. Toasts */
     .payload-toast-item [data-button] {
       flex-shrink: 0;
       height: var(--spacer-4);
@@ -34,12 +25,16 @@
       }
     }
 
-    /* 4. Nav */
-    .nav__header .user-menu {
-      margin-inline-end: calc(2 * (var(--spacer-5) + var(--spacer-1)));
-    }
-
+    /* 3. Nav */
     @media (min-width: 769px) {
+      .nav__header .user-menu {
+        margin-inline-end: calc(var(--spacer-5) + var(--spacer-1));
+      }
+
+      .nav:has(.payloadpack-appearance-panel--nav) .nav__header .user-menu {
+        margin-inline-end: calc(2 * (var(--spacer-5) + var(--spacer-1)));
+      }
+
       .payloadpack-nav-bar {
         position: absolute;
         inset-block-start: calc(var(--spacer-2) + (var(--button-height) - var(--spacer-5)) / 2);

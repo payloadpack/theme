@@ -77,7 +77,8 @@
 
     /* 4. Checkbox cells */
     .payloadpack-checkbox-cell {
-      > * {
+      > :not(.drawer-link),
+      .drawer-link__cell {
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -100,13 +101,20 @@
         font-size: 0;
       }
 
-      &[data-value='false'] > * {
+      &[data-value='false'] > :not(.drawer-link),
+      &[data-value='false'] .drawer-link__cell {
         opacity: 0.6;
 
         &::before {
           mask-image: url('lucide-static/icons/x.svg');
         }
       }
+    }
+
+    /* 5. Floating surfaces */
+    .payload-toast-item,
+    .react-datepicker {
+      box-shadow: var(--elevation-400-menu-panel);
     }
   }
 }

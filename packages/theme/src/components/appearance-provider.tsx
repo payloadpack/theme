@@ -59,7 +59,7 @@ type AppearanceContextValue = ReturnType<typeof resolve> & {
   setPalette: (palette: string) => void
   setup: Choices
   toggleRail: () => void
-  unsaved: boolean
+  failed: boolean
 }
 
 const AppearanceContext = createContext<AppearanceContextValue | null>(null)
@@ -76,7 +76,7 @@ type AppearanceProviderProps = {
   preferenceURL: string
   railCookieName: string
   settings: Settings
-  storedIsOlder: boolean
+  initialUnsaved: boolean
 }
 
 export function AppearanceProvider({
@@ -87,19 +87,21 @@ export function AppearanceProvider({
   initialChoices,
   initialRail,
   preferenceURL,
+  initialUnsaved,
   railCookieName,
-  settings,
-  storedIsOlder
+  settings
 }: AppearanceProviderProps) {
   const [choices, setChoices] = useState(initialChoices)
   const [draft, setDraft] = useState<CustomPalette>()
   const [rail, setRail] = useState(initialRail)
-  const [unsaved, setUnsaved] = useState(false)
+  const [unsaved, setUnsaved] = useState(initialUnsaved)
+  const [failed, setFailed] = useState(false)
   const latest = useRef(choices)
   const saving = useRef(Promise.resolve())
   const pending = useRef<((current: Choices) => Choices)[]>([])
   const { user } = useAuth()
-  const signedInAs = useRef(accountOf(user))
+  const owner = useRef(accountOf(user))
+  const signedInAs = useRef(owner.current)
   const router = useRouter()
   const resolved = useMemo(
     () => resolve(settings, draft ? { ...choices, custom: draft, palette: customPalette } : choices),
@@ -150,12 +152,10 @@ export function AppearanceProvider({
   useEffect(() => {
     latest.current = choices
     if (editable) {
-      writeCookie(
-        cookieName,
-        Object.keys(choices).length ? encodeURIComponent(JSON.stringify({ ...choices, by: accountOf(user) })) : undefined
-      )
+      const value = { ...choices, ...(owner.current ? { by: owner.current } : {}), ...(unsaved ? { unsaved } : {}) }
+      writeCookie(cookieName, Object.keys(choices).length || unsaved ? encodeURIComponent(JSON.stringify(value)) : undefined)
     }
-  }, [choices, cookieName, editable, user])
+  }, [choices, cookieName, editable, unsaved])
 
   useEffect(() => {
     writeCookie(railCookieName, rail ? 'true' : undefined)
@@ -169,17 +169,20 @@ export function AppearanceProvider({
 
   const update = useCallback(
     (change: (current: Choices) => Choices) => {
-      const at = Date.now()
-      const stamped = (current: Choices) => ({ ...change(current), at })
       setDraft(undefined)
-      setChoices((current) => normalize(settings, stamped(current)))
-      pending.current.push(stamped)
-      saving.current = saving.current
-        .then(async () => {
-          const changes = pending.current.splice(0)
-          if (!changes.length) {
-            return
-          }
+      setChoices((current) => normalize(settings, change(current)))
+      setUnsaved(true)
+      pending.current.push(change)
+      saving.current = saving.current.then(async () => {
+        const changes = pending.current.splice(0)
+        if (!changes.length) {
+          return
+        }
+        const retry = () => {
+          pending.current.unshift(...changes)
+          setFailed(true)
+        }
+        try {
           const stored = await fetch(preferenceURL, { credentials: 'include' })
           const saved: unknown = stored.ok ? (await stored.json()).value : null
           const base = saved == null ? latest.current : normalize(settings, saved)
@@ -193,18 +196,27 @@ export function AppearanceProvider({
             headers: { 'Content-Type': 'application/json' },
             method: 'POST'
           })
-          setUnsaved(!response.ok)
-        })
-        .catch(() => setUnsaved(true))
+          if (!response.ok) {
+            retry()
+            return
+          }
+          setFailed(false)
+          if (!pending.current.length) {
+            setUnsaved(false)
+          }
+        } catch {
+          retry()
+        }
+      })
     },
     [preferenceURL, settings]
   )
 
   useEffect(() => {
-    if (storedIsOlder) {
+    if (initialUnsaved) {
       update(() => initialChoices)
     }
-  }, [initialChoices, storedIsOlder, update])
+  }, [initialChoices, initialUnsaved, update])
 
   const context = useMemo(() => {
     return {
@@ -247,9 +259,9 @@ export function AppearanceProvider({
       setPalette: (next: string) => update((current) => ({ ...current, palette: next })),
       setup: setupOf(resolved),
       toggleRail: () => setRail(!rail),
-      unsaved
+      failed
     }
-  }, [character, choices, editable, resolved, rail, settings, unsaved, update])
+  }, [character, choices, editable, failed, resolved, rail, settings, update])
 
   return (
     <AppearanceContext value={context}>

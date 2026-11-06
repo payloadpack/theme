@@ -350,12 +350,11 @@ test.describe('Appearance panel', () => {
     await pickAndSave(page, label(choice(sheet, 'Density', 'Compact')))
 
     const stored = async () => (await (await page.request.get('/api/payload-preferences/payloadpack-appearance')).json()).value
-    expect(await stored()).toEqual({ at: expect.any(Number), palette: 'warm', personal: { density: 'compact' } })
+    expect(await stored()).toEqual({ palette: 'warm', personal: { density: 'compact' } })
 
     await saveSetup(page.request, { character: 'studio', palette: 'warm', personal: { density: 'compact' } })
     await pickAndSave(page, label(choice(sheet, 'Palette', 'Soft')))
     expect(await stored()).toEqual({
-      at: expect.any(Number),
       character: 'studio',
       palette: 'soft',
       personal: { density: 'compact' }
@@ -658,6 +657,21 @@ test.describe('Appearance panel', () => {
 })
 
 test.describe('Theme values', () => {
+  test('gives join tables the list rows in comfortable density and leaves them condensed in compact', async ({ page }) => {
+    await page.context().addCookies([appearance({ options: { enhanced: { density: 'comfortable' } } })])
+    const { docs } = await (await page.request.get('/api/categories?where[name][equals]=Community&limit=1&depth=0')).json()
+    const rowHeight = (row: Locator) => row.evaluate((element) => element.getBoundingClientRect().height)
+    const joinRow = page.locator('.field-type.join').filter({ hasText: 'Products' }).locator('tbody tr').first()
+
+    await page.goto('/admin/collections/products')
+    const listRow = await rowHeight(page.locator('.table tbody tr').first())
+    await page.goto(`/admin/collections/categories/${docs[0].id}`)
+    expect(await rowHeight(joinRow)).toBe(listRow)
+
+    await reloadWith(page, [appearance({ options: { enhanced: { density: 'compact' } } })])
+    expect(await rowHeight(joinRow)).toBeLessThan(listRow)
+  })
+
   test("comfortable density sizes an upload's file actions and centers their icons", async ({ page }) => {
     await page.goto('/admin/collections/media')
     await page.locator('table tbody tr a').first().click()
@@ -1775,6 +1789,63 @@ test.describe('App palettes', () => {
   })
 })
 
+test.describe('Floating surfaces', () => {
+  const edge = (surface: Locator) =>
+    surface.evaluate((element) => {
+      const context = document.createElement('canvas').getContext('2d')!
+      const paint = (...colors: string[]) => {
+        for (const color of colors) {
+          context.fillStyle = color
+          context.fillRect(0, 0, 1, 1)
+        }
+        return [...context.getImageData(0, 0, 1, 1).data.slice(0, 3)]
+      }
+      const luminance = (rgb: number[]) =>
+        rgb
+          .map((channel) => channel / 255)
+          .map((channel) => (channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4))
+          .reduce((sum, channel, index) => sum + channel * [0.2126, 0.7152, 0.0722][index], 0)
+      const style = getComputedStyle(element)
+      const ring = style.boxShadow.match(/^([a-z]+\([^)]*\)) 0px 0px 0px ([\d.]+)px/)
+      if (!ring) {
+        return { border: style.borderTopWidth, contrast: 1 }
+      }
+      const [line, fill] = [luminance(paint(style.backgroundColor, ring[1])), luminance(paint(style.backgroundColor))]
+      return { border: style.borderTopWidth, contrast: (Math.max(line, fill) + 0.05) / (Math.min(line, fill) + 0.05) }
+    })
+
+  const outlined = async (surface: Locator, name: string) => {
+    const { border, contrast } = await edge(surface)
+    expect(border, `${name} border`).toBe('0px')
+    expect(contrast, `${name} ring`).toBeGreaterThan(1.1)
+  }
+
+  for (const palette of ['neutral', 'warm', 'soft'] as const) {
+    for (const theme of ['light', 'dark'] as const) {
+      test(`edges toasts, menus, select lists and the date picker with one 1px ring on ${palette} in ${theme} mode`, async ({
+        page
+      }) => {
+        await page.context().addCookies([appearance({ character: 'studio', palette }), cookie('theme', theme)])
+        await page.goto('/admin/toasts')
+        await page.getByRole('button', { name: 'Success' }).click()
+        await outlined(page.locator('.payload-toast-item').first(), 'toast')
+
+        await page.goto((await findShowcase(page)).path)
+        await page.getByRole('button', { name: 'More options' }).first().click()
+        await outlined(page.locator('.popup__content'), 'menu')
+        await page.keyboard.press('Escape')
+
+        await page.locator('.field-type.select .rs__control').first().click()
+        await outlined(page.locator('.rs__menu'), 'select list')
+        await page.keyboard.press('Escape')
+
+        await page.locator('.react-datepicker__input-container input').first().click()
+        await outlined(page.locator('.react-datepicker'), 'date picker')
+      })
+    }
+  }
+})
+
 test.describe('Custom palette', () => {
   const field = (sheet: Locator, half: string, name: string) => sheet.getByLabel(`${name}, ${half}`, { exact: true })
   const accent = (sheet: Locator) => sheet.getByLabel('Accent, Both modes', { exact: true })
@@ -1927,6 +1998,46 @@ test.describe('Custom palette', () => {
 
     await pickAndSave(page, label(choice(sheet, 'Style', 'Studio')))
     await expect(page.locator('html')).toHaveAttribute('data-font', 'inter')
+  })
+
+  test('lines the Share menu up with its button, and docks the sheet on the inline end in right-to-left layouts', async ({
+    page
+  }) => {
+    await page.goto('/admin')
+    const ltrSheet = await openAppearancePanel(page)
+    await ltrSheet.getByRole('button', { name: 'Share setup' }).click()
+    const start = async (selector: string) => Math.round((await page.locator(selector).boundingBox())!.x)
+    await expect
+      .poll(() => start('.payloadpack-appearance-panel__menu'))
+      .toBe(await start('.payloadpack-appearance-panel__share'))
+
+    await page.reload()
+    await page.evaluate(() => (document.documentElement.dir = 'rtl'))
+    const sheet = await openAppearancePanel(page)
+    await expect.poll(async () => (await page.locator('.payloadpack-appearance-panel__sheet').boundingBox())?.x).toBe(0)
+
+    await sheet.getByRole('button', { name: 'Share setup' }).click()
+    const edge = async (selector: string) => {
+      const box = (await page.locator(selector).boundingBox())!
+      return Math.round(box.x + box.width)
+    }
+    await expect.poll(() => edge('.payloadpack-appearance-panel__menu')).toBe(await edge('.payloadpack-appearance-panel__share'))
+  })
+
+  test('keeps the focus in the panel after Remove custom colors, Reset and Undo', async ({ page }) => {
+    await page.goto('/admin')
+    const sheet = await openAppearancePanel(page)
+    await pickAndSave(page, sheet.getByRole('button', { name: 'Custom colors' }))
+    await pickAndSave(page, sheet.getByRole('button', { name: 'Remove custom colors' }))
+    await expect(sheet.getByRole('button', { name: 'Custom colors' })).toBeFocused()
+
+    await openFineTune(sheet)
+    await pickAndSave(page, label(choice(sheet, 'Density', 'Compact')))
+    await pickAndSave(page, sheet.getByRole('button', { name: 'Reset Enhanced' }))
+    const undo = sheet.getByRole('button', { name: 'Undo' })
+    await expect(undo).toBeFocused()
+    await pickAndSave(page, undo)
+    await expect(sheet.locator('summary')).toBeFocused()
   })
 
   test('keeps the focus in the palettes when the arrow keys come back to Custom', async ({ page }) => {
@@ -2692,6 +2803,19 @@ test.describe('Soft palette', () => {
 })
 
 test.describe('Checkbox cells', () => {
+  test("shows the mark next to Payload's edit button in a join table's linked first column", async ({ page }) => {
+    const { docs } = await (await page.request.get('/api/categories?where[name][equals]=Community&limit=1&depth=0')).json()
+    await page.goto(`/admin/collections/categories/${docs[0].id}`)
+    const first = page.locator('.field-type.join').filter({ hasText: 'Products' }).locator('tbody tr').first()
+    const mark = first.locator('.payloadpack-checkbox-cell .drawer-link__cell')
+    const edit = first.getByRole('button', { name: 'Edit' })
+
+    await expect(mark).toHaveCSS('width', '24px')
+    expect(await mark.evaluate((cell) => getComputedStyle(cell, '::before').maskImage)).toMatch(/x\.svg|check\.svg|data:/)
+    await expect(edit).toBeVisible()
+    expect((await edit.boundingBox())!.x).toBeGreaterThanOrEqual((await mark.boundingBox())!.x + 24)
+  })
+
   const firstColumn = (accessor: string) =>
     `/admin/collections/products?columns=${encodeURIComponent(JSON.stringify([accessor, 'title']))}`
 

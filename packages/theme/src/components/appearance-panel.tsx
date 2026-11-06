@@ -2,7 +2,7 @@
 
 import { PayloadIcon, useConfig, useTheme, useTranslation, XIcon } from '@payloadcms/ui'
 import type { StaticLabel } from 'payload'
-import { Fragment, type ReactNode, useEffect, useId, useRef, useState } from 'react'
+import { Fragment, type ReactNode, useCallback, useEffect, useId, useRef, useState } from 'react'
 
 import { characters as registry, type Option, options } from '../characters/index.js'
 import { type Base, bases, baseTokens, type CustomPalette, customPalette, hexOf, paletteCss } from '../lib/appearance.js'
@@ -201,22 +201,32 @@ export function AppearanceSheet() {
     setOption,
     setPalette,
     setup,
-    unsaved,
+    failed,
     values
   } = useAppearance()
   const { autoMode, setTheme, theme } = useTheme()
   const { config } = useConfig()
   const { i18n, t } = useTranslation<object, TranslationKey>()
   const [focusEditor, setFocusEditor] = useState(false)
+  const focusesAdd = useRef(false)
+  const fineTune = useRef<HTMLElement>(null)
+  const focusUndo = useCallback((element: HTMLButtonElement | null) => {
+    element?.focus()
+    return () => {
+      if (element && document.activeElement === element) {
+        fineTune.current?.focus()
+      }
+    }
+  }, [])
   const [status, setStatus] = useStatus()
-  const shown: Status | undefined = unsaved ? { message: t('payloadpack:setupUnsaved'), tone: 'error' } : status
+  const shown: Status | undefined = status ?? (failed ? { message: t('payloadpack:setupUnsaved'), tone: 'error' } : undefined)
   const characterName = t(`payloadpack:character${capitalize(character)}` as TranslationKey)
   const css = custom && paletteCss(customPalette, custom)
   const paletteName = ({ label, slug }: { label?: StaticLabel; slug: string }) => {
     if (!label) {
       return t(`payloadpack:palette${capitalize(slug)}` as TranslationKey)
     }
-    return typeof label === 'string' ? label : (label[i18n.language] ?? Object.values(label)[0])
+    return typeof label === 'string' ? label : (label[i18n.language] ?? label[i18n.fallbackLanguage] ?? Object.values(label)[0])
   }
   const supported = Object.keys(registry[character].defaults) as Option[]
 
@@ -308,6 +318,12 @@ export function AppearanceSheet() {
                       <button
                         aria-label={t('payloadpack:customColors')}
                         className="payloadpack-appearance-panel__add"
+                        ref={(element) => {
+                          if (element && focusesAdd.current) {
+                            focusesAdd.current = false
+                            element.focus()
+                          }
+                        }}
                         onClick={(event) => {
                           const cards = event.currentTarget
                             .closest('section')
@@ -357,7 +373,13 @@ export function AppearanceSheet() {
                           type="button">
                           {t('payloadpack:copyCss')}
                         </button>
-                        <button className="payloadpack-appearance-panel__link" onClick={removeCustom} type="button">
+                        <button
+                          className="payloadpack-appearance-panel__link"
+                          onClick={() => {
+                            focusesAdd.current = true
+                            removeCustom()
+                          }}
+                          type="button">
                           {t('payloadpack:removeColors')}
                         </button>
                       </div>
@@ -406,7 +428,7 @@ export function AppearanceSheet() {
                 </p>
                 {supported.length > 0 && (
                   <details className="payloadpack-appearance-panel__fine-tune">
-                    <summary>
+                    <summary ref={fineTune}>
                       {t('payloadpack:fineTune', { character: characterName })}
                       {changed > 0 && <span>{t('payloadpack:fineTuneChanged', { count: changed })}</span>}
                     </summary>
@@ -443,6 +465,7 @@ export function AppearanceSheet() {
             {shown?.message}
             {shown?.undo && (
               <button
+                ref={focusUndo}
                 onClick={() => {
                   shown.undo?.()
                   setStatus(undefined)

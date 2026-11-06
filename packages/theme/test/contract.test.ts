@@ -244,11 +244,6 @@ const readByTheme = ['--elevation-400-menu-panel']
 
 const copiedFromPayload = [
   {
-    token: '--elevation-400-menu-panel',
-    value:
-      '0 0 0 1px rgba(0, 0, 0, 0.04), 0 0 0.5px rgba(0, 0, 0, 0.12), 0 10px 16px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.12)'
-  },
-  {
     token: '--elevation-500-modal-window',
     value: '0 0 0.5px 0 rgba(0, 0, 0, 0.08), 0 10px 24px 0 rgba(0, 0, 0, 0.18), 0 2px 5px 0 rgba(0, 0, 0, 0.15)'
   },

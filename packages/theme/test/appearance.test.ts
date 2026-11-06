@@ -280,19 +280,21 @@ it('copies a setup in the shape of the plugin config', () => {
   })
 })
 
-it("renders the newer of the stored setup and this browser's cookie, when the cookie is the same account's", () => {
-  const stored = { at: 100, palette: 'payload' }
-  const cookie = (at: number, by: string) => JSON.stringify({ at, by, character: 'payload' })
+it("renders this account's unsaved cookie over the stored setup, and never another account's", () => {
+  const stored = { palette: 'payload' }
+  const cookie = (fields: object) => JSON.stringify({ character: 'payload', ...fields })
+  const mine = { character: 'payload' }
 
-  expect(storedChoices(settings, stored, cookie(200, 'users:1'), 'users:1')).toEqual({
-    choices: { at: 200, character: 'payload' },
-    storedIsOlder: true
+  expect(storedChoices(settings, stored, cookie({ by: 'users:1', unsaved: true }), 'users:1')).toEqual({
+    choices: mine,
+    unsaved: true
   })
-  expect(storedChoices(settings, stored, cookie(50, 'users:1'), 'users:1')).toEqual({ choices: stored, storedIsOlder: false })
-  expect(storedChoices(settings, stored, cookie(200, 'users:2'), 'users:1')).toEqual({ choices: stored, storedIsOlder: false })
-  expect(storedChoices(settings, { palette: 'payload' }, cookie(1, 'users:1'), 'users:1').storedIsOlder).toBe(true)
-  expect(storedChoices(settings, null, cookie(200, 'users:2'), undefined)).toEqual({
-    choices: { at: 200, character: 'payload' },
-    storedIsOlder: false
+  expect(storedChoices(settings, stored, cookie({ by: 'users:1' }), 'users:1')).toEqual({ choices: stored, unsaved: false })
+  expect(storedChoices(settings, stored, cookie({ by: 'users:2', unsaved: true }), 'users:1')).toEqual({
+    choices: stored,
+    unsaved: false
   })
+  expect(storedChoices(settings, null, cookie({ by: 'users:2' }), 'users:1')).toEqual({ choices: {}, unsaved: false })
+  expect(storedChoices(settings, null, cookie({ by: 'users:1' }), 'users:1')).toEqual({ choices: mine, unsaved: false })
+  expect(storedChoices(settings, null, cookie({ by: 'users:2' }), undefined)).toEqual({ choices: mine, unsaved: false })
 })

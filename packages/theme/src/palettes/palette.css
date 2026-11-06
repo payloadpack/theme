@@ -17,8 +17,7 @@
       --field-color-border-focus: oklch(from var(--color-bg-brand) 0.7 calc(c * 0.6) h);
       --elevation-400-menu-panel: var(
         --payloadpack-elevation-popover,
-        0 0 0 1px rgba(0, 0, 0, 0.04),
-        0 0 0.5px rgba(0, 0, 0, 0.12),
+        0 0 0 1px var(--color-border),
         0 10px 16px rgba(0, 0, 0, 0.08),
         0 2px 6px rgba(0, 0, 0, 0.12)
       );
@@ -462,6 +461,7 @@
       color: var(--popup-text, var(--color-text));
     }
 
+    .payload-toast-item,
     .rs__menu,
     .react-datepicker,
     .slash-menu-popup {
@@ -566,7 +566,7 @@
 
     /* 15. Without relative colors */
     @supports not (color: oklch(from red l c h)) {
-      &,
+      &:not([data-theme='dark']),
       &[data-theme='dark'] {
         --accessibility-focus-color: var(--payloadpack-focus-ring, var(--color-bg-brand));
         --field-color-border-focus: var(--color-bg-brand);
