@@ -19,6 +19,10 @@
         margin-inline-start: 0;
       }
 
+      &[data-rail] .template-default__wrap {
+        margin-inline-start: var(--stroke-width-small);
+      }
+
       &:not([data-nav='rail']) .template-default:not(.template-default--nav-open) .nav {
         visibility: hidden;
       }
