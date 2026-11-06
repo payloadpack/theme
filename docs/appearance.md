@@ -6,7 +6,7 @@ An editor's look is two independent choices: a **character** (how the admin is l
 
 ## Status
 
-Built: the three characters with every option below, the Payload, Neutral and Warm palettes defined from base colors in CSS with an accent each, setups shared with Share setup, the Appearance panel and the rail.
+Built: the three characters with every option below, the Payload, Neutral, Warm and Soft palettes defined from base colors in CSS with an accent each, setups shared with Share setup, the Appearance panel and the rail.
 
 Built since: an editor's own palette with **Custom colors** and **Copy as CSS**. The accent is part of a palette: the panel has no accent picker and the plugin has no `accent` option.
 
@@ -66,7 +66,7 @@ A palette is CSS, the way Tailwind v4 defines design tokens: a block scoped to `
 - A palette's primary is its `--payloadpack-action-primary` line, per version. Neutral sets it to `#0a0a0a` in light mode and to its text color in dark mode, so its primary buttons are near-black in light mode and near-white in dark mode; Warm sets it to its copper accent. Text on it turns black or white by its lightness, and a nearly white primary gets a faint edge in light mode.
 - A palette's accent is its `--payloadpack-accent` line, and a palette without one keeps Payload's blue. Neutral sets its accent to its text color in each version, so it has no blue at all. One accent serves both versions: the theme mixes the shades itself.
 - Fills never take the accent. Selected and open items fill grey, from Payload's `--color-bg-tertiary`, with the text color on top. Every solid selection, such as a picked date, takes the primary. In menus an open item looks like a hovered one. The focus ring takes the primary's hue: the outline at most 0.6 oklch lightness in light mode and at least 0.6 in dark mode, the field ring at 0.7 with 60% of the chroma in light mode and 0.55 in dark mode, so it stays visible on any primary and Neutral's stays grey.
-- Editors create a palette with the dashed **Custom** tile after the palettes: it starts from the current palette's colors, read from the browser so any CSS palette works, and shows the three color fields for each mode and the accent. Every color is a lowercase `#rrggbb`, checked on the server like every other choice. The provider renders it as the same CSS block, named `custom`, in a `<style>` element in the server HTML, and saves it into their setup, so a shared setup carries it to colleagues. Picking another palette keeps it in the setup; **Remove custom colors** drops it.
+- Editors create a palette with the dashed **Custom** tile after the palettes: it starts from the current palette's colors, read from the browser so any CSS palette works, and shows the three color fields for each mode and the accent. Every color is a `#rrggbb`, stored lowercase and checked on the server like every other choice. The provider renders it as the same CSS block, named `custom`, in a `<style>` element in the server HTML, and saves it into their setup, so a shared setup carries it to colleagues. Picking another palette keeps it in the setup; **Remove custom colors** drops it.
 - **Copy as CSS** copies an editor's palette as the CSS block the page renders. Planned: developers paste it into their admin stylesheet (Payload's `custom.scss`) under their own name and list that name in `themePlugin({ palettes: [...] })` to offer it to everyone.
 - The package ships no palette named after another company or product.
 
@@ -112,8 +112,8 @@ Theme is Payload's own light/dark preference: the panel calls `useTheme().setThe
 
 - A Lucide `palette` icon button, on every Default-template view. Under Enhanced and Studio it sits in the nav beside the collapse button (`beforeNav`, placed with CSS anchor positioning): right of it under Studio, left of it under Enhanced, and under it in the rail. Under the Payload character, on phones and while a `hidden` nav is closed, it is in the header actions (`admin.components.actions`) instead. The sheet both buttons open renders once in the theme's provider, so the nav button opens it on custom views too. Custom views render no header actions, so under the Payload character, on phones and while a `hidden` nav is closed they have no Appearance button. Signed-out views have no slot for it.
 - It opens a side sheet docked to the right edge, full height, 360px wide, built on the native `popover` attribute: Escape and a click outside close it. The page stays visible beside it.
-- Below 768px the sheet rises from the bottom, 70% of the screen high, with a close button in its header.
-- Every change applies at once. There is no Save button.
+- At 768px and below the sheet rises from the bottom, 70% of the screen high, with a close button in its header.
+- Every change applies at once. There is no Save button. Each change is saved on top of the latest saved setup, so a second tab never erases what the first one saved, and when a save fails the status line says the setup resets on the next page load.
 - Sections, top to bottom:
   1. Theme: Light, Dark, Automatic. Hidden when `admin.theme` is fixed.
   2. Palette: one card per allowed palette, three per row, showing its light and dark halves side by side, then a dashed Custom tile. While the editor's own palette is picked: its color fields for each mode, its accent, Copy as CSS and Remove custom colors. Hidden when only one palette is allowed.
@@ -164,11 +164,12 @@ src/characters/enhanced/index.ts    defaults
 src/characters/enhanced/enhanced.css
 src/characters/studio/index.ts
 src/characters/studio/studio.css     the nav's layout: the collapse button's corner, the user menu at the bottom
-src/characters/shared.css           what Enhanced and Studio share: the 2px focus ring, the sidebar tabs, the 288px nav on a 12px gutter, inset group dividers and the nav group chevron
+src/characters/shared.css           what Enhanced and Studio share: the 2px focus ring, the sidebar tabs, the 288px nav on a 12px gutter, inset group dividers, the nav group chevron and the checkbox cells' icons
 src/palettes/index.ts               the names of the built-in palettes
 src/palettes/palette.css            derives Payload's colors from each palette's base colors, and what every palette but Payload's shares: focus ring, fields, toggles, date picker, toasts and the slash menu's scrollbar
 src/palettes/neutral.css
 src/palettes/warm.css
+src/palettes/soft.css
 src/palettes/accent.css
 src/options/radius.css
 src/options/font.css
@@ -218,7 +219,7 @@ From Payload 4.0.0-beta.6's CSS:
   - not the drawer's fade and slide: Payload 4 unmounts a drawer on close, so only its opening could animate, and it opens at once instead. Select menus unmount too, but a menu that only animates in reads as quick, so they keep it.
   - the tooltip's fade, now 150ms in and 100ms out
   - the small transitions on fields, buttons and cards, now on every field's focus ring, checkboxes, radios and switches included, and the switch's 200ms slide. With motion off none of them animate.
-  - new in this theme: popups and select menus fade in and scale up from 95% at their trigger, sliding in 8px from it when they open above or below, and scale back out on close. Submenus scale from their top edge without a slide, because Payload flips them to the other side without saying so. Payload 3 never animated them. Modals stay still. The date picker opens at once: react-datepicker unmounts it on close, so only its opening could animate, and floating-ui moves it with a `transform` that a scale would pull toward the page's top-left corner.
+  - new in this theme: popups and select menus fade in, sliding 8px from their trigger when they open above or below, and scale back out on close. Select menus also scale up from 95%; popups open at full size, because Payload measures a popup while it opens to place it, and a scaled one would land too low and overlap its trigger. Submenus fade in without a slide, because Payload flips them to the other side without saying so. Payload 3 never animated them. Modals stay still. The date picker opens at once: react-datepicker unmounts it on close, so only its opening could animate, and floating-ui moves it with a `transform` that a scale would pull toward the page's top-left corner.
   - new in this theme: a nav group's chevron turns. Its links open and close at once, because Payload unmounts a closed group's links and an animation on open alone looks half done.
   - Timing is fixed per kind of component, never measured: popovers, menus and tooltips take 150ms in and 100ms out on a strong ease-out, `cubic-bezier(0.23, 1, 0.32, 1)`; the Appearance sheet takes 300ms in on an iOS-style drawer curve, `cubic-bezier(0.32, 0.72, 0, 1)`, and 200ms out; the nav group chevron takes 200ms. Menu items and nav links switch at once on hover, icon included.
 

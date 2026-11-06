@@ -46,11 +46,15 @@ export default buildConfig({
 })
 ```
 
+List `themePlugin()` after any plugin that adds collections, so their checkbox columns get the theme's list cell too. Payload's own internal collections, such as `payload-jobs`, keep Payload's cell.
+
 Then regenerate the import map:
 
 ```sh
 payload generate:importmap
 ```
+
+Run it again after every upgrade. 0.3 removes the `AppearanceOptions` component that 0.2 registered, so an old import map fails `next build`. 0.3 also drops the `--payloadpack-sidebar-tabs-height` token: the sidebar tabs now sit inside their track and follow the field height.
 
 ## Appearance
 
@@ -82,7 +86,7 @@ The panel opens as a sheet on the right, and from the bottom on phones. Every ch
 | Motion   | Off, Auto                        | Auto             | Auto           |
 | Nav      | Rail, Hidden                     | Rail             | Rail           |
 
-- **Enhanced** and **Studio** both draw a 2px focus ring, widen the nav to 288px and line its buttons, tabs and items up 12px from its edges, inset the sidebar tabs and the dividers between nav groups, move each nav group's chevron to the end of its row, and show checkbox columns in lists as a check or a muted x. The plugin gives every checkbox field without its own list `Cell` one that marks its value; screen readers still hear true or false.
+- **Enhanced** and **Studio** both draw a 2px focus ring, widen the nav to 288px and line its buttons, tabs and items up 12px from its edges, inset the sidebar tabs and the dividers between nav groups, move each nav group's chevron to the end of its row, and show checkbox columns in lists as a check or a muted x. The plugin gives every checkbox field without its own list `Cell` a cell that wraps Payload's own, so the first column still links to the document and still picks it in a relationship drawer, and screen readers still hear Payload's text. When `characters` is only `['payload']`, checkbox fields keep Payload's cell.
 - **Enhanced** lifts the date picker and toasts like menus.
 - **Studio** keeps the nav on the field, puts the collapse button at its top left, and moves the user menu to the bottom of it.
 - Every palette except Payload's draws the focus ring in the primary color, gives all fields one border color, fades disabled and read-only fields to half their colors, softens checkbox and radio rings, lifts the selected nav link on a white pill with a shadow in light mode, or fills it flat where the palette sets a selected color and no selected shadow, mutes the other nav links, fills selected rows and options, open menus and hovered or open menu items in grey instead of the accent, fills every solid selection, such as a picked date, with the primary and draws selection borders in it, fills a hovered nav group heading like a link, sets the sidebar tabs on a grey track with the active tab in the surface color, gives the rich text slash menu a slim scrollbar that stays clear of its rounded corners in Chrome and Safari, and draws menus, select lists and toasts in the page's mode, so the menus Payload keeps dark in light mode turn light.
@@ -94,8 +98,8 @@ The panel opens as a sheet on the right, and from the bottom on phones. Every ch
 - **Boxed** puts each view in a soft card with a hairline edge and rounded corners, 6px from the window's edges. **Flat** drops the card and keeps the nav's border.
 - **Comfortable** sets 14px body text, 36px fields and buttons, 32px menu items and 18px checkboxes and radios, keeps nav group labels at 12px, gives dialogs more room, and fixes Payload components that hard-code their sizes.
 - **Lucide** replaces Payload's icons with [Lucide](https://lucide.dev) and adds icons to the nav and the document menu. The icons are bundled, so nothing loads from a CDN.
-- **Motion** brings back the transitions Payload 3 had: tooltips fade, fields, buttons and cards ease between states, every field's focus ring eases in, and switches slide. Popups and select menus fade and scale in from their trigger, nav group chevrons turn, and the Appearance panel slides in like a drawer. Drawers open at once, because Payload unmounts them on close and only their opening could animate. **Auto** stays still when the operating system asks for reduced motion. **Off** turns every transition off.
-- **Rail** turns the nav's collapse button into a 64px rail of Lucide icons, with each label as a tooltip. The rail is kept per browser in a `<cookiePrefix>-nav-rail` cookie, so Reset leaves it alone. Below 768px the nav is Payload's own drawer. **Hidden** keeps Payload's own collapse.
+- **Motion** brings back the transitions Payload 3 had: tooltips fade, fields, buttons and cards ease between states, every field's focus ring eases in, and switches slide. Popups fade and slide in from their trigger, select menus also scale in, nav group chevrons turn, and the Appearance panel slides in like a drawer. Drawers open at once, because Payload unmounts them on close and only their opening could animate. **Auto** stays still when the operating system asks for reduced motion. **Off** turns all of these off and leaves Payload's own few transitions, such as a checkbox filling in.
+- **Rail** turns the nav's collapse button into a 64px rail of Lucide icons, with each label as a tooltip. The rail is kept per browser in a `<cookiePrefix>-nav-rail` cookie, so Reset leaves it alone. At 768px and below the nav is Payload's own drawer. **Hidden** keeps Payload's own collapse.
 
 A signed-in editor's setup is saved in Payload's own preferences, so it follows them to every browser. It is mirrored in one cookie, `<cookiePrefix>-appearance`, next to Payload's own theme cookie, which the server uses on the login page and until a setup is saved. The server renders the setup, so pages never flash.
 
