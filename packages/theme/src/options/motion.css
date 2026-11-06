@@ -102,8 +102,13 @@
 
         @starting-style {
           opacity: 0;
-          scale: 0.95;
           translate: 0 calc(-1 * var(--spacer-2));
+        }
+      }
+
+      .rs__menu {
+        @starting-style {
+          scale: 0.95;
         }
       }
 
@@ -221,10 +226,6 @@
             translate: 100% 0;
           }
         }
-      }
-    }
-  }
-}
 
         @media (width <= 768px) {
           translate: 0 100%;
@@ -235,3 +236,7 @@
             }
           }
         }
+      }
+    }
+  }
+}
