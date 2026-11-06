@@ -57,19 +57,18 @@ const only = (values: object, keep: (option: string, value: unknown) => boolean)
   return kept.length ? (Object.fromEntries(kept) as Values) : undefined
 }
 
-export const isHex = (value: unknown): value is string => typeof value === 'string' && /^#[0-9a-f]{6}$/.test(value)
+export const hexOf = (value: unknown) =>
+  typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value) ? value.toLowerCase() : undefined
 
-const baseOf = (value: unknown) =>
-  isRecord(value) && bases.every((base) => isHex(value[base]))
-    ? (Object.fromEntries(bases.map((base) => [base, value[base]])) as Base)
-    : undefined
+const baseOf = (value: unknown) => {
+  const colors = isRecord(value) ? bases.map((base) => [base, hexOf(value[base])]) : []
+  return colors.length && colors.every(([, color]) => color) ? (Object.fromEntries(colors) as Base) : undefined
+}
 
 const customOf = (value: unknown): CustomPalette | undefined => {
-  if (!isRecord(value) || !isHex(value.accent)) {
-    return undefined
-  }
-  const [dark, light] = [baseOf(value.dark), baseOf(value.light)]
-  return dark && light ? { accent: value.accent, dark, light } : undefined
+  const accent = isRecord(value) ? hexOf(value.accent) : undefined
+  const [dark, light] = isRecord(value) ? [baseOf(value.dark), baseOf(value.light)] : []
+  return accent && dark && light ? { accent, dark, light } : undefined
 }
 
 const pick = (allowed: readonly string[], fallback: string, value: unknown) =>

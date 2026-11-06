@@ -119,11 +119,17 @@ it('drops characters, palettes, options and values the settings do not allow', (
   ).toEqual({})
 })
 
-it('keeps a custom palette only when every color is a lowercase #rrggbb, and picks it only when it exists', () => {
+it('keeps a custom palette only when every color is a #rrggbb, stores it lowercase, and picks it only when it exists', () => {
   expect(normalize(settings, { custom: { ...custom, extra: true, light: { ...custom.light, glow: '#000000' } } })).toEqual({
     custom
   })
-  expect(normalize(settings, { custom: { ...custom, accent: '#C2410C' }, palette: 'custom' })).toEqual({})
+  expect(
+    normalize(settings, {
+      custom: { ...custom, accent: '#C2410C', light: { ...custom.light, surface: '#FFFFFF' } },
+      palette: 'custom'
+    })
+  ).toEqual({ custom, palette: 'custom' })
+  expect(normalize(settings, { custom: { ...custom, accent: '#c2410' } })).toEqual({})
   expect(normalize(settings, { custom: { ...custom, dark: { ...custom.dark, text: 'white' } } })).toEqual({})
   expect(normalize(settings, { palette: 'custom' })).toEqual({})
 })

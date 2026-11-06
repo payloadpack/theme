@@ -4,7 +4,7 @@ import { PayloadIcon, useConfig, useTheme, useTranslation, XIcon } from '@payloa
 import { Fragment, type ReactNode, useEffect, useId, useRef, useState } from 'react'
 
 import { characters as registry, type Option, options } from '../characters/index.js'
-import { type Base, bases, baseTokens, type CustomPalette, customPalette, isHex, paletteCss } from '../lib/appearance.js'
+import { type Base, bases, baseTokens, type CustomPalette, customPalette, hexOf, paletteCss } from '../lib/appearance.js'
 import type { TranslationKey } from '../translations.js'
 import { useAppearance } from './appearance-provider.js'
 
@@ -79,6 +79,9 @@ function ColorField({
   value: string
 }) {
   const input = useRef<HTMLInputElement>(null)
+  const [draft, setDraft] = useState(value)
+
+  useEffect(() => setDraft(value), [value])
 
   useEffect(() => {
     const element = input.current
@@ -87,12 +90,12 @@ function ColorField({
     return () => element?.removeEventListener('change', commit)
   }, [onChange])
 
-  const commitHex = (field: HTMLInputElement) => {
-    const typed = field.value.trim().toLowerCase().replace(/^#?/, '#')
-    if (isHex(typed)) {
+  const commitHex = () => {
+    const typed = hexOf(draft.trim().replace(/^#?/, '#'))
+    if (typed && typed !== value) {
       onChange(typed)
     } else {
-      field.value = value
+      setDraft(value)
     }
   }
 
@@ -108,11 +111,11 @@ function ColorField({
       />
       <input
         aria-label={`${label} hex`}
-        defaultValue={value}
-        key={value}
-        onBlur={(event) => commitHex(event.currentTarget)}
-        onKeyDown={(event) => event.key === 'Enter' && commitHex(event.currentTarget)}
+        onBlur={commitHex}
+        onChange={(event) => setDraft(event.target.value)}
+        onKeyDown={(event) => event.key === 'Enter' && commitHex()}
         spellCheck={false}
+        value={draft}
       />
     </div>
   )
