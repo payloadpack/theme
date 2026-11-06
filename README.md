@@ -63,7 +63,7 @@ Click the Appearance button, beside the collapse button at the top of the nav, o
 <p>
   <picture>
     <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/appearance-light.png">
-    <img width="360" alt="The Appearance panel with Theme, Palette and Style sections: Payload, Neutral and Warm palette cards, a Custom colors button, Payload, Enhanced and Studio style cards, and Fine-tune open with Corners, Typeface, Frame, Density, Icons, Motion and Nav" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/appearance-dark.png">
+    <img width="360" alt="The Appearance panel with Theme, Palette and Style sections: Payload, Neutral, Warm and Soft palette cards, a dashed Custom tile, Payload, Enhanced and Studio style cards, and Fine-tune open with Corners, Typeface, Frame, Density, Icons, Motion and Nav" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/appearance-dark.png">
   </picture>
 </p>
 
