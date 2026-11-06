@@ -135,6 +135,7 @@ With `nav: 'rail'`, a collapsed nav becomes a 64px rail of icons instead of disa
 - The rail hides the Collections and Folders tabs. While another tab is active it shows the tab icons instead, so the editor can switch back: Payload hides the inactive panel with `display: none !important` in its earlier cascade layer, which no theme rule can override.
 - Payload closes the nav when the window shrinks past 1440px or 1024px. While the rail is on, the provider reopens it with `useNav().setNavOpen(true)`, without saving that.
 - At 768px and below the rail is off and the nav is Payload's full-screen drawer.
+- Under Studio the user menu stays in the rail as the first letter of the editor's name or email in a 32px ring. With motion on, the email blurs and fades out at full size as the rail closes, the button turns into the ring while nothing shows, and the capital letter blurs and fades in. Opening runs the same in reverse. A registered `--payloadpack-avatar` property in `motion.css` drives the blur.
 - The rail toggle, the nav's Appearance button and the rail's labels are placed with CSS anchor positioning, so every rule that uses it sits in `@supports (anchor-name: --a)`. Without it, as in Safari 18 and older, the nav keeps Payload's own collapse button, the Appearance button stays in the page header, and the Share setup menu opens in the middle of the screen.
 - `nav: 'hidden'` leaves Payload's collapse exactly as it is.
 - Under Studio the collapse button keeps its row at the top left of the nav and only centers itself in the rail, and the user menu at the bottom is hidden like the header's under Enhanced.
@@ -164,7 +165,7 @@ src/characters/index.ts             the registry of built-in characters and the 
 src/characters/enhanced/index.ts    defaults
 src/characters/enhanced/enhanced.css
 src/characters/studio/index.ts
-src/characters/studio/studio.css     the nav's layout: the collapse button's corner, the user menu at the bottom
+src/characters/studio/studio.css     the nav's layout: the collapse button's corner, the user menu at the bottom and its initial in the rail
 src/characters/shared.css           what Enhanced and Studio share: the 2px focus ring, the sidebar tabs, the 288px nav on a 12px gutter, inset group dividers, the nav group chevron and the checkbox cells' icons
 src/palettes/index.ts               the names of the built-in palettes
 src/palettes/palette.css            derives Payload's colors from each palette's base colors, and what every palette but Payload's shares: focus ring, fields, toggles, date picker, toasts and the slash menu's scrollbar

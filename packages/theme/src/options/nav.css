@@ -69,12 +69,6 @@
             padding-inline-end: calc((var(--payloadpack-rail-width) - var(--spacer-5)) / 2);
           }
 
-          .nav__header .user-menu {
-            width: 0;
-            opacity: 0;
-            visibility: hidden;
-          }
-
           .sidebar-tabs:has(.sidebar-tabs__tab--active:first-child) > .sidebar-tabs__tabs,
           .nav-group:not(.nav-group--collapsed) > .nav-group__toggle {
             opacity: 0;

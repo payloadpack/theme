@@ -1,3 +1,9 @@
+@property --payloadpack-avatar {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+
 @layer payload {
   html[data-motion='auto'] {
     @media (prefers-reduced-motion: no-preference) {
@@ -11,6 +17,7 @@
       --payloadpack-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
       --payloadpack-ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
       --payloadpack-ease-toggle: cubic-bezier(0.645, 0.045, 0.355, 1);
+      --payloadpack-ease-linear: linear;
       --payloadpack-motion-hover-duration: var(--payloadpack-duration-fast);
       --payloadpack-motion-hover-easing: var(--payloadpack-ease-state);
       --payloadpack-motion-enter-duration: var(--payloadpack-duration-normal);
@@ -19,6 +26,7 @@
       --payloadpack-motion-panel-easing: ease-out;
       --payloadpack-duration-exit: calc(var(--payloadpack-motion-enter-duration) * 2 / 3);
       --payloadpack-duration-label: calc(var(--payloadpack-motion-panel-duration) * 0.75);
+      --payloadpack-duration-avatar: calc(var(--payloadpack-motion-panel-duration) / 2);
 
       /* 2. Tooltips */
       .tooltip {
@@ -184,7 +192,52 @@
       }
 
       .user-menu {
-        transition-property: width, opacity, visibility;
+        transition-property: width, margin, opacity, visibility;
+      }
+
+      .user-menu__trigger {
+        transition:
+          height 0s var(--payloadpack-duration-avatar),
+          padding 0s var(--payloadpack-duration-avatar),
+          border-radius 0s var(--payloadpack-duration-avatar),
+          box-shadow var(--payloadpack-duration-avatar) var(--payloadpack-motion-panel-easing),
+          border var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing),
+          color var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing),
+          background var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing);
+      }
+
+      &[data-rail] .user-menu__trigger {
+        transition-delay:
+          var(--payloadpack-duration-avatar), var(--payloadpack-duration-avatar), var(--payloadpack-duration-avatar),
+          var(--payloadpack-duration-avatar), 0s, 0s, 0s;
+      }
+
+      .user-menu__trigger .btn__content {
+        transition: gap 0s var(--payloadpack-duration-avatar);
+      }
+
+      .user-menu__trigger .btn__icon {
+        transition:
+          max-width 0s var(--payloadpack-duration-avatar),
+          opacity var(--payloadpack-duration-avatar) var(--payloadpack-motion-panel-easing) var(--payloadpack-duration-avatar);
+      }
+
+      &[data-rail] .user-menu__trigger .btn__icon {
+        transition-delay: var(--payloadpack-duration-avatar), 0s;
+      }
+
+      .user-menu__trigger .btn__label {
+        filter: blur(calc(min(var(--payloadpack-avatar), 1 - var(--payloadpack-avatar)) * 4px));
+        opacity: calc(1 - min(var(--payloadpack-avatar), 1 - var(--payloadpack-avatar)) * 2);
+        transition:
+          font-size 0s var(--payloadpack-duration-avatar),
+          line-height 0s var(--payloadpack-duration-avatar) allow-discrete,
+          --payloadpack-avatar var(--payloadpack-motion-panel-duration) var(--payloadpack-ease-linear),
+          text-transform var(--payloadpack-motion-panel-duration) var(--payloadpack-ease-linear) allow-discrete;
+      }
+
+      &[data-rail] .user-menu__trigger .btn__label {
+        --payloadpack-avatar: 1;
       }
 
       .nav-group__toggle {

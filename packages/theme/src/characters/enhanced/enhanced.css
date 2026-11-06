@@ -54,7 +54,10 @@
         }
 
         .nav__header .user-menu {
+          width: 0;
           margin-inline-end: 0;
+          opacity: 0;
+          visibility: hidden;
         }
       }
     }

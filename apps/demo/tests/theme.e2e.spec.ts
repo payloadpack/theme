@@ -1053,6 +1053,75 @@ test.describe('Motion', () => {
     return () => page.evaluate(() => (window as unknown as { transitionRuns: string[] }).transitionRuns.slice().sort())
   }
 
+  test("morphs Studio's user menu into its initial and back without the letter jumping", async ({ page }) => {
+    await page.context().addCookies([appearance({ character: 'studio' })])
+    const transitions = await recordTransitions(page, ['user-menu__trigger', 'btn__label'])
+    await page.goto('/admin')
+    await hydrated(page)
+    await page.addStyleTag({ content: 'html { --payloadpack-motion-panel-duration: 1s !important; }' })
+    const morph = () =>
+      page.evaluate(async () => {
+        const label = document.querySelector<HTMLElement>('.user-menu__trigger .btn__label')!
+        const letter = () => {
+          const range = document.createRange()
+          range.setStart(label.firstChild!, 0)
+          range.setEnd(label.firstChild!, 1)
+          return range.getBoundingClientRect()
+        }
+        const blur = () => parseFloat(getComputedStyle(label).filter.replace('blur(', ''))
+        const opacity = () => parseFloat(getComputedStyle(label).opacity)
+        const boxes = [letter()]
+        const blurs = [blur()]
+        const opacities = [opacity()]
+        document.querySelector<HTMLElement>('.payloadpack-rail-toggle')!.click()
+        const end = performance.now() + 1300
+        while (performance.now() < end) {
+          await new Promise(requestAnimationFrame)
+          boxes.push(letter())
+          blurs.push(blur())
+          opacities.push(opacity())
+        }
+        return {
+          largestStep: Math.max(
+            ...boxes
+              .slice(1)
+              .map(({ x, y }, index) =>
+                opacities[index] >= 0.3 && opacities[index + 1] >= 0.3
+                  ? Math.max(Math.abs(x - boxes[index].x), Math.abs(y - boxes[index].y))
+                  : 0
+              )
+          ),
+          peakBlur: Math.max(...blurs),
+          lowestOpacity: Math.min(...opacities),
+          settled: { blur: blurs.at(-1), opacity: getComputedStyle(label).opacity }
+        }
+      })
+    const settled = { blur: 0, opacity: '1' }
+
+    const collapse = await morph()
+    expect(collapse.largestStep).toBeLessThanOrEqual(1)
+    expect(collapse.peakBlur).toBeGreaterThan(1)
+    expect(collapse.lowestOpacity).toBeLessThan(0.1)
+    expect(collapse.settled).toEqual(settled)
+    await expect(page.locator('html')).toHaveAttribute('data-rail', '')
+    expect(await transitions()).toEqual(
+      expect.arrayContaining([
+        'btn__label --payloadpack-avatar',
+        'btn__label font-size',
+        'btn__label text-transform',
+        'user-menu__trigger box-shadow'
+      ])
+    )
+    expect((await page.locator('.user-menu__trigger').boundingBox())?.width).toBe(32)
+
+    const expand = await morph()
+    expect(expand.largestStep).toBeLessThanOrEqual(1)
+    expect(expand.peakBlur).toBeGreaterThan(1)
+    expect(expand.lowestOpacity).toBeLessThan(0.1)
+    expect(expand.settled).toEqual(settled)
+    await expect(page.locator('html')).not.toHaveAttribute('data-rail')
+  })
+
   const openDrawer = async (page: Page) => {
     const transitions = await recordTransitions(page, ['drawer__blur-bg', 'drawer__content'])
     await openShowcase(page)
@@ -1920,6 +1989,7 @@ test.describe('Rail', () => {
     await expect(page.getByRole('button', { name: 'Show sidebar' })).toHaveAttribute('aria-expanded', 'false')
     await expect.poll(() => navWidth(page)).toBe(64)
     await expect(page.locator('.nav-group__toggle').first()).toBeHidden()
+    await expect(page.locator('.nav__header .user-menu')).toBeHidden()
     for (const link of await page.locator('.nav__link').all()) {
       expect(await link.evaluate((element) => getComputedStyle(element, '::after').maskImage)).toContain('data:image/svg+xml')
       await expect(link.locator('.nav__link-label')).toHaveCSS('opacity', '0')
@@ -2152,7 +2222,25 @@ test.describe('Studio character', () => {
     expect(rail.x + rail.width / 2).toBe(32)
     expect(rail.y).toBe(open.y)
     expect((await page.locator('#nav-showcase').boundingBox())!.y).toBeGreaterThan(rail.y + rail.height)
-    await expect(page.locator('.nav .user-menu')).toBeHidden()
+    const avatar = page.locator('.user-menu__trigger')
+    const circle = (await avatar.boundingBox())!
+    expect(circle).toMatchObject({ height: 32, width: 32 })
+    expect(circle.x + circle.width / 2).toBe(32)
+    const letter = await avatar.locator('.btn__label').evaluate((element) => {
+      const range = document.createRange()
+      range.setStart(element.firstChild!, 0)
+      range.setEnd(element.firstChild!, 1)
+      const { height, width, x, y } = range.getBoundingClientRect()
+      return { x: x + width / 2, y: y + height / 2 }
+    })
+    expect(Math.abs(letter.x - (circle.x + circle.width / 2))).toBeLessThanOrEqual(0.5)
+    expect(Math.abs(letter.y - (circle.y + circle.height / 2))).toBeLessThanOrEqual(0.5)
+    await expect(avatar).toHaveAccessibleName(`Account: ${demoUser.email}`)
+    await expect(avatar.locator('.btn__label')).toHaveCSS('font-size', '0px')
+    await expect(avatar.locator('.btn__icon')).toBeHidden()
+    expect(await avatar.locator('.btn__label').evaluate((element) => getComputedStyle(element, '::first-letter').fontSize)).toBe(
+      '14px'
+    )
   })
 
   test("nav: 'hidden' hides the nav and lets the card fill the field", async ({ page }) => {

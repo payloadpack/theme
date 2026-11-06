@@ -15,7 +15,21 @@
 
     .user-menu {
       order: 1;
-      margin: var(--spacer-2) var(--spacer-2-5);
+      margin: var(--spacer-2) var(--spacer-2-5) var(--spacer-2-5);
+    }
+
+    .user-menu__trigger {
+      justify-content: center;
+      min-width: var(--spacer-5) !important;
+    }
+
+    .user-menu__trigger .btn__icon {
+      max-width: 1rem;
+    }
+
+    .user-menu__trigger .btn__label::first-letter {
+      font-size: var(--text-body-medium-bold-font-size);
+      line-height: 1;
     }
 
     /* 2. Rail */
@@ -26,6 +40,33 @@
         .nav__close {
           margin-inline-start: calc((var(--payloadpack-rail-width) - var(--spacer-5)) / 2);
           margin-block-end: calc(var(--spacer-5) + var(--spacer-1));
+        }
+
+        .user-menu {
+          margin-inline: calc((var(--payloadpack-rail-width) - var(--spacer-5)) / 2);
+        }
+
+        .user-menu__trigger {
+          height: var(--spacer-5);
+          padding-inline: var(--spacer-2);
+          border-radius: calc(var(--spacer-5) / 2);
+          box-shadow: inset 0 0 0 var(--stroke-width-small) var(--color-border);
+        }
+
+        .user-menu__trigger .btn__content {
+          gap: 0;
+        }
+
+        .user-menu__trigger .btn__icon {
+          max-width: 0;
+          overflow: hidden;
+          opacity: 0;
+        }
+
+        .user-menu__trigger .btn__label {
+          font-size: 0;
+          line-height: 0px;
+          text-transform: uppercase;
         }
       }
     }

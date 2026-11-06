@@ -398,13 +398,14 @@ describe('theme contract with Payload', () => {
   it('wraps every stylesheet in @layer payload with a single scope block', () => {
     for (const [file, scope] of Object.entries(scopes)) {
       const layer = topLevelBlocks(themeCss[file])
+      const blocks = layer.blocks.filter((block) => !/^@property --payloadpack-[\w-]+$/.test(block.prelude))
       expect(layer.outside, `${file} has CSS outside @layer payload`).toBe('')
       expect(
-        layer.blocks.map((block) => block.prelude),
+        blocks.map((block) => block.prelude),
         file
       ).toEqual(['@layer payload'])
 
-      const scoped = topLevelBlocks(layer.blocks[0].body)
+      const scoped = topLevelBlocks(blocks[0].body)
       expect(scoped.outside, `${file} has CSS outside ${scope}`).toBe('')
       expect(
         scoped.blocks.map((block) => block.prelude),
@@ -726,6 +727,11 @@ describe('theme contract with Payload', () => {
 
   it('is never outranked by unlayered Payload rules on the properties it sets', () => {
     const pseudoElement = (selector: string) => selector.match(/::[\w-]+$/)?.[0] ?? ''
+    const classes = (selector: string) => matchAll(selector, /\.(-?[_a-zA-Z][\w-]*)/g)
+    const important = (declarations: string, property: string) =>
+      new RegExp(`(?:^|;)\\s*${property}\\s*:[^;]*!important`).test(declarations)
+    const styledClasses = (selector: string) =>
+      classes(subject(selector)).length ? classes(subject(selector)) : classes(selector.replace(/\[[^\]]*\]/g, ''))
     const ours = rules(allThemeCss)
     const conflicts = payloadCssFiles.flatMap((file) =>
       topLevelBlocks(stripComments(read(file)))
@@ -735,11 +741,11 @@ describe('theme contract with Payload', () => {
           ours
             .filter((mine) => pseudoElement(mine.selector) === pseudoElement(theirs.selector))
             .flatMap((mine) =>
-              matchAll(mine.selector.replace(/\[[^\]]*\]/g, ''), /\.(-?[_a-zA-Z][\w-]*)/g)
+              styledClasses(mine.selector)
                 .filter((name) => name !== 'icon' && hasClass(subject(theirs.selector), name))
                 .flatMap((name) =>
                   mine.properties
-                    .filter((property) => theirs.properties.includes(property))
+                    .filter((property) => theirs.properties.includes(property) && !important(mine.declarations, property))
                     .map((property) => `${property} on .${name}: ${theirs.selector} in ${path.relative(root, file)}`)
                 )
             )

@@ -86,6 +86,9 @@
 .toolbar-popup__dropdown-items .toolbar-popup__dropdown-item &.active &:active:not([disabled]) { background-color: var(--color-bg-selected-strong-pressed); }
 .toolbar-popup__dropdown-items .toolbar-popup__dropdown-item &.disabled { cursor: not-allowed; opacity: 0.2; }
 .toolbar-popup__dropdown-items .toolbar-popup__dropdown-item .btn__icon { --btn-icon-size: var(--spacer-4); background: none !important; background-color: none !important; }
+[data-dropdown-key='align'] & .toolbar-popup__dropdown-item .btn__content { gap: 0; }
+[data-dropdown-key='align'] & .toolbar-popup__dropdown-item .btn__icon { border: none; }
+[data-dropdown-key='text'] .btn__icon { margin: 0; }
 
 == @payloadcms/richtext-lexical/features/upload/client/component/index.css
 .LexicalEditorTheme__upload &:hover .LexicalEditorTheme__upload__floater { opacity: 1; pointer-events: auto; }
@@ -210,6 +213,13 @@ html[data-theme='dark'] @media (max-width: 768px) .rich-text-lexical &.error > .
 .btn.btn--style-ghost.btn--selected, .btn.btn--style-ghost.btn--selected:hover, .btn.btn--style-ghost.btn--selected:active { background-color: var(--color-bg-selected); color: var(--color-text-selected); }
 .btn.btn--style-secondary.btn--selected, .btn.btn--style-secondary.btn--selected:hover, .btn.btn--style-secondary.btn--selected:active { background-color: var(--color-bg-selected); color: var(--color-text-selected); border-color: var(--color-border-selected-strong); }
 .btn.btn--style-pill.btn--selected, .btn.btn--style-pill.btn--selected:hover, .btn.btn--style-pill.btn--selected:active { background-color: var(--color-bg-selected); color: var(--color-text-selected); }
+.btn__icon { display: flex; align-items: center; justify-content: center; border-radius: 100%; color: inherit; }
+.btn__icon .stroke { stroke: currentColor; fill: none; }
+.btn__icon .fill { fill: currentColor; }
+.btn__content { display: flex; align-items: center; justify-content: center; }
+.btn--icon .btn__content { gap: var(--stroke-width-medium); }
+.btn--icon-position-left .btn__content { flex-direction: row-reverse; }
+.btn__label { white-space: nowrap; }
 .btn--size-medium { height: var(--button-height); padding: 0 var(--spacer-2); }
 .btn--size-medium &:not(.btn--icon-only).btn--icon-position-left { padding-inline-start: var(--spacer-1); }
 .btn--size-medium &:not(.btn--icon-only).btn--icon-position-right { padding-inline-end: var(--spacer-1); }
@@ -219,6 +229,7 @@ html[data-theme='dark'] @media (max-width: 768px) .rich-text-lexical &.error > .
 .btn--round { aspect-ratio: 1; padding: 0; border-radius: var(--button-radius); justify-content: center; }
 .btn--round &.btn--size-medium { width: var(--spacer-4); }
 .btn--round &.btn--size-large { width: var(--spacer-5); }
+.btn--loading .btn__content { opacity: 0; }
 .btn--withPopup { --separator-color: var(--color-border); display: flex; }
 .btn--withPopup &:has(.btn--size-medium) { border-radius: var(--button-radius); }
 .btn--withPopup &:has(.btn--size-medium) .popup-button { height: var(--spacer-4, 1.5rem); }
@@ -399,6 +410,11 @@ html[data-enhanced-contrast] .column-selector__search-bar { outline: var(--strok
 .error-pill { display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 0 var(--spacer-1); border-radius: var(--radius-medium); line-height: var(--text-body-medium-line-height); font-size: var(--text-body-medium-font-size); font-weight: var(--text-body-medium-font-weight); letter-spacing: var(--text-letter-spacing); text-align: center; background: var(--color-bg-danger); color: var(--color-text-ondanger); height: var(--spacer-3); }
 .error-pill--fixed-width { width: var(--spacer-3); padding: 0; position: relative; }
 
+== @payloadcms/ui/elements/FileDetails/StaticFileDetails/index.css
+.file-details__remove .btn__icon { border: var(--stroke-width-small) solid var(--color-border); background: var(--color-bg); box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1); }
+.file-details__remove .btn__icon:not(:disabled):hover { box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.2); }
+.file-details__remove .btn__icon:hover { border: var(--stroke-width-small) solid var(--special-border-translucent-strong); }
+
 == @payloadcms/ui/elements/FileManager/FileToolbar/index.css
 .file-toolbar__right { display: flex; gap: var(--spacer-1); align-items: center; flex-shrink: 0; }
 .file-toolbar__filename-btn { display: flex; align-items: center; gap: var(--spacer-1); padding: var(--spacer-1) var(--spacer-2); border-radius: var(--radius-medium); background: var(--color-bg); border: var(--stroke-width-small) solid var(--special-border-translucent); cursor: pointer; color: var(--color-text); font-size: var(--text-body-medium-font-size); font-weight: var(--text-body-medium-bold-font-weight); line-height: var(--text-body-medium-bold-line-height); letter-spacing: var(--text-body-medium-letter-spacing); max-width: var(--file-toolbar-filename-max-width); }
@@ -414,6 +430,10 @@ html[data-enhanced-contrast] .column-selector__search-bar { outline: var(--strok
 .group-by-control__select-trigger { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: var(--spacer-4); padding: 0 var(--spacer-1) 0 var(--spacer-2); background: var(--color-bg); border: var(--stroke-width-small) solid var(--color-border); border-radius: var(--button-radius); cursor: pointer; color: var(--color-text); font-size: var(--text-body-medium-font-size); font-weight: var(--text-body-medium-font-weight); line-height: var(--text-body-medium-line-height); }
 .group-by-control__select-trigger:hover:not(.group-by-control__select-trigger--disabled) { border-color: var(--color-border-hover); }
 .group-by-control__select-trigger svg { flex-shrink: 0; color: var(--color-text-secondary); }
+
+== @payloadcms/ui/elements/Hierarchy/DocHeaderButton/index.css
+.hierarchy-button .btn__content { gap: 0; }
+.hierarchy-button .btn__label { min-inline-size: 0; }
 
 == @payloadcms/ui/elements/Hierarchy/Field/SelectedHierarchies.css
 .selected-hierarchies__pill .chip__label { max-width: 200px; }
@@ -468,6 +488,7 @@ html[data-enhanced-contrast] .column-selector__search-bar { outline: var(--strok
 .load-more-row__button.btn:active:not(.btn--disabled) { color: var(--color-text); background-color: transparent; }
 
 == @payloadcms/ui/elements/Localizer/index.css
+.localizer .btn__content { gap: 0; }
 .localizer .btn:not(.btn--selected) .btn__icon { color: var(--color-icon-secondary); }
 
 == @payloadcms/ui/elements/Nav/NavWrapper/index.css
@@ -625,6 +646,9 @@ html[data-enhanced-contrast] .nav-group__toggle .nav-group__indicator { opacity:
 .react-select--error:focus-within div.rs__control { border-color: var(--field-color-border-focus); }
 
 == @payloadcms/ui/elements/RelationshipTable/index.css
+.relationship-table__toggle-columns .btn__icon { color: var(--color-icon-secondary); }
+.relationship-table__toggle-columns:hover .btn__icon { color: var(--color-text); }
+.relationship-table__add-new-polymorphic .btn__label { display: flex; text-wrap: nowrap; align-items: center; }
 .field-type.error .relationship-table .table { border-color: var(--color-border-danger-strong); }
 
 == @payloadcms/ui/elements/Search/SearchInput/index.css
@@ -651,10 +675,16 @@ html[data-enhanced-contrast] .nav-group__toggle .nav-group__indicator { opacity:
 .sort-column:hover .btn { visibility: visible; }
 
 == @payloadcms/ui/elements/StepNav/index.css
+.step-nav__item .btn__content { min-width: 0; }
+.step-nav__item .btn__label { min-width: 0; text-overflow: ellipsis; overflow: hidden; }
 .step-nav__item:not(.btn):not(:has(.btn)) { padding-inline: var(--spacer-2); border: var(--stroke-width-small) solid transparent; }
 
 == @payloadcms/ui/elements/Table/DefaultCell/fields/Checkbox/index.css
 .bool-cell { display: inline-flex; align-items: center; justify-content: center; padding: 0 var(--spacer-1); border-radius: var(--radius-medium); font-size: var(--text-body-medium-font-size); font-weight: var(--text-body-medium-font-weight); line-height: var(--text-body-medium-line-height); white-space: nowrap; background: var(--color-bg-tertiary); color: var(--color-text); }
+
+== @payloadcms/ui/elements/Table/DefaultCell/fields/Hierarchy/index.css
+.hierarchy-cell__button .btn__content { gap: 0; }
+.hierarchy-cell__button .btn__label { min-inline-size: 0; }
 
 == @payloadcms/ui/elements/TimezonePicker/index.css
 .timezone-picker-wrapper .timezone-picker.react-select { display: inline-flex; position: static; }
@@ -709,6 +739,10 @@ html[data-enhanced-contrast] .nav-group__toggle .nav-group__indicator { opacity:
 == @payloadcms/ui/elements/UserMenu/index.css
 .user-menu { display: inline-flex; align-items: center; min-width: 0; }
 .user-menu > .popup__trigger-wrap { max-width: 100%; min-width: 0; }
+.user-menu__trigger { max-width: 100%; min-width: 0; font-size: var(--text-body-medium-bold-font-size); font-weight: var(--text-body-medium-bold-font-weight); line-height: var(--text-body-medium-bold-line-height); white-space: nowrap; }
+.user-menu__trigger .btn__content, .btn__label { min-width: 0; }
+.user-menu__trigger .btn__label { overflow: hidden; text-overflow: ellipsis; }
+.user-menu__trigger .btn__icon { flex-shrink: 0; }
 
 == @payloadcms/ui/elements/WhereBuilder/Condition/index.css
 .condition .btn { vertical-align: middle; margin: 0; }
@@ -1045,6 +1079,7 @@ form > .form-submit .btn { width: 100%; }
 
 == @payloadcms/ui/views/Dashboard/Default/ModularDashboard/index.css
 .widget-config-drawer__content .form-submit .btn { width: auto; }
+.widget-wrapper__size-btn & .btn__content { gap: var(--spacer-1); }
 .step-nav .dashboard-breadcrumb-dropdown .btn { padding-right: var(--spacer-1); }
 
 == @payloadcms/ui/views/Edit/Auth/index.css
@@ -1091,6 +1126,7 @@ form > .form-submit .btn { width: 100%; }
 
 == @payloadcms/ui/views/Version/Restore/index.css
 .restore-version .btn { margin-block: 0; }
+.restore-version .btn__content { gap: 0; }
 
 == @payloadcms/ui/widgets/Activity/Tabs/PinnedDocuments/PinDocumentPicker/index.css
 .activity-widget__select-documents { height: auto; min-block-size: var(--spacer-4); max-inline-size: 100%; }
