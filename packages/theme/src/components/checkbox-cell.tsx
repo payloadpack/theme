@@ -1,15 +1,12 @@
 'use client'
 
-import { useTranslation } from '@payloadcms/ui'
+import { RenderDefaultCell } from '@payloadcms/ui'
 import type { CheckboxFieldClient, DefaultCellComponentProps } from 'payload'
 
-export function CheckboxCell({ cellData }: DefaultCellComponentProps<CheckboxFieldClient>) {
-  const { t } = useTranslation()
-  const checked = cellData === true
-
+export function CheckboxCell(props: DefaultCellComponentProps<CheckboxFieldClient>) {
   return (
-    <code className="bool-cell" data-value={checked}>
-      <span>{t(checked ? 'general:true' : 'general:false').toLowerCase()}</span>
-    </code>
+    <span className="payloadpack-checkbox-cell" data-value={props.cellData === true}>
+      <RenderDefaultCell clientProps={props} columnIndex={props.columnIndex ?? 0} isLinkedColumn={props.link} />
+    </span>
   )
 }

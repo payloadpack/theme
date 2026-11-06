@@ -69,3 +69,12 @@ it('gives every checkbox field without its own list cell the checkbox cell', asy
   expect(tabs.tabs?.[0].fields[0].admin?.components?.Cell).toBe('@payloadpack/theme/client#CheckboxCell')
   expect(archived.admin?.components?.Cell).toBe('/cells#Archived')
 })
+
+it("leaves checkbox fields on Payload's cell when only the Payload style is allowed", async () => {
+  const fields = [{ name: 'featured', type: 'checkbox' }]
+  const config = await themePlugin({ character: 'payload', characters: ['payload'] })({
+    collections: [{ slug: 'posts', fields }]
+  } as unknown as Config)
+
+  expect(config.collections?.[0].fields).toBe(fields)
+})

@@ -79,7 +79,9 @@ export function themePlugin(pluginConfig: ThemePluginConfig = {}): Plugin {
 
   return (config) => ({
     ...config,
-    collections: config.collections?.map((collection) => ({ ...collection, fields: withCheckboxCells(collection.fields) })),
+    collections: characters.some((name) => name !== 'payload')
+      ? config.collections?.map((collection) => ({ ...collection, fields: withCheckboxCells(collection.fields) }))
+      : config.collections,
     admin: {
       ...config.admin,
       suppressHydrationWarning: true,
