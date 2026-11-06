@@ -61,6 +61,7 @@
     ) {
       background-color: currentColor;
       mask: var(--payloadpack-icon) center / min(100%, var(--payloadpack-icon-size, 0.875rem)) no-repeat;
+      pointer-events: none;
 
       > * {
         display: none;
@@ -131,6 +132,7 @@
     .checkbox-input__mixed {
       background-color: var(--checkbox-mark-color);
       mask: var(--payloadpack-icon) center / 87.5% no-repeat;
+      pointer-events: none;
 
       > * {
         display: none;
