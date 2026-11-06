@@ -384,7 +384,9 @@ test.describe('Appearance panel', () => {
 
     await label(choice(sheet, 'Palette', 'Warm')).click()
 
-    await expect(sheet.getByRole('status')).toHaveText('Your setup could not be saved, so it resets on the next page load.')
+    await expect(sheet.getByRole('status')).toHaveText(
+      'Your setup could not be saved yet. This browser keeps it and saves it with your next change or page load.'
+    )
     await expect(sheet.getByRole('status')).toHaveAttribute('data-tone', 'error')
   })
 
