@@ -17,7 +17,12 @@ export function RailToggle() {
       aria-expanded={!rail}
       aria-label={t(rail ? 'general:showSidebar' : 'general:hideSidebar')}
       className="payloadpack-rail-toggle"
-      onClick={toggleRail}
+      onClick={() => {
+        if (!rail) {
+          document.querySelector<HTMLElement>('.sidebar-tabs__tab:first-child:not(.sidebar-tabs__tab--active)')?.click()
+        }
+        toggleRail()
+      }}
       type="button">
       <SidebarToggle isActive={!rail} />
     </button>

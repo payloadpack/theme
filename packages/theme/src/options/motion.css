@@ -197,6 +197,7 @@
 
       .user-menu__trigger {
         transition:
+          width 0s var(--payloadpack-duration-avatar),
           height 0s var(--payloadpack-duration-avatar),
           padding 0s var(--payloadpack-duration-avatar),
           border-radius 0s var(--payloadpack-duration-avatar),
@@ -209,7 +210,7 @@
       &[data-rail] .user-menu__trigger {
         transition-delay:
           var(--payloadpack-duration-avatar), var(--payloadpack-duration-avatar), var(--payloadpack-duration-avatar),
-          var(--payloadpack-duration-avatar), 0s, 0s, 0s;
+          var(--payloadpack-duration-avatar), var(--payloadpack-duration-avatar), 0s, 0s, 0s;
       }
 
       .user-menu__trigger .btn__content {

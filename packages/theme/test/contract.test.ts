@@ -728,8 +728,6 @@ describe('theme contract with Payload', () => {
   it('is never outranked by unlayered Payload rules on the properties it sets', () => {
     const pseudoElement = (selector: string) => selector.match(/::[\w-]+$/)?.[0] ?? ''
     const classes = (selector: string) => matchAll(selector, /\.(-?[_a-zA-Z][\w-]*)/g)
-    const important = (declarations: string, property: string) =>
-      new RegExp(`(?:^|;)\\s*${property}\\s*:[^;]*!important`).test(declarations)
     const styledClasses = (selector: string) =>
       classes(subject(selector)).length ? classes(subject(selector)) : classes(selector.replace(/\[[^\]]*\]/g, ''))
     const ours = rules(allThemeCss)
@@ -745,7 +743,7 @@ describe('theme contract with Payload', () => {
                 .filter((name) => name !== 'icon' && hasClass(subject(theirs.selector), name))
                 .flatMap((name) =>
                   mine.properties
-                    .filter((property) => theirs.properties.includes(property) && !important(mine.declarations, property))
+                    .filter((property) => theirs.properties.includes(property))
                     .map((property) => `${property} on .${name}: ${theirs.selector} in ${path.relative(root, file)}`)
                 )
             )

@@ -20,7 +20,6 @@
 
     .user-menu__trigger {
       justify-content: center;
-      min-width: var(--spacer-5) !important;
     }
 
     .user-menu__trigger .btn__icon {
@@ -47,6 +46,7 @@
         }
 
         .user-menu__trigger {
+          width: var(--spacer-5);
           height: var(--spacer-5);
           padding-inline: var(--spacer-2);
           border-radius: calc(var(--spacer-5) / 2);

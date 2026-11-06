@@ -2026,10 +2026,24 @@ test.describe('Rail', () => {
     expect(await scroller.evaluate((element) => element.scrollLeft)).toBe(0)
   })
 
-  test('hides the sidebar tabs, and shows them only to switch back from another tab', async ({ page }) => {
+  test('switches to the first sidebar tab when the nav closes', async ({ page }) => {
     await page.goto('/admin')
     await page.getByRole('tab').nth(1).click()
     await page.getByRole('button', { name: 'Hide sidebar' }).click()
+
+    await expect(page.locator('.sidebar-tabs__tab').first()).toHaveAttribute('aria-selected', 'true')
+    await expect(page.getByRole('tablist')).toBeHidden()
+    await expect(page.locator('#nav-showcase')).toBeVisible()
+  })
+
+  test('hides the sidebar tabs, and shows them only to switch back from another tab', async ({ page }) => {
+    await page.goto('/admin')
+    await page.getByRole('button', { name: 'Hide sidebar' }).click()
+    await expect(page.getByRole('tablist')).toBeHidden()
+    await page
+      .locator('.sidebar-tabs__tab')
+      .nth(1)
+      .evaluate((tab: HTMLElement) => tab.click())
 
     await expect(page.getByRole('tablist')).toBeVisible()
     await expect(page.locator('.sidebar-tabs__content > [role="tabpanel"]').nth(1)).toBeHidden()
