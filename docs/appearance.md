@@ -116,7 +116,7 @@ Theme is Payload's own light/dark preference: the panel calls `useTheme().setThe
 - Every change applies at once. There is no Save button.
 - Sections, top to bottom:
   1. Theme: Light, Dark, Automatic. Hidden when `admin.theme` is fixed.
-  2. Palette: one card per allowed palette, showing its light and dark halves side by side, and Custom colors under them. While the editor's own palette is picked: its color fields for each mode, its accent, Copy as CSS and Remove custom colors. Hidden when only one palette is allowed.
+  2. Palette: one card per allowed palette, three per row, showing its light and dark halves side by side, then a dashed Custom tile. While the editor's own palette is picked: its color fields for each mode, its accent, Copy as CSS and Remove custom colors. Hidden when only one palette is allowed.
   3. Style: one card per allowed character, each a small preview, and a one-line description of the picked one. Under it, Fine-tune: a collapsible with the character's options, a count of what changed and a Reset button. The Payload character has no Fine-tune.
   4. A footer with the Share setup menu and a status line, which says what Copy, Paste and Reset did instead of Payload's toasts, which would sit under the sheet in the top layer.
 - Every choice is a native radio inside its label, so each group is one Tab stop and the arrow keys move through it. The panel keeps its own control height and Inter, whatever the density and typeface.
