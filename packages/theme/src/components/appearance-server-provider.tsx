@@ -1,5 +1,6 @@
 import { getPreferences } from '@payloadcms/ui/rsc'
 import type { ServerProps } from 'payload'
+import { formatAdminURL } from 'payload/shared'
 import type { ReactNode } from 'react'
 
 import { isEditable, normalize, type Panel, parseChoices, preferenceKey, type Settings } from '../lib/appearance.js'
@@ -31,9 +32,11 @@ export async function AppearanceServerProvider(props: Props) {
     <AppearanceProvider
       codeEditorFontSize={codeEditorFontSize}
       cookieName={cookieName}
+      editable={editable}
       initialChoices={choices}
       initialRail={initialRail}
       loadsOnSignIn={panel === true}
+      preferenceURL={formatAdminURL({ apiRoute: payload.config.routes.api, path: `/payload-preferences/${preferenceKey}` })}
       railCookieName={railCookieName}
       settings={settings}>
       {children}

@@ -70,9 +70,11 @@ type AppearanceProviderProps = {
   children: ReactNode
   codeEditorFontSize: false | number
   cookieName: string
+  editable: boolean
   initialChoices: Choices
   initialRail: boolean
   loadsOnSignIn: boolean
+  preferenceURL: string
   railCookieName: string
   settings: Settings
 }
@@ -81,19 +83,27 @@ export function AppearanceProvider({
   children,
   codeEditorFontSize,
   cookieName,
+  editable,
   initialChoices,
   initialRail,
   loadsOnSignIn,
+  preferenceURL,
   railCookieName,
   settings
 }: AppearanceProviderProps) {
   const [choices, setChoices] = useState(initialChoices)
+  const [draft, setDraft] = useState<CustomPalette>()
   const [rail, setRail] = useState(initialRail)
   const [unsaved, setUnsaved] = useState(false)
+  const latest = useRef(choices)
+  const saving = useRef(Promise.resolve())
   const { user } = useAuth()
   const signedInAs = useRef(accountOf(user))
-  const { getPreference, setPreference } = usePreferences()
-  const resolved = useMemo(() => resolve(settings, choices), [settings, choices])
+  const { getPreference } = usePreferences()
+  const resolved = useMemo(
+    () => resolve(settings, draft ? { ...choices, custom: draft, palette: customPalette } : choices),
+    [settings, choices, draft]
+  )
   const { character, custom, palette, values } = resolved
   const hasRail = values.nav === 'rail'
   const attributes = useMemo(
@@ -141,8 +151,11 @@ export function AppearanceProvider({
   }, [getPreference, loadsOnSignIn, settings, user])
 
   useEffect(() => {
-    writeCookie(cookieName, Object.keys(choices).length ? encodeURIComponent(JSON.stringify(choices)) : undefined)
-  }, [choices, cookieName])
+    latest.current = choices
+    if (editable) {
+      writeCookie(cookieName, Object.keys(choices).length ? encodeURIComponent(JSON.stringify(choices)) : undefined)
+    }
+  }, [choices, cookieName, editable])
 
   useEffect(() => {
     writeCookie(railCookieName, rail ? 'true' : undefined)
@@ -155,14 +168,23 @@ export function AppearanceProvider({
   }, [keepsNavOpen, navOpen, setNavOpen])
 
   const context = useMemo(() => {
-    const update = (change: (current: Choices) => Choices, persist = true) => {
+    const update = (change: (current: Choices) => Choices) => {
+      setDraft(undefined)
       setChoices((current) => normalize(settings, change(current)))
-      if (persist) {
-        setPreference(preferenceKey, (saved: unknown) => normalize(settings, change(normalize(settings, saved)))).then(
-          () => setUnsaved(false),
-          () => setUnsaved(true)
-        )
-      }
+      saving.current = saving.current
+        .then(async () => {
+          const stored = await fetch(preferenceURL, { credentials: 'include' })
+          const saved: unknown = stored.ok ? (await stored.json()).value : null
+          const value = normalize(settings, change(saved == null ? latest.current : normalize(settings, saved)))
+          const response = await fetch(preferenceURL, {
+            body: JSON.stringify({ value }),
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            method: 'POST'
+          })
+          setUnsaved(!response.ok)
+        })
+        .catch(() => setUnsaved(true))
     }
 
     return {
@@ -190,8 +212,8 @@ export function AppearanceProvider({
           update((current) => ({ ...current, options: { ...current.options, [character]: before?.[character] }, personal }))
       },
       setCharacter: (next: Character) => update((current) => ({ ...current, character: next })),
-      setCustom: (next: CustomPalette, persist?: boolean) =>
-        update((current) => ({ ...current, custom: next, palette: customPalette }), persist),
+      setCustom: (next: CustomPalette, persist = true) =>
+        persist ? update((current) => ({ ...current, custom: next, palette: customPalette })) : setDraft(next),
       setOption: <O extends Option>(option: O, value: OptionValue<O>) =>
         update((current) =>
           isPersonal(option)
@@ -206,7 +228,7 @@ export function AppearanceProvider({
       toggleRail: () => setRail(!rail),
       unsaved
     }
-  }, [character, choices, resolved, rail, setPreference, settings, unsaved])
+  }, [character, choices, preferenceURL, resolved, rail, settings, unsaved])
 
   return (
     <AppearanceContext value={context}>

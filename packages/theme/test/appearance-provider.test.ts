@@ -11,9 +11,11 @@ const render = (settings: Settings, initialChoices: Choices = {}, initialRail = 
       children: null,
       codeEditorFontSize: false,
       cookieName: 'payload-appearance',
+      editable: true,
       initialChoices,
       initialRail,
       loadsOnSignIn: true,
+      preferenceURL: '/api/payload-preferences/payloadpack-appearance',
       railCookieName: 'payload-nav-rail',
       settings
     })
