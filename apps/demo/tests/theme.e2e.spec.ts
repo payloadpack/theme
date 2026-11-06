@@ -45,6 +45,7 @@ const computedColor = (page: Page, color: string, theme?: string) =>
     ([value, mode]) => {
       const probe = document.createElement('div')
       if (mode) {
+        probe.dataset.palette = document.documentElement.dataset.palette
         probe.dataset.theme = mode
       }
       probe.style.color = value
@@ -110,7 +111,7 @@ test.describe('Logged out', () => {
     for (const [name, value] of Object.entries(defaults)) {
       await expect(page.locator('html')).toHaveAttribute(`data-${name}`, value)
     }
-    await expect(page.locator('html')).toHaveCSS('background-color', await computedColor(page, 'var(--payloadpack-surface)'))
+    await expect(page.locator('html')).toHaveCSS('background-color', await computedColor(page, 'var(--payloadpack-bg-surface)'))
   })
 
   test('ignores unknown cookie values', async ({ page }) => {
@@ -508,7 +509,7 @@ test.describe('Appearance panel', () => {
     expect(await style(page, '.payloadpack-appearance-panel__palette-icon', 'mask-image')).toContain('data:image/svg+xml')
   })
 
-  test('segments sit 3px inside a bordered track', async ({ page }) => {
+  test('segments sit 3px inside their track', async ({ page }) => {
     await page.goto('/admin')
     const track = (await openAppearancePanel(page)).getByRole('radiogroup', { name: 'Theme' })
     const inset = await track.evaluate((element) => {
@@ -517,8 +518,8 @@ test.describe('Appearance panel', () => {
       return [inner.top - outer.top, outer.bottom - inner.bottom, outer.right - inner.right]
     })
 
-    expect(inset).toEqual([4, 4, 4])
-    await expect(track).toHaveCSS('border-top-width', '1px')
+    expect(inset).toEqual([3, 3, 3])
+    await expect(track).toHaveCSS('border-top-width', '0px')
     await expect(track).toHaveCSS('border-radius', '8px')
   })
 
@@ -543,6 +544,22 @@ test.describe('Appearance panel', () => {
 })
 
 test.describe('Theme values', () => {
+  test("comfortable density sizes an upload's file actions and centers their icons", async ({ page }) => {
+    await page.goto('/admin/collections/media')
+    await page.locator('table tbody tr a').first().click()
+    await hydrated(page)
+    const actions = page.locator('.file-toolbar__right > *')
+
+    await expect(actions).toHaveCount(3)
+    expect(await size(page, '.file-toolbar__filename-btn')).toMatchObject({ height: 36 })
+    for (const action of await actions.all()) {
+      const [box, icon] = [await action.boundingBox(), await action.locator('svg').boundingBox()]
+      expect(box).toMatchObject({ height: 36, width: 36 })
+      expect(Math.abs(icon!.x + icon!.width / 2 - (box!.x + box!.width / 2))).toBeLessThan(0.5)
+      expect(Math.abs(icon!.y + icon!.height / 2 - (box!.y + box!.height / 2))).toBeLessThan(0.5)
+    }
+  })
+
   test('comfortable density sizes', async ({ page }) => {
     await openShowcase(page)
 
@@ -985,6 +1002,7 @@ test.describe('Motion', () => {
     const popup = page.locator('.popup__content:popover-open')
     const caret = await popup.evaluate((element) => (element as HTMLElement).style.getPropertyValue('--caret-left'))
     await expect(popup).toHaveCSS('transform-origin', `${caret} 0px`)
+    await expect(popup).toHaveCSS('opacity', '1')
 
     await page.keyboard.press('Escape')
     await expect
@@ -1058,7 +1076,9 @@ test.describe('Motion', () => {
     await expect(popup).toHaveCSS('transition-duration', '0.15s, 0.15s, 0.15s')
     await expect(popup).toHaveCSS('transition-timing-function', `${easeOut}, ${easeOut}, ${easeOut}`)
     await page.keyboard.press('Escape')
-    await expect(page.locator('.popup__hidden-content').first()).toHaveCSS('transition-duration', '0.1s, 0.1s, 0.1s')
+    const hidden = page.locator('.popup__hidden-content').first()
+    await expect(hidden).toHaveCSS('transition-duration', '0s, 0.1s, 0.1s')
+    await expect(hidden).toHaveCSS('transition-delay', '0.1s, 0s, 0s')
 
     const sheet = await openAppearancePanel(page)
     await expect(sheet).toHaveCSS('transition-duration', '0.3s')
@@ -1150,7 +1170,7 @@ test.describe('Neutral palette', () => {
 
     await expect(featured.locator('.checkbox-input__visuals')).toHaveCSS(
       'background-color',
-      await computedColor(page, 'var(--payloadpack-primary)')
+      await computedColor(page, 'var(--payloadpack-action-primary)')
     )
     await expect(featured.locator('.checkbox-input__check')).toHaveCSS(
       'background-color',
@@ -1177,7 +1197,7 @@ test.describe('Neutral palette', () => {
     await expect(visuals).toHaveCSS('background-color', hovered)
     await page.mouse.up()
 
-    await expect(visuals).toHaveCSS('background-color', await computedColor(page, 'var(--payloadpack-primary)'))
+    await expect(visuals).toHaveCSS('background-color', await computedColor(page, 'var(--payloadpack-action-primary)'))
   })
 
   test('radios share the checkbox look and focus ring', async ({ page }) => {
@@ -1198,7 +1218,7 @@ test.describe('Neutral palette', () => {
     }
 
     await radio('m').click()
-    await expect(radio('m')).toHaveCSS('background-color', await computedColor(page, 'var(--payloadpack-primary)'))
+    await expect(radio('m')).toHaveCSS('background-color', await computedColor(page, 'var(--payloadpack-action-primary)'))
     expect(await radio('m').evaluate((element) => getComputedStyle(element, '::before').backgroundColor)).toBe(
       await computedColor(page, 'var(--payloadpack-toggle-mark)')
     )
@@ -1210,11 +1230,11 @@ test.describe('Neutral palette', () => {
     await expect(checkbox).toHaveCSS('box-shadow', /0px 0px 0px 3px/)
   })
 
-  test('near-black dark palette, with the nav a step below the page', async ({ page }) => {
+  test('near-black dark palette, with the nav a step above the page', async ({ page }) => {
     await openShowcase(page)
     const [surface, background] = [
-      await computedColor(page, 'var(--payloadpack-surface)'),
-      await computedColor(page, 'var(--payloadpack-background)')
+      await computedColor(page, 'var(--payloadpack-bg-surface)'),
+      await computedColor(page, 'var(--payloadpack-bg-app)')
     ]
     const [[surfaceLightness], [backgroundLightness]] = [
       await channels(page, 'oklab', surface),
@@ -1222,10 +1242,10 @@ test.describe('Neutral palette', () => {
     ]
 
     expect(surfaceLightness).toBeLessThan(0.2)
-    expect(backgroundLightness).toBeLessThan(surfaceLightness)
+    expect(backgroundLightness).toBeGreaterThan(surfaceLightness)
     await expect(page.locator('html')).toHaveCSS('background-color', surface)
     await expect(page.locator('.nav')).toHaveCSS('background-color', background)
-    await expect(page.locator('body')).toHaveCSS('color', await computedColor(page, 'var(--payloadpack-text)'))
+    await expect(page.locator('body')).toHaveCSS('color', await computedColor(page, 'var(--payloadpack-text-primary)'))
     await expect
       .poll(async () =>
         nearColor(
@@ -1243,14 +1263,16 @@ test.describe('Neutral palette', () => {
       await nearColor(
         page,
         await computedColor(page, 'var(--accessibility-focus-color)'),
-        await computedColor(page, 'var(--payloadpack-primary)')
+        await computedColor(page, 'var(--payloadpack-action-primary)')
       )
     ).toBe(true)
 
     await page.getByRole('button', { name: 'More options' }).first().click()
     const popup = page.locator('.popup__content:visible').first()
     await expect(popup).toHaveCSS('border-radius', '9px')
-    await expect(popup).toHaveCSS('box-shadow', /^rgb\(42, 42, 39\) 0px 0px 0px 1px,/)
+    expect(await style(page, '.popup__content:popover-open', 'box-shadow')).toContain(
+      `${await computedColor(page, 'var(--color-border)')} 0px 0px 0px 1px,`
+    )
   })
 
   test('enhanced contrast reaches radios and secondary text', async ({ page }) => {
@@ -1297,11 +1319,11 @@ test.describe('Neutral palette', () => {
     await page.getByRole('button', { name: 'Error', exact: true }).click()
     const error = page.locator('.payload-toast-item[data-type="error"]')
 
-    await expect(error).toHaveCSS('background-color', await computedColor(page, 'var(--payloadpack-surface)'))
+    await expect(error).toHaveCSS('background-color', await computedColor(page, 'var(--payloadpack-bg-surface)'))
     await expect(error).toHaveCSS('border-radius', '9px')
     await expect(error.locator('.payload-toast-close-button')).toHaveCSS(
       'color',
-      await computedColor(page, 'var(--payloadpack-text)')
+      await computedColor(page, 'var(--payloadpack-text-primary)')
     )
     const lightTint = await computedColor(page, await style(page, '.toast-error', '--payloadpack-toast-icon'))
     await expect(error.locator('.toast-icon .icon')).toHaveCSS('color', lightTint)
@@ -1326,7 +1348,7 @@ test.describe('Neutral palette', () => {
 })
 
 test.describe('Every palette but Payload', () => {
-  for (const palette of ['neutral', 'warm'] satisfies NonNullable<ThemePluginConfig['palette']>[]) {
+  for (const palette of ['neutral', 'warm', 'soft'] satisfies NonNullable<ThemePluginConfig['palette']>[]) {
     test.describe(palette, () => {
       test.beforeEach(({ page }) => page.context().addCookies([appearance({ palette })]))
 
@@ -1364,19 +1386,6 @@ test.describe('Every palette but Payload', () => {
           expect(colors.icon).toBe('1')
         })
       }
-
-      test('the selected nav link is a white pill lifted by a shadow, and the other links are muted', async ({ page }) => {
-        await page.context().addCookies([cookie('theme', 'light')])
-        await page.goto('/admin/collections/showcase')
-
-        expect(await style(page, '.nav__link--selected', 'background-color', '::before')).toBe(
-          await computedColor(page, 'var(--color-bg-elevated)')
-        )
-        expect(await style(page, '.nav__link--selected', 'box-shadow', '::before')).not.toBe('none')
-        expect(await style(page, '.nav__link:not(.nav__link--selected)', 'color')).toBe(
-          await computedColor(page, 'var(--color-text-secondary)')
-        )
-      })
 
       test('one toggle border token reaches checkboxes and radios', async ({ page }) => {
         await openShowcase(page)
@@ -1422,20 +1431,49 @@ test.describe('Every palette but Payload', () => {
         }
       })
 
-      test('dark selections step clearly above their surroundings', async ({ page }) => {
+      test('dark tabs and segments set the active one clearly apart from its track', async ({ page }) => {
+        await page.context().addCookies([cookie('theme', 'dark')])
+        await page.goto('/admin/collections/showcase')
+        const lightness = async (selector: string) =>
+          (await channels(page, 'oklab', await style(page, selector, 'background-color')))[0]
+
+        expect((await lightness('.sidebar-tabs__tabs')) - (await lightness('.sidebar-tabs__tab--active'))).toBeGreaterThan(0.05)
+
+        await openAppearancePanel(page)
+        expect(
+          (await lightness('.payloadpack-appearance-panel__segments')) -
+            (await lightness('.payloadpack-appearance-panel__segments label:has(:checked)'))
+        ).toBeGreaterThan(0.05)
+      })
+    })
+  }
+})
+
+test.describe('Raised nav pill', () => {
+  for (const palette of ['neutral', 'warm'] satisfies NonNullable<ThemePluginConfig['palette']>[]) {
+    test.describe(palette, () => {
+      test.beforeEach(({ page }) => page.context().addCookies([appearance({ palette })]))
+
+      test('the selected nav link is a white pill lifted by a shadow, and the other links are muted', async ({ page }) => {
+        await page.context().addCookies([cookie('theme', 'light')])
+        await page.goto('/admin/collections/showcase')
+
+        expect(await style(page, '.nav__link--selected', 'background-color', '::before')).toBe(
+          await computedColor(page, 'var(--color-bg-elevated)')
+        )
+        expect(await style(page, '.nav__link--selected', 'box-shadow', '::before')).not.toBe('none')
+        expect(await style(page, '.nav__link:not(.nav__link--selected)', 'color')).toBe(
+          await computedColor(page, 'var(--color-text-secondary)')
+        )
+      })
+
+      test('the dark selected nav link steps clearly above the nav', async ({ page }) => {
         await page.context().addCookies([cookie('theme', 'dark')])
         await page.goto('/admin/collections/showcase')
         const lightness = async (selector: string, pseudo?: string) =>
           (await channels(page, 'oklab', await style(page, selector, 'background-color', pseudo)))[0]
 
         expect((await lightness('.nav__link--selected', '::before')) - (await lightness('.nav'))).toBeGreaterThan(0.08)
-        expect((await lightness('.sidebar-tabs__tab--active')) - (await lightness('.sidebar-tabs__tabs'))).toBeGreaterThan(0.08)
-
-        await openAppearancePanel(page)
-        expect(
-          (await lightness('.payloadpack-appearance-panel__segments label:has(:checked)')) -
-            (await lightness('.payloadpack-appearance-panel__segments'))
-        ).toBeGreaterThan(0.08)
       })
     })
   }
@@ -1502,6 +1540,20 @@ test.describe('Custom palette', () => {
     cookie('theme', theme)
   ]
 
+  test('lays the palettes out three per row and ends them with a dashed Custom tile', async ({ page }) => {
+    await page.goto('/admin/collections/showcase')
+    const sheet = await openAppearancePanel(page)
+    const grid = sheet.locator('.payloadpack-appearance-panel__cards:has(.payloadpack-appearance-panel__add)')
+    const tile = grid.getByRole('button', { name: 'Custom colors' })
+
+    await expect(grid).toHaveCSS('grid-template-columns', /^[\d.]+px [\d.]+px [\d.]+px$/)
+    await expect(tile).toHaveCSS('border-top-style', 'dashed')
+    await expect(tile).toHaveText('Custom')
+    const [card, add] = [await grid.locator('label').first().boundingBox(), await tile.boundingBox()]
+    expect(add!.y).toBeGreaterThan(card!.y + card!.height)
+    expect(add!.height).toBe(card!.height)
+  })
+
   test('Custom colors start from the current palette, apply each color at once and keep it through a reload', async ({
     page
   }) => {
@@ -1513,11 +1565,11 @@ test.describe('Custom palette', () => {
     const neutral = async (token: string, theme?: string) => hex(await computedColor(page, `var(${token})`, theme))
     const expected = {
       accent: await neutral('--payloadpack-accent'),
-      darkBackground: await neutral('--payloadpack-background', 'dark'),
-      darkPrimary: await neutral('--payloadpack-primary', 'dark'),
-      darkText: await neutral('--payloadpack-text', 'dark'),
-      lightBackground: await neutral('--payloadpack-background'),
-      lightPrimary: await neutral('--payloadpack-primary')
+      darkBackground: await neutral('--payloadpack-bg-app', 'dark'),
+      darkPrimary: await neutral('--payloadpack-action-primary', 'dark'),
+      darkText: await neutral('--payloadpack-text-primary', 'dark'),
+      lightBackground: await neutral('--payloadpack-bg-app'),
+      lightPrimary: await neutral('--payloadpack-action-primary')
     }
 
     await pickAndSave(page, sheet.getByRole('button', { name: 'Custom colors' }))
@@ -1676,19 +1728,16 @@ test.describe('Custom palette', () => {
     expect(await background(logOut)).toBe(open)
   })
 
-  test('marks like the active tab bar take the accent itself, darkened only when it is too light', async ({ page }) => {
-    const bar = async (accent: string) => {
-      await page.context().addCookies(custom(accent))
-      await page.goto((await findShowcase(page)).path)
-      await hydrated(page)
-      return page
-        .locator('.tabs__tab-button--active')
-        .first()
-        .evaluate((element) => getComputedStyle(element, '::after').backgroundColor)
-    }
+  test('the active tab bar takes the primary, not the accent', async ({ page }) => {
+    await page.context().addCookies(custom('#c2410c', { primary: '#1d4ed8' }))
+    await page.goto((await findShowcase(page)).path)
+    await hydrated(page)
+    const bar = await page
+      .locator('.tabs__tab-button--active')
+      .first()
+      .evaluate((element) => getComputedStyle(element, '::after').backgroundColor)
 
-    expect(await nearColor(page, await bar('#c2410c'), '#c2410c')).toBe(true)
-    expect((await channels(page, 'oklch', await bar('#ffffff')))[0]).toBeCloseTo(0.6, 2)
+    expect(await nearColor(page, bar, '#1d4ed8')).toBe(true)
   })
 
   test('a white primary keeps its button edge in light mode', async ({ page }) => {
@@ -1924,11 +1973,11 @@ test.describe('Studio character', () => {
     for (const [name, value] of Object.entries(defaults)) {
       await expect(html).toHaveAttribute(`data-${name}`, value)
     }
-    await expect(card).toHaveCSS('border-top-width', '1px')
-    await expect(card).toHaveCSS('border-top-color', await computedColor(page, 'var(--color-border)'))
-    await expect(card).toHaveCSS('border-radius', '26px')
+    await expect(card).toHaveCSS('border-top-width', '0px')
+    await expect(card).toHaveCSS('box-shadow', /0px 0px 0px 0\.5px/)
+    await expect(card).toHaveCSS('border-radius', '20px')
     await expect(card).toHaveCSS('overflow', 'clip')
-    await expect(card).toHaveCSS('margin', '12px 12px 12px 0px')
+    await expect(card).toHaveCSS('margin', '6px 6px 6px 0px')
     await expect(page.locator('.nav')).toHaveCSS('border-right-width', '0px')
   })
 
@@ -1969,7 +2018,7 @@ test.describe('Studio character', () => {
       ])
 
     await toggleNav('.nav__close')
-    await expect(card).toHaveCSS('margin-left', '12px')
+    await expect(card).toHaveCSS('margin-left', '6px')
     await expect(page.locator('.nav')).toHaveCSS('visibility', 'hidden')
     await toggleNav('.app-header__sidebar-toggle')
     await expect(card).toHaveCSS('margin-left', '0px')
@@ -2000,6 +2049,29 @@ test.describe('Studio character', () => {
     const popup = page.locator('.user-menu .popup__content')
     await expect(popup).toBeVisible()
     expect(((await popup.boundingBox())?.y ?? 0) + ((await popup.boundingBox())?.height ?? 0)).toBeLessThanOrEqual(menu?.y ?? 0)
+  })
+
+  test('keeps the user menu and the toggle in place while a long nav scrolls between them', async ({ page }) => {
+    await page.setViewportSize({ height: 640, width: 1280 })
+    await page.context().addCookies([studio()])
+    await openList(page)
+    const scroller = page.locator('.nav__scroll')
+    const menu = page.locator('.user-menu__trigger')
+    const toggle = page.locator('.payloadpack-rail-toggle')
+    const lastLink = page.locator('.nav__link').last()
+    await expect(menu).toBeVisible()
+    await expect(toggle).toBeVisible()
+    const pinned = async () => [await menu.boundingBox(), await toggle.boundingBox()]
+    const before = await pinned()
+
+    expect(await scroller.evaluate((element) => element.scrollHeight > element.clientHeight)).toBe(true)
+    await scroller.evaluate((element) => element.scrollTo({ top: element.scrollHeight }))
+    await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight }))
+
+    expect(await pinned()).toEqual(before)
+    await expect(lastLink).toBeVisible()
+    const end = await lastLink.boundingBox()
+    expect((end?.y ?? 0) + (end?.height ?? 0)).toBeLessThanOrEqual(before[0]?.y ?? 0)
   })
 
   test("loads the bundled Geist for the body font and Payload's widgets, and switches to Inter or the system font", async ({
@@ -2107,8 +2179,8 @@ test.describe('Warm palette', () => {
       await page.context().addCookies([appearance({ character: 'studio', palette: 'warm' }), cookie('theme', theme)])
       await page.reload()
       const [background, surface] = [
-        await computedColor(page, 'var(--payloadpack-background)'),
-        await computedColor(page, 'var(--payloadpack-surface)')
+        await computedColor(page, 'var(--payloadpack-bg-app)'),
+        await computedColor(page, 'var(--payloadpack-bg-surface)')
       ]
 
       await expect(field).toHaveCSS('background-color', background)
@@ -2126,11 +2198,121 @@ test.describe('Warm palette', () => {
 
     await expect(page.locator('.nav__header')).toHaveCSS(
       'background-color',
-      await computedColor(page, 'var(--payloadpack-background)')
+      await computedColor(page, 'var(--payloadpack-bg-app)')
     )
     await expect(page.locator('.template-default__wrap')).toHaveCSS(
       'background-color',
-      await computedColor(page, 'var(--payloadpack-surface)')
+      await computedColor(page, 'var(--payloadpack-bg-surface)')
     )
+  })
+})
+
+test.describe('Token sheet', () => {
+  const openShowcaseIn = async (page: Page, theme: 'dark' | 'light', palette: string) => {
+    await page.context().addCookies([appearance({ palette }), cookie('theme', theme)])
+    await page.goto((await findShowcase(page)).path)
+    await hydrated(page)
+  }
+  const moreOptions = (page: Page) => page.getByRole('button', { name: 'More options' }).first()
+  const userSheet = `
+    [data-palette='neutral'] {
+      --payloadpack-border-default: #e5e5e5;
+
+      &[data-theme='dark'] {
+        --payloadpack-border-default: #262626;
+      }
+    }
+
+    html {
+      --payloadpack-radius-card: 1rem;
+      --payloadpack-motion-panel-duration: 300ms;
+    }
+  `
+
+  test("reaches fields, corners, motion and dark menus from the user's own CSS", async ({ page }) => {
+    await openShowcaseIn(page, 'light', 'neutral')
+    await page.addStyleTag({ content: userSheet })
+    await expect(page.locator('.field-type.text input').first()).toHaveCSS('border-top-color', 'rgb(229, 229, 229)')
+    expect(await style(page, 'html', '--radius-large')).toBe('1rem')
+    await expect(page.locator('.template-default')).toHaveCSS('transition-duration', '0.3s')
+
+    await openShowcaseIn(page, 'dark', 'neutral')
+    await page.addStyleTag({ content: userSheet })
+    await expect(page.locator('.field-type.text input').first()).toHaveCSS('border-top-color', 'rgb(38, 38, 38)')
+    await moreOptions(page).click()
+    expect(await style(page, '.popup__content:popover-open', 'box-shadow')).toContain('rgb(38, 38, 38) 0px 0px 0px 1px')
+  })
+
+  test("draws menus in the page's mode, and leaves Payload's dark menus on Payload's palette", async ({ page }) => {
+    await openShowcaseIn(page, 'light', 'neutral')
+    await moreOptions(page).click()
+    const popup = page.locator('.popup__content:popover-open')
+    await expect(popup).toHaveCSS('background-color', await computedColor(page, 'var(--color-bg-elevated)'))
+    await expect(popup).toHaveCSS('color', await computedColor(page, 'var(--color-text)'))
+
+    await openShowcaseIn(page, 'light', 'payload')
+    await moreOptions(page).click()
+    const [lightness] = await channels(page, 'oklab', await style(page, '.popup__content:popover-open', 'background-color'))
+    expect(lightness).toBeLessThan(0.4)
+  })
+})
+
+test.describe('Soft palette', () => {
+  test('draws selection borders in the primary, not the blue accent', async ({ page }) => {
+    await page.context().addCookies([appearance({ palette: 'soft' }), cookie('theme', 'light')])
+    await page.goto('/admin/collections/posts')
+    await hydrated(page)
+    await page.getByRole('button', { exact: true, name: 'Columns' }).click()
+    const primary = await computedColor(page, 'var(--color-bg-brand)')
+    await expect(page.locator('.columns-button__button')).toHaveCSS('border-top-color', primary)
+    await expect(page.locator('.switch__track--checked').first()).toHaveCSS('border-top-color', primary)
+
+    await page.goto('/admin/collections/pages')
+    await page.locator('table tbody tr a').first().click()
+    await hydrated(page)
+    expect(await style(page, '.tabs__tab-button--active', 'background-color', '::after')).toBe(primary)
+  })
+
+  test('draws a checked row checkbox like every other checkbox, not in the blue accent', async ({ page }) => {
+    await page.context().addCookies([appearance({ palette: 'soft' }), cookie('theme', 'dark')])
+    await page.goto('/admin/collections/posts')
+    await hydrated(page)
+    await page.locator('.checkbox-input__control--muted').nth(1).check({ force: true })
+    await page.mouse.move(0, 0)
+    const visuals = page.locator('.checkbox-input__control--muted:checked + .checkbox-input__visuals').first()
+    await expect(visuals).toHaveCSS('border-top-color', await computedColor(page, 'var(--payloadpack-toggle-checked-border)'))
+    await expect(visuals).toHaveCSS('background-color', await computedColor(page, 'var(--payloadpack-toggle-checked-bg)'))
+  })
+
+  test('marks the selected nav link with a flat grey fill and keeps the sidebar tab raised', async ({ page }) => {
+    for (const [theme, fill] of [
+      ['light', 'rgb(238, 238, 238)'],
+      ['dark', 'rgb(41, 41, 41)']
+    ] as const) {
+      await page.context().addCookies([appearance({ character: 'studio', palette: 'soft' }), cookie('theme', theme)])
+      await page.goto('/admin/collections/showcase')
+      await hydrated(page)
+      expect(await style(page, '.nav__link--selected', 'background-color', '::before')).toBe(fill)
+      expect(await style(page, '.nav__link--selected', 'box-shadow', '::before')).toBe('none')
+      expect(await style(page, '.sidebar-tabs__tab--active', 'box-shadow')).not.toBe('none')
+    }
+  })
+
+  test('lifts menus and select lists a step above the page in dark mode, and keeps them white in light mode', async ({
+    page
+  }) => {
+    for (const [theme, menu] of [
+      ['dark', 'rgb(31, 31, 31)'],
+      ['light', 'rgb(255, 255, 255)']
+    ] as const) {
+      await page.context().addCookies([appearance({ character: 'studio', palette: 'soft' }), cookie('theme', theme)])
+      await page.goto((await findShowcase(page)).path)
+      await hydrated(page)
+      await page.getByRole('button', { name: 'More options' }).first().click()
+      await expect(page.locator('.popup__content:popover-open')).toHaveCSS('background-color', menu)
+      await page.keyboard.press('Escape')
+      await page.locator('.field-type.select .rs__control').first().click()
+      await expect(page.locator('.rs__menu')).toHaveCSS('background-color', menu)
+    }
   })
 })
