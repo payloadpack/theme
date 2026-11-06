@@ -144,7 +144,20 @@
         transition: grid-template-columns var(--payloadpack-motion-panel-duration) var(--payloadpack-motion-panel-easing);
       }
 
+      @media (width <= 768px) {
+        .template-default:not(.template-default--nav-hydrated) {
+          grid-template-columns: 0 auto;
+        }
+      }
+
+      @media (769px <= width <= 1440px) {
+        &:not([data-nav='rail']) .template-default:not(.template-default--nav-open, .template-default--nav-hydrated) {
+          grid-template-columns: 0 auto;
+        }
+      }
+
       .template-default__wrap {
+        grid-column: 2;
         transition: margin var(--payloadpack-motion-panel-duration) var(--payloadpack-motion-panel-easing);
       }
 

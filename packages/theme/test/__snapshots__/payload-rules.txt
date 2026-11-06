@@ -1023,6 +1023,7 @@ form > .form-submit .btn { width: 100%; }
 @media (min-width: 1441px) .template-default--nav-open { grid-template-columns: var(--nav-width) auto; }
 @media (max-width: 1440px) .template-default { grid-template-columns: 1fr auto; }
 @media (max-width: 1440px) .template-default .nav { display: none; }
+@media (max-width: 1440px) .template-default--nav-hydrated { grid-template-columns: 0 auto; }
 @media (max-width: 1440px) .template-default--nav-hydrated .nav { display: flex; }
 @media (max-width: 1440px) .template-default--nav-open { grid-template-columns: var(--nav-width) auto; }
 @media (max-width: 1440px) .template-default--nav-open .nav { display: flex; }
