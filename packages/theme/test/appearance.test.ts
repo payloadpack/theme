@@ -167,6 +167,7 @@ it('writes the custom palette as the same CSS block a built-in palette is', () =
       '  --payloadpack-text-primary: #1c1b18;',
       '  --payloadpack-action-primary: #1c1b18;',
       '  --payloadpack-accent: #c2410c;',
+      '  --payloadpack-text-secondary: color-mix(in srgb, var(--payloadpack-text-primary) 62%, transparent);',
       '',
       "  &[data-theme='dark'] {",
       '    --payloadpack-bg-app: #131312;',

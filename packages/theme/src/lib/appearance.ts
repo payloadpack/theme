@@ -170,7 +170,7 @@ const declarations = (base: Base, indent: string) =>
   bases.map((name) => `${indent}${baseTokens[name]}: ${base[name]};\n`).join('')
 
 export const paletteCss = (name: string, { accent, dark, light }: CustomPalette) =>
-  `[data-palette='${name}'] {\n${declarations(light, '  ')}  --payloadpack-accent: ${accent};\n\n  &[data-theme='dark'] {\n${declarations(dark, '    ')}  }\n}\n`
+  `[data-palette='${name}'] {\n${declarations(light, '  ')}  --payloadpack-accent: ${accent};\n  --payloadpack-text-secondary: color-mix(in srgb, var(--payloadpack-text-primary) 62%, transparent);\n\n  &[data-theme='dark'] {\n${declarations(dark, '    ')}  }\n}\n`
 
 const setupKeys = ['character', 'custom', 'options', 'palette', 'personal']
 
