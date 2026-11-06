@@ -330,15 +330,33 @@ test.describe('Appearance panel', () => {
     await openFineTune(sheet)
     await pickAndSave(page, label(choice(sheet, 'Density', 'Compact')))
 
-    const preference = await (await page.request.get('/api/payload-preferences/payloadpack-appearance')).json()
-    expect(preference.value).toEqual({ palette: 'warm', personal: { density: 'compact' } })
+    const stored = async () => (await (await page.request.get('/api/payload-preferences/payloadpack-appearance')).json()).value
+    expect(await stored()).toEqual({ palette: 'warm', personal: { density: 'compact' } })
+
+    await saveSetup(page.request, { character: 'studio', palette: 'warm', personal: { density: 'compact' } })
+    await pickAndSave(page, label(choice(sheet, 'Palette', 'Soft')))
+    expect(await stored()).toEqual({ character: 'studio', palette: 'soft', personal: { density: 'compact' } })
   })
 
-  test('says in the panel when a change could not be saved', async ({ page }) => {
+  test('keeps the look from the cookie when the first change is saved', async ({ page }) => {
+    await page.context().addCookies([appearance({ character: 'studio', palette: 'warm' })])
+    await page.goto('/admin')
+    const sheet = await openAppearancePanel(page)
+
+    await openFineTune(sheet)
+    await pickAndSave(page, label(choice(sheet, 'Density', 'Compact')))
+    await page.reload()
+
+    await expect(page.locator('html')).toHaveAttribute('data-character', 'studio')
+    await expect(page.locator('html')).toHaveAttribute('data-palette', 'warm')
+    await expect(page.locator('html')).toHaveAttribute('data-density', 'compact')
+  })
+
+  test('says in the panel when the server rejects a change', async ({ page }) => {
     await page.goto('/admin')
     const sheet = await openAppearancePanel(page)
     await page.route('**/api/payload-preferences/payloadpack-appearance', (route) =>
-      route.request().method() === 'POST' ? route.abort() : route.continue()
+      route.request().method() === 'POST' ? route.fulfill({ body: '{}', status: 500 }) : route.continue()
     )
 
     await label(choice(sheet, 'Palette', 'Warm')).click()
@@ -1664,6 +1682,26 @@ test.describe('Custom palette', () => {
     await expect(field(sheet, 'Dark', 'Background')).toHaveValue(expected.darkBackground)
     await expect(field(sheet, 'Dark', 'Text')).toHaveValue(expected.darkText)
     await expect(accent(sheet)).toHaveValue(expected.accent)
+    const secondaryContrast = await page.evaluate(() => {
+      const context = document.createElement('canvas').getContext('2d')!
+      const paint = (...colors: string[]) => {
+        for (const color of colors) {
+          context.fillStyle = color
+          context.fillRect(0, 0, 1, 1)
+        }
+        return [...context.getImageData(0, 0, 1, 1).data.slice(0, 3)]
+      }
+      const luminance = (rgb: number[]) =>
+        rgb
+          .map((channel) => channel / 255)
+          .map((channel) => (channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4))
+          .reduce((sum, channel, index) => sum + channel * [0.2126, 0.7152, 0.0722][index], 0)
+      const background = getComputedStyle(document.querySelector('.nav')!).backgroundColor
+      const link = getComputedStyle(document.querySelector('.nav__link:not(.nav__link--selected)')!).color
+      const [text, ground] = [luminance(paint(background, link)), luminance(paint(background))]
+      return (Math.max(text, ground) + 0.05) / (Math.min(text, ground) + 0.05)
+    })
+    expect(secondaryContrast).toBeGreaterThanOrEqual(4.5)
 
     await Promise.all([saved(page), field(sheet, 'Light', 'Background').fill('#eae6df')])
     await expect(header).toHaveCSS('background-color', 'rgb(234, 230, 223)')
@@ -1706,16 +1744,20 @@ test.describe('Custom palette', () => {
       }
     })
 
-    await field(sheet, 'Light', 'Background').evaluate((input: HTMLInputElement) => {
+    const background = field(sheet, 'Light', 'Background')
+    await background.evaluate((input: HTMLInputElement) => {
       const setValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!
       for (const value of ['#101010', '#202020', '#303030']) {
         setValue.call(input, value)
         input.dispatchEvent(new Event('input', { bubbles: true }))
       }
-      input.dispatchEvent(new Event('change', { bubbles: true }))
     })
 
     await expect(page.locator('.nav__header')).toHaveCSS('background-color', 'rgb(48, 48, 48)')
+    expect(await page.evaluate(() => document.cookie)).not.toContain('%23303030')
+
+    await background.evaluate((input: HTMLInputElement) => input.dispatchEvent(new Event('change', { bubbles: true })))
+    await expect.poll(() => page.evaluate(() => document.cookie)).toContain('%23303030')
     await expect.poll(() => saves.length).toBe(1)
     await page.waitForLoadState('networkidle')
     expect(saves).toHaveLength(1)
