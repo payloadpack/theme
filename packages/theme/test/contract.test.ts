@@ -28,6 +28,7 @@ const lucideIcons = path.join(packageRoot('lucide-static'), 'icons')
 
 const scopes: Record<string, string> = {
   'characters/enhanced/enhanced.css': "html[data-character='enhanced']",
+  'characters/payload/payload.css': "html[data-character='payload']",
   'characters/shared.css': "html:is([data-character='enhanced'], [data-character='studio'])",
   'characters/studio/studio.css': "html[data-character='studio']",
   'palettes/accent.css': ":where([data-palette]:not([data-palette='payload']))",
@@ -45,6 +46,7 @@ const scopes: Record<string, string> = {
   'palettes/soft.css': "[data-palette='soft']",
   'styles/appearance-panel.css': '.payloadpack-appearance-panel',
   'styles/rail.css': 'html[data-rail]',
+  'styles/nav-bar.css': '.payloadpack-nav-bar',
   'styles/fields/radio-cards.css': `.${RADIO_CARDS}`,
   'styles/fields/switch.css': `.${SWITCH}`,
   'styles/fields/vertical-tabs.css': `.${VERTICAL_TABS}`
@@ -569,16 +571,18 @@ describe('theme contract with Payload', () => {
     expect(unique(loose)).toEqual([])
   })
 
-  it('keeps every anchor-positioned rule behind a check for anchor positioning', () => {
-    const unguarded = (css: string, scope = ''): string[] =>
-      topLevelBlocks(css).blocks.flatMap(({ body, prelude }) => {
-        const nested = `${scope} ${prelude}`.trim()
-        const anchored = /position-anchor|position-area|anchor\(/.test(topLevelBlocks(body).outside)
-        return [...(anchored && !nested.includes('@supports (anchor-name: --a)') ? [nested] : []), ...unguarded(body, nested)]
-      })
-    expect(
-      Object.entries(themeCss).flatMap(([file, css]) => unguarded(stripComments(css)).map((scope) => `${file}: ${scope}`))
-    ).toEqual([])
+  it('gives every relative color a fallback for browsers without relative colors', () => {
+    const missing = Object.entries(themeCss).flatMap(([file, css]) => {
+      const [enhanced, fallback = ''] = stripComments(css).split('@supports not (color: oklch(from red l c h))')
+      return matchAll(enhanced, /(--[\w-]+):[^;]*\b(?:oklch|rgb)\(from /g)
+        .filter((property) => !fallback.includes(`${property}:`))
+        .map((property) => `${file}: ${property}`)
+    })
+    expect(missing).toEqual([])
+  })
+
+  it('uses no anchor positioning, which the supported browsers lack', () => {
+    expect(Object.keys(themeCss).filter((file) => /anchor|position-area/.test(stripComments(themeCss[file])))).toEqual([])
   })
 
   it('falls back to the step Payload maps each color to in each mode', () => {

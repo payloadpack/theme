@@ -1,10 +1,11 @@
 'use client'
 
-import { useAuth, useNav, usePreferences, useWindowInfo } from '@payloadcms/ui'
+import { useAuth, useNav, useRouter, useWindowInfo } from '@payloadcms/ui'
 import {
   createContext,
   type ReactNode,
   use,
+  useCallback,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -16,6 +17,7 @@ import {
 import { type Character, type Option, type OptionValue, options } from '../characters/index.js'
 import { useMonacoFontSize } from '../hooks/use-monaco-font-size.js'
 import {
+  accountOf,
   type Choices,
   type CustomPalette,
   customPalette,
@@ -24,7 +26,6 @@ import {
   paletteCss,
   parseChoices,
   pasteSetup,
-  preferenceKey,
   resetCharacter,
   resolve,
   type Settings,
@@ -46,6 +47,7 @@ const writeCookie = (name: string, value: string | undefined) => {
 
 type AppearanceContextValue = ReturnType<typeof resolve> & {
   characters: Character[]
+  editable: boolean
   palettes: Palette[]
   paste: (text: string) => boolean
   rail: boolean
@@ -54,7 +56,7 @@ type AppearanceContextValue = ReturnType<typeof resolve> & {
   setCustom: (custom: CustomPalette, persist?: boolean) => void
   setCharacter: (character: Character) => void
   setOption: <O extends Option>(option: O, value: OptionValue<O>) => void
-  setPalette: (palette: Palette | typeof customPalette) => void
+  setPalette: (palette: string) => void
   setup: Choices
   toggleRail: () => void
   unsaved: boolean
@@ -64,9 +66,6 @@ const AppearanceContext = createContext<AppearanceContextValue | null>(null)
 
 const subscribeToNothing = () => () => {}
 
-const accountOf = (user: null | undefined | { collection: string; id: number | string }) =>
-  user ? `${user.collection}:${user.id}` : undefined
-
 type AppearanceProviderProps = {
   children: ReactNode
   codeEditorFontSize: false | number
@@ -74,10 +73,10 @@ type AppearanceProviderProps = {
   editable: boolean
   initialChoices: Choices
   initialRail: boolean
-  loadsOnSignIn: boolean
   preferenceURL: string
   railCookieName: string
   settings: Settings
+  storedIsOlder: boolean
 }
 
 export function AppearanceProvider({
@@ -87,10 +86,10 @@ export function AppearanceProvider({
   editable,
   initialChoices,
   initialRail,
-  loadsOnSignIn,
   preferenceURL,
   railCookieName,
-  settings
+  settings,
+  storedIsOlder
 }: AppearanceProviderProps) {
   const [choices, setChoices] = useState(initialChoices)
   const [draft, setDraft] = useState<CustomPalette>()
@@ -101,7 +100,7 @@ export function AppearanceProvider({
   const pending = useRef<((current: Choices) => Choices)[]>([])
   const { user } = useAuth()
   const signedInAs = useRef(accountOf(user))
-  const { getPreference } = usePreferences()
+  const router = useRouter()
   const resolved = useMemo(
     () => resolve(settings, draft ? { ...choices, custom: draft, palette: customPalette } : choices),
     [settings, choices, draft]
@@ -141,39 +140,40 @@ export function AppearanceProvider({
 
   useEffect(() => {
     const account = accountOf(user)
-    if (!loadsOnSignIn || !account || account === signedInAs.current) {
+    if (!account || account === signedInAs.current) {
       return
     }
     signedInAs.current = account
-    void getPreference<unknown>(preferenceKey).then((saved) => {
-      if (saved) {
-        setChoices(normalize(settings, saved))
-      }
-    })
-  }, [getPreference, loadsOnSignIn, settings, user])
+    router.refresh()
+  }, [router, user])
 
   useEffect(() => {
     latest.current = choices
     if (editable) {
-      writeCookie(cookieName, Object.keys(choices).length ? encodeURIComponent(JSON.stringify(choices)) : undefined)
+      writeCookie(
+        cookieName,
+        Object.keys(choices).length ? encodeURIComponent(JSON.stringify({ ...choices, by: accountOf(user) })) : undefined
+      )
     }
-  }, [choices, cookieName, editable])
+  }, [choices, cookieName, editable, user])
 
   useEffect(() => {
     writeCookie(railCookieName, rail ? 'true' : undefined)
   }, [rail, railCookieName])
 
   useLayoutEffect(() => {
-    if (keepsNavOpen && !navOpen && CSS.supports('anchor-name: --a')) {
+    if (keepsNavOpen && !navOpen) {
       setNavOpen(true)
     }
   }, [keepsNavOpen, navOpen, setNavOpen])
 
-  const context = useMemo(() => {
-    const update = (change: (current: Choices) => Choices) => {
+  const update = useCallback(
+    (change: (current: Choices) => Choices) => {
+      const at = Date.now()
+      const stamped = (current: Choices) => ({ ...change(current), at })
       setDraft(undefined)
-      setChoices((current) => normalize(settings, change(current)))
-      pending.current.push(change)
+      setChoices((current) => normalize(settings, stamped(current)))
+      pending.current.push(stamped)
       saving.current = saving.current
         .then(async () => {
           const changes = pending.current.splice(0)
@@ -196,11 +196,21 @@ export function AppearanceProvider({
           setUnsaved(!response.ok)
         })
         .catch(() => setUnsaved(true))
-    }
+    },
+    [preferenceURL, settings]
+  )
 
+  useEffect(() => {
+    if (storedIsOlder) {
+      update(() => initialChoices)
+    }
+  }, [initialChoices, storedIsOlder, update])
+
+  const context = useMemo(() => {
     return {
       ...resolved,
       characters: Object.keys(settings.options) as Character[],
+      editable,
       palettes: settings.palettes,
       paste: (text: string) => {
         const valid = parseChoices(settings, text) !== undefined
@@ -234,12 +244,12 @@ export function AppearanceProvider({
                 options: { ...current.options, [character]: { ...current.options?.[character], [option]: value } }
               }
         ),
-      setPalette: (next: Palette | typeof customPalette) => update((current) => ({ ...current, palette: next })),
+      setPalette: (next: string) => update((current) => ({ ...current, palette: next })),
       setup: setupOf(resolved),
       toggleRail: () => setRail(!rail),
       unsaved
     }
-  }, [character, choices, preferenceURL, resolved, rail, settings, unsaved])
+  }, [character, choices, editable, resolved, rail, settings, unsaved, update])
 
   return (
     <AppearanceContext value={context}>

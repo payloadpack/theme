@@ -192,6 +192,24 @@ test.describe('Theme plugin', () => {
 })
 
 test.describe('Appearance panel', () => {
+  test('keeps a change that a reload cut off before it was saved, and saves it then', async ({ page }) => {
+    const preference = '**/api/payload-preferences/payloadpack-appearance'
+    await page.goto('/admin')
+    const sheet = await openAppearancePanel(page)
+    await pickAndSave(page, label(choice(sheet, 'Palette', 'Soft')))
+
+    await page.route(preference, (route) => route.abort())
+    await label(choice(sheet, 'Palette', 'Warm')).click()
+    await expect(page.locator('html')).toHaveAttribute('data-palette', 'warm')
+    await page.unroute(preference)
+    await Promise.all([saved(page), page.reload()])
+
+    await expect(page.locator('html')).toHaveAttribute('data-palette', 'warm')
+    expect((await (await page.request.get('/api/payload-preferences/payloadpack-appearance')).json()).value).toMatchObject({
+      palette: 'warm'
+    })
+  })
+
   test('opens from the header as a full-height sheet on the right, or from the bottom on a phone, and closes', async ({
     page
   }) => {
@@ -332,11 +350,16 @@ test.describe('Appearance panel', () => {
     await pickAndSave(page, label(choice(sheet, 'Density', 'Compact')))
 
     const stored = async () => (await (await page.request.get('/api/payload-preferences/payloadpack-appearance')).json()).value
-    expect(await stored()).toEqual({ palette: 'warm', personal: { density: 'compact' } })
+    expect(await stored()).toEqual({ at: expect.any(Number), palette: 'warm', personal: { density: 'compact' } })
 
     await saveSetup(page.request, { character: 'studio', palette: 'warm', personal: { density: 'compact' } })
     await pickAndSave(page, label(choice(sheet, 'Palette', 'Soft')))
-    expect(await stored()).toEqual({ character: 'studio', palette: 'soft', personal: { density: 'compact' } })
+    expect(await stored()).toEqual({
+      at: expect.any(Number),
+      character: 'studio',
+      palette: 'soft',
+      personal: { density: 'compact' }
+    })
   })
 
   test('keeps the look from the cookie when the first change is saved', async ({ page }) => {
@@ -474,18 +497,24 @@ test.describe('Appearance panel', () => {
     expect(await look()).toEqual(enhanced)
   })
 
-  test('sits left of the nav toggle under Enhanced, right of it under Studio, and in the header when the nav is closed or Payload', async ({
+  test('sits left of the nav toggle on the user menu row under Enhanced, right of it under Studio, and in the header when the nav is closed or Payload', async ({
     page
   }) => {
     const button = page.getByRole('button', { name: 'Appearance' })
     const beside = async () => {
-      const [trigger, toggle] = [(await button.boundingBox())!, (await page.locator('.payloadpack-rail-toggle').boundingBox())!]
+      const [trigger, toggle] = [(await button.boundingBox())!, (await page.locator('.payloadpack-nav-toggle').boundingBox())!]
       expect(trigger.y).toBe(toggle.y)
       return trigger.x < toggle.x ? 'left' : 'right'
     }
 
     await page.goto('/admin')
     expect(await beside()).toBe('left')
+    const [toggle, menu] = [
+      (await page.locator('.payloadpack-nav-toggle').boundingBox())!,
+      (await page.locator('.nav__header .user-menu__trigger').boundingBox())!
+    ]
+    expect(toggle.y + toggle.height / 2).toBe(menu.y + menu.height / 2)
+    expect(menu.x + menu.width).toBeLessThan((await button.boundingBox())!.x)
 
     await reloadWith(page, [appearance({ character: 'studio' })])
     expect(await beside()).toBe('right')
@@ -498,7 +527,30 @@ test.describe('Appearance panel', () => {
     await expect(page.locator('.app-header').getByRole('button', { name: 'Appearance' })).toBeVisible()
 
     await reloadWith(page, [appearance({ character: 'payload' })])
+    const inNav = page.locator('.nav').getByRole('button', { name: 'Appearance' })
+    await expect(inNav).toBeVisible()
+    await expect(page.locator('.app-header').getByRole('button', { name: 'Appearance' })).toBeHidden()
+    await page
+      .locator('.nav__header .user-menu__trigger .btn__label')
+      .evaluate((label) => (label.textContent = 'a-much-longer-address-than-most@example.com'))
+    const [palette, close, email] = [
+      (await inNav.boundingBox())!,
+      (await page.locator('.nav__close').boundingBox())!,
+      (await page.locator('.nav__header .user-menu__trigger').boundingBox())!
+    ]
+    expect(palette.y + palette.height / 2).toBe(close.y + close.height / 2)
+    expect(palette.x + palette.width).toBeLessThan(close.x)
+    expect(email.x + email.width).toBeLessThan(palette.x)
+    await page.locator('.nav__close').click()
     await expect(page.locator('.app-header').getByRole('button', { name: 'Appearance' })).toBeVisible()
+  })
+
+  test('stays reachable on custom views, which have no header actions, under every style', async ({ page }) => {
+    for (const character of ['payload', 'enhanced', 'studio']) {
+      await page.context().addCookies([appearance({ character })])
+      await page.goto('/admin/toasts')
+      await expect(page.getByRole('button', { name: 'Appearance' }), character).toBeVisible()
+    }
   })
 
   for (const theme of ['light', 'dark']) {
@@ -514,7 +566,7 @@ test.describe('Appearance panel', () => {
           return { background: style.backgroundColor, radius: style.borderTopLeftRadius }
         }, pseudo)
       }
-      const toggle = page.locator('.payloadpack-rail-toggle .sidebar-toggle')
+      const toggle = page.locator('.payloadpack-nav-toggle .sidebar-toggle')
       const button = page.locator('.payloadpack-appearance-panel--nav .payloadpack-appearance-panel__trigger')
       const iconColor = (locator: Locator) => locator.evaluate((element) => getComputedStyle(element).color)
 
@@ -541,7 +593,7 @@ test.describe('Appearance panel', () => {
       const trigger = '.payloadpack-appearance-panel--nav .payloadpack-appearance-panel__trigger'
 
       expect(await ring(trigger, trigger)).toEqual(
-        await ring('.payloadpack-rail-toggle', '.payloadpack-rail-toggle .sidebar-toggle')
+        await ring('.payloadpack-nav-toggle', '.payloadpack-nav-toggle .sidebar-toggle')
       )
       expect((await ring(trigger, trigger)).outline).toBe('2px')
     })
@@ -841,9 +893,8 @@ test.describe('Theme values', () => {
     await page.goto('/admin')
     await page.getByRole('button', { name: 'Hide sidebar' }).focus()
 
-    await expect(page.locator('.nav__close .sidebar-toggle')).toHaveCSS('outline-style', 'solid')
-    await expect(page.locator('.nav__close .sidebar-toggle')).toHaveCSS('outline-width', '2px')
-    expect(await page.locator('.nav__close').evaluate((element) => getComputedStyle(element, '::after').content)).toBe('none')
+    await expect(page.locator('.payloadpack-nav-toggle .sidebar-toggle')).toHaveCSS('outline-style', 'solid')
+    await expect(page.locator('.payloadpack-nav-toggle .sidebar-toggle')).toHaveCSS('outline-width', '2px')
   })
 
   test('the toasts preview reuses the list heading and marks its nav link', async ({ page }) => {
@@ -1073,7 +1124,7 @@ test.describe('Motion', () => {
         const boxes = [letter()]
         const blurs = [blur()]
         const opacities = [opacity()]
-        document.querySelector<HTMLElement>('.payloadpack-rail-toggle')!.click()
+        document.querySelector<HTMLElement>('.payloadpack-nav-toggle')!.click()
         const end = performance.now() + 1300
         while (performance.now() < end) {
           await new Promise(requestAnimationFrame)
@@ -1664,7 +1715,9 @@ test.describe('Payload palette', () => {
     await expect(page.locator('html')).toHaveCSS('background-color', 'rgb(255, 255, 255)')
   })
 
-  test('Payload applies no theme stylesheet', async ({ page }) => {
+  test("Payload applies no theme stylesheet to Payload's own elements, apart from room for the nav's Appearance button", async ({
+    page
+  }) => {
     await page.context().addCookies([appearance({ character: 'payload', palette: 'payload' })])
     await openShowcase(page)
 
@@ -1698,7 +1751,27 @@ test.describe('Payload palette', () => {
         scope
       ).toBe(true)
     }
-    expect(applied.filter((selector) => !ownClasses.some((scope) => selector.startsWith(scope)))).toEqual([])
+    expect(
+      applied.filter(
+        (selector) => !ownClasses.some((scope) => selector.startsWith(scope)) && !/\.payloadpack-[\w-]+$/.test(selector)
+      )
+    ).toEqual([expect.stringMatching(/\.nav__header \.user-menu$/)])
+  })
+})
+
+test.describe('App palettes', () => {
+  test("offers the app's own palette under its label, drawn from the app's CSS in both modes", async ({ page }) => {
+    await page.context().addCookies([cookie('theme', 'light')])
+    await page.goto('/admin/collections/showcase')
+    const sheet = await openAppearancePanel(page)
+
+    await pickAndSave(page, label(choice(sheet, 'Palette', 'Indigo')))
+    await expect(page.locator('html')).toHaveAttribute('data-palette', 'indigo')
+    expect(hex(await computedColor(page, 'var(--color-bg-brand)'))).toBe('#4f46e5')
+    expect(hex(await computedColor(page, 'var(--color-bg-brand)', 'dark'))).toBe('#818cf8')
+
+    await page.reload()
+    await expect(page.locator('html')).toHaveAttribute('data-palette', 'indigo')
   })
 })
 
@@ -1856,6 +1929,19 @@ test.describe('Custom palette', () => {
     await expect(page.locator('html')).toHaveAttribute('data-font', 'inter')
   })
 
+  test('keeps the focus in the palettes when the arrow keys come back to Custom', async ({ page }) => {
+    await page.goto('/admin')
+    const sheet = await openAppearancePanel(page)
+    await pickAndSave(page, sheet.getByRole('button', { name: 'Custom colors' }))
+    const mine = choice(sheet, 'Palette', 'Custom')
+
+    await mine.focus()
+    await Promise.all([saved(page), page.keyboard.press('ArrowLeft')])
+    await Promise.all([saved(page), page.keyboard.press('ArrowRight')])
+    await expect(mine).toBeChecked()
+    await expect(mine).toBeFocused()
+  })
+
   test('stays in the setup while another palette is picked', async ({ page }) => {
     await page.context().addCookies(custom('#c2410c'))
     await page.goto('/admin')
@@ -2004,7 +2090,7 @@ test.describe('Rail', () => {
     const closing = await page.evaluate(
       () =>
         new Promise<number>((resolve) => {
-          document.querySelector<HTMLElement>('.payloadpack-rail-toggle')!.click()
+          document.querySelector<HTMLElement>('.payloadpack-nav-toggle')!.click()
           requestAnimationFrame(() =>
             requestAnimationFrame(() => resolve(document.querySelector('.sidebar-tabs__tabs')!.getBoundingClientRect().width))
           )
@@ -2069,12 +2155,44 @@ test.describe('Rail', () => {
     expect(await navWidth(page)).toBe(64)
   })
 
+  for (const palette of ['payload', 'neutral', 'warm', 'soft'] as const) {
+    test(`draws every rail icon at 3:1 or more against the nav on ${palette}, in light and dark`, async ({ page }) => {
+      for (const theme of ['light', 'dark']) {
+        await page.context().addCookies([appearance({ palette }), cookie('theme', theme), collapsed])
+        await page.goto('/admin')
+        const contrast = await page
+          .locator('.nav__link:not(.nav__link--selected)')
+          .first()
+          .evaluate((link) => {
+            const context = document.createElement('canvas').getContext('2d')!
+            const paint = (color: string, alpha = 1) => {
+              context.globalAlpha = alpha
+              context.fillStyle = color
+              context.fillRect(0, 0, 1, 1)
+              return [...context.getImageData(0, 0, 1, 1).data.slice(0, 3)]
+            }
+            const luminance = (rgb: number[]) =>
+              rgb
+                .map((channel) => channel / 255)
+                .map((channel) => (channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4))
+                .reduce((sum, channel, index) => sum + channel * [0.2126, 0.7152, 0.0722][index], 0)
+            paint(getComputedStyle(document.documentElement).backgroundColor)
+            const ground = luminance(paint(getComputedStyle(document.querySelector('.nav')!).backgroundColor))
+            const icon = getComputedStyle(link, '::after')
+            const ink = luminance(paint(icon.backgroundColor, Number(icon.opacity)))
+            return (Math.max(ink, ground) + 0.05) / (Math.min(ink, ground) + 0.05)
+          })
+        expect(contrast, theme).toBeGreaterThanOrEqual(3)
+      }
+    })
+  }
+
   test('reaches the toggle and the rail icons by keyboard, with a tooltip on focus', async ({ page }) => {
     await page.context().addCookies([collapsed])
     await page.goto('/admin')
     await page.getByRole('button', { name: 'Show sidebar' }).focus()
-    await expect(page.locator('.payloadpack-rail-toggle .sidebar-toggle')).toHaveCSS('outline-style', 'solid')
-    await expect(page.locator('.payloadpack-rail-toggle .sidebar-toggle')).toHaveCSS('outline-width', '2px')
+    await expect(page.locator('.payloadpack-nav-toggle .sidebar-toggle')).toHaveCSS('outline-style', 'solid')
+    await expect(page.locator('.payloadpack-nav-toggle .sidebar-toggle')).toHaveCSS('outline-width', '2px')
 
     const showcase = page.locator('#nav-showcase')
     await page.locator('#nav-users').focus()
@@ -2139,14 +2257,15 @@ test.describe('Rail', () => {
     await expect(group).toBeHidden()
   })
 
-  test("nav: 'hidden' keeps Payload's own close button", async ({ page }) => {
+  test("nav: 'hidden' closes the nav from the bar the way Payload's own button does", async ({ page }) => {
     await page.context().addCookies([appearance({ options: { enhanced: { nav: 'hidden' } } }), collapsed])
     await page.goto('/admin')
 
     await expect(page.locator('html')).not.toHaveAttribute('data-rail')
-    await expect(page.locator('.payloadpack-rail-toggle')).toHaveCount(0)
-    await page.locator('.nav__close').click()
+    await expect(page.locator('.nav__close')).toBeHidden()
+    await page.locator('.payloadpack-nav-toggle').click()
     await expect(page.locator('.nav')).toHaveAttribute('inert', '')
+    await expect(page.locator('.app-header__sidebar-toggle')).toBeFocused()
     await expect.poll(async () => (await page.locator('.template-default__wrap').boundingBox())?.x).toBe(0)
   })
 
@@ -2173,7 +2292,7 @@ test.describe('Rail', () => {
     await page.setViewportSize({ height: 900, width: 768 })
     await page.goto('/admin')
 
-    await expect(page.locator('.payloadpack-rail-toggle')).toBeHidden()
+    await expect(page.locator('.payloadpack-nav-toggle')).toBeHidden()
     await page.locator('.app-header__sidebar-toggle').click()
     expect(await navWidth(page)).toBe(768)
     await expect(page.locator('.nav__close')).toBeVisible()
@@ -2218,14 +2337,14 @@ test.describe('Studio character', () => {
   test('collapses into a rail beside the card, keeping the toggle in its row at the top', async ({ page }) => {
     await page.context().addCookies([studio()])
     await openList(page)
-    const toggle = page.locator('.payloadpack-rail-toggle')
+    const toggle = page.locator('.payloadpack-nav-toggle')
     const open = (await toggle.boundingBox())!
     await page.getByRole('button', { name: 'Hide sidebar' }).click()
     await expect(page.locator('html')).toHaveAttribute('data-rail', '')
     await settled(page.locator('.template-default'))
 
     const [nav, card, rail] = await Promise.all(
-      ['.nav', '.template-default__wrap', '.payloadpack-rail-toggle'].map(
+      ['.nav', '.template-default__wrap', '.payloadpack-nav-toggle'].map(
         async (selector) => (await page.locator(selector).boundingBox())!
       )
     )
@@ -2270,7 +2389,7 @@ test.describe('Studio character', () => {
         page.locator(toggle).click()
       ])
 
-    await toggleNav('.nav__close')
+    await toggleNav('.payloadpack-nav-toggle')
     await expect(card).toHaveCSS('margin-left', '6px')
     await expect(page.locator('.nav')).toHaveCSS('visibility', 'hidden')
     await toggleNav('.app-header__sidebar-toggle')
@@ -2312,7 +2431,7 @@ test.describe('Studio character', () => {
     await openList(page)
     const scroller = page.locator('.nav__scroll')
     const menu = page.locator('.user-menu__trigger')
-    const toggle = page.locator('.payloadpack-rail-toggle')
+    const toggle = page.locator('.payloadpack-nav-toggle')
     const lastLink = page.locator('.nav__link').last()
     await expect(menu).toBeVisible()
     await expect(toggle).toBeVisible()

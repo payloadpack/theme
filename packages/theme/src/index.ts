@@ -8,8 +8,8 @@ import {
   defaultCharacter,
   type Values
 } from './characters/index.js'
-import type { Panel, Settings } from './lib/appearance.js'
-import { defaultPalette, type Palette, palettes as builtInPalettes } from './palettes/index.js'
+import { customPalette, type Panel, type Settings } from './lib/appearance.js'
+import { type BuiltInPalette, builtInPalettes, defaultPalette, type Palette } from './palettes/index.js'
 import { translations } from './translations.js'
 
 const PACKAGE_NAME = '@payloadpack/theme'
@@ -46,7 +46,7 @@ export type ThemePluginConfig = {
   characters?: Character[]
   codeEditorFontSize?: false | number
   options?: OptionsConfig
-  palette?: Palette
+  palette?: BuiltInPalette | (string & {})
   palettes?: Palette[]
   panel?: Panel
 }
@@ -57,7 +57,7 @@ export function themePlugin(pluginConfig: ThemePluginConfig = {}): Plugin {
     characters = Object.keys(registry) as Character[],
     codeEditorFontSize = 13,
     palette = defaultPalette,
-    palettes = [...builtInPalettes],
+    palettes = builtInPalettes.map((slug) => ({ slug })),
     panel = true
   } = pluginConfig
   const options: Partial<Record<Character, Values>> = pluginConfig.options ?? {}
@@ -66,8 +66,14 @@ export function themePlugin(pluginConfig: ThemePluginConfig = {}): Plugin {
     throw new Error(`themePlugin: character '${character}' is not one of characters: ${characters.join(', ')}`)
   }
 
-  if (!palettes.includes(palette)) {
-    throw new Error(`themePlugin: palette '${palette}' is not one of palettes: ${palettes.join(', ')}`)
+  const slugs = palettes.map(({ slug }) => slug)
+
+  if (!slugs.includes(palette)) {
+    throw new Error(`themePlugin: palette '${palette}' is not one of palettes: ${slugs.join(', ')}`)
+  }
+
+  if (slugs.includes(customPalette)) {
+    throw new Error(`themePlugin: '${customPalette}' is the editor's own palette, so no palette may use it as its slug`)
   }
 
   const settings: Settings = {
@@ -91,11 +97,7 @@ export function themePlugin(pluginConfig: ThemePluginConfig = {}): Plugin {
           ...(config.admin?.components?.actions ?? []),
           { path: `${PACKAGE_NAME}/rsc#AppearanceServerPanel`, serverProps: { panel } }
         ],
-        beforeNav: [
-          ...(config.admin?.components?.beforeNav ?? []),
-          `${PACKAGE_NAME}/client#RailToggle`,
-          { path: `${PACKAGE_NAME}/rsc#AppearanceServerPanel`, serverProps: { panel, place: 'nav' } }
-        ],
+        beforeNav: [...(config.admin?.components?.beforeNav ?? []), `${PACKAGE_NAME}/client#NavBar`],
         providers: [
           ...(config.admin?.components?.providers ?? []),
           { path: `${PACKAGE_NAME}/rsc#AppearanceServerProvider`, serverProps: { codeEditorFontSize, panel, settings } }

@@ -3,7 +3,7 @@ import type { ServerProps } from 'payload'
 import { formatAdminURL } from 'payload/shared'
 import type { ReactNode } from 'react'
 
-import { isEditable, normalize, type Panel, parseChoices, preferenceKey, type Settings } from '../lib/appearance.js'
+import { accountOf, isEditable, type Panel, preferenceKey, type Settings, storedChoices } from '../lib/appearance.js'
 import '../styles/index.css'
 import { AppearanceSheet } from './appearance-panel.js'
 import { AppearanceProvider } from './appearance-provider.js'
@@ -12,12 +12,7 @@ type Props = ServerProps & { children: ReactNode; codeEditorFontSize: false | nu
 
 async function savedChoices({ cookieName, payload, server, settings, user }: Props & { cookieName: string }) {
   const preference = user && (await getPreferences<unknown>(preferenceKey, payload, user.id, user.collection))
-
-  if (preference) {
-    return normalize(settings, preference.value)
-  }
-
-  return parseChoices(settings, (await server.getCookies()).get(cookieName)?.value) ?? {}
+  return storedChoices(settings, preference?.value, (await server.getCookies()).get(cookieName)?.value, accountOf(user))
 }
 
 export async function AppearanceServerProvider(props: Props) {
@@ -25,7 +20,9 @@ export async function AppearanceServerProvider(props: Props) {
   const cookieName = `${payload.config.cookiePrefix}-appearance`
   const railCookieName = `${payload.config.cookiePrefix}-nav-rail`
   const editable = isEditable(panel, user)
-  const choices = editable ? await savedChoices({ ...props, cookieName }) : {}
+  const { choices, storedIsOlder } = editable
+    ? await savedChoices({ ...props, cookieName })
+    : { choices: {}, storedIsOlder: false }
   const initialRail = (await server.getCookies()).get(railCookieName)?.value === 'true'
 
   return (
@@ -35,7 +32,8 @@ export async function AppearanceServerProvider(props: Props) {
       editable={editable}
       initialChoices={choices}
       initialRail={initialRail}
-      loadsOnSignIn={panel === true}
+      storedIsOlder={storedIsOlder}
+      key={accountOf(user)}
       preferenceURL={formatAdminURL({ apiRoute: payload.config.routes.api, path: `/payload-preferences/${preferenceKey}` })}
       railCookieName={railCookieName}
       settings={settings}>

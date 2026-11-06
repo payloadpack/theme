@@ -153,7 +153,7 @@
       height: 1rem;
       margin-inline-end: var(--spacer-2);
       background-color: currentColor;
-      opacity: 0.5;
+      opacity: 0.8;
       mask: var(--payloadpack-icon) center / contain no-repeat;
     }
 

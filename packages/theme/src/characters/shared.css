@@ -36,6 +36,10 @@
     /* 3. Nav */
     @media (min-width: 769px) {
       --nav-width: 18rem;
+
+      .nav__close {
+        display: none;
+      }
     }
 
     .nav__header {

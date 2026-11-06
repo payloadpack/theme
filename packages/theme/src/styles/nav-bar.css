@@ -1,0 +1,40 @@
+@layer payload {
+  .payloadpack-nav-bar {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: none;
+    flex-shrink: 0;
+    gap: var(--spacer-1);
+    padding: var(--spacer-2) var(--spacer-2-5);
+    background-color: var(--payloadpack-bg-app, var(--color-bg));
+
+    @media (min-width: 769px) {
+      display: flex;
+
+      .nav[inert] & {
+        visibility: hidden;
+      }
+
+      html[data-rail] & {
+        flex-direction: column;
+        padding-inline: calc((var(--payloadpack-rail-width) - var(--spacer-5)) / 2);
+      }
+    }
+
+    .payloadpack-nav-toggle {
+      display: flex;
+      align-items: center;
+      padding: 0;
+      background: none;
+      border: 0;
+      border-radius: var(--button-radius);
+      outline: 0;
+
+      &:focus-visible .sidebar-toggle {
+        outline: var(--accessibility-outline);
+        outline-offset: calc(-1 * var(--stroke-width-medium));
+      }
+    }
+  }
+}

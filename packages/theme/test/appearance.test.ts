@@ -12,14 +12,15 @@ import {
   resetCharacter,
   resolve,
   type Settings,
-  setupOf
+  setupOf,
+  storedChoices
 } from '../src/lib/appearance.js'
 
 const settings: Settings = {
   character: 'enhanced',
   options: { enhanced: { density: 'compact', icons: 'lucide' }, payload: {} },
   palette: 'neutral',
-  palettes: ['payload', 'neutral']
+  palettes: [{ slug: 'payload' }, { slug: 'neutral' }]
 }
 
 const custom: CustomPalette = {
@@ -107,6 +108,20 @@ it('pasting a setup for a style this site does not offer takes only its palette 
   ).toEqual({ ...mine, palette: 'payload' })
 })
 
+it('pasting a setup without a style takes only its palette and keeps your style and options', () => {
+  const mine = {
+    character: 'payload',
+    options: { enhanced: { icons: 'payload' } },
+    personal: { density: 'comfortable' }
+  } as const
+
+  expect(pasteSetup(settings, mine, JSON.stringify({ palette: 'payload' }))).toEqual({ ...mine, palette: 'payload' })
+  expect(pasteSetup(settings, { ...mine, palette: 'payload' }, JSON.stringify({ options: { enhanced: {} } }))).toEqual({
+    ...mine,
+    palette: 'payload'
+  })
+})
+
 it("resets a style without dropping a personal pick that is this style's default but not another's", () => {
   const both: Settings = {
     ...settings,
@@ -129,7 +144,11 @@ it('keeps the custom palette while another palette is picked', () => {
 })
 
 it('drops characters, palettes, options and values the settings do not allow', () => {
-  const onlyEnhanced: Settings = { ...settings, options: { enhanced: settings.options.enhanced }, palettes: ['neutral'] }
+  const onlyEnhanced: Settings = {
+    ...settings,
+    options: { enhanced: settings.options.enhanced },
+    palettes: [{ slug: 'neutral' }]
+  }
 
   expect(
     normalize(onlyEnhanced, {
@@ -141,6 +160,12 @@ it('drops characters, palettes, options and values the settings do not allow', (
   expect(
     normalize(settings, { character: 'constructor', options: { payload: { density: 'comfortable' } }, palette: 'neon' })
   ).toEqual({})
+})
+
+it("keeps the app's own palette when the settings offer it", () => {
+  const withBrand: Settings = { ...settings, palettes: [...settings.palettes, { label: 'Brand', slug: 'brand' }] }
+
+  expect(normalize(withBrand, { palette: 'brand' })).toEqual({ palette: 'brand' })
 })
 
 it('keeps a custom palette only when every color is a #rrggbb, stores it lowercase, and picks it only when it exists', () => {
@@ -208,7 +233,7 @@ it('ignores the cookie when the panel is off for the user, and never asks withou
 })
 
 it('sets the custom palette aside while the developer allows a single palette', () => {
-  const single = normalize({ ...settings, palettes: ['neutral'] }, { custom, palette: 'custom' })
+  const single = normalize({ ...settings, palettes: [{ slug: 'neutral' }] }, { custom, palette: 'custom' })
 
   expect(single).toEqual({ custom })
   expect(normalize(settings, single)).toEqual({ custom })
@@ -252,5 +277,22 @@ it('copies a setup in the shape of the plugin config', () => {
     character: 'payload',
     custom,
     palette: 'custom'
+  })
+})
+
+it("renders the newer of the stored setup and this browser's cookie, when the cookie is the same account's", () => {
+  const stored = { at: 100, palette: 'payload' }
+  const cookie = (at: number, by: string) => JSON.stringify({ at, by, character: 'payload' })
+
+  expect(storedChoices(settings, stored, cookie(200, 'users:1'), 'users:1')).toEqual({
+    choices: { at: 200, character: 'payload' },
+    storedIsOlder: true
+  })
+  expect(storedChoices(settings, stored, cookie(50, 'users:1'), 'users:1')).toEqual({ choices: stored, storedIsOlder: false })
+  expect(storedChoices(settings, stored, cookie(200, 'users:2'), 'users:1')).toEqual({ choices: stored, storedIsOlder: false })
+  expect(storedChoices(settings, { palette: 'payload' }, cookie(1, 'users:1'), 'users:1').storedIsOlder).toBe(true)
+  expect(storedChoices(settings, null, cookie(200, 'users:2'), undefined)).toEqual({
+    choices: { at: 200, character: 'payload' },
+    storedIsOlder: false
   })
 })

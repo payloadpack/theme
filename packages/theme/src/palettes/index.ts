@@ -1,5 +1,9 @@
-export const palettes = ['payload', 'neutral', 'warm', 'soft'] as const
+import type { StaticLabel } from 'payload'
 
-export type Palette = (typeof palettes)[number]
+export const builtInPalettes = ['payload', 'neutral', 'warm', 'soft'] as const
 
-export const defaultPalette: Palette = 'neutral'
+export type BuiltInPalette = (typeof builtInPalettes)[number]
+
+export type Palette = { label?: StaticLabel; slug: BuiltInPalette } | { label: StaticLabel; slug: string }
+
+export const defaultPalette: BuiltInPalette = 'neutral'

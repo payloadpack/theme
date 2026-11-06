@@ -99,7 +99,7 @@ The panel opens as a sheet on the right, and from the bottom on phones. Every ch
 - **Comfortable** sets 14px body text, 36px fields and buttons, 44px array and block rows, 32px menu items and 18px checkboxes and radios, keeps nav group labels at 12px, gives dialogs more room, and fixes Payload components that hard-code their sizes.
 - **Lucide** replaces Payload's icons with [Lucide](https://lucide.dev) and adds icons to the nav and the document menu. The icons are bundled, so nothing loads from a CDN.
 - **Motion** brings back the transitions Payload 3 had: tooltips fade, fields, buttons and cards ease between states, every field's focus ring eases in, and switches slide. Popups fade and slide in from their trigger, select menus also scale in, nav group chevrons turn, and the Appearance panel slides in like a drawer. Drawers open at once, because Payload unmounts them on close and only their opening could animate. **Auto** stays still when the operating system asks for reduced motion. **Off** turns all of these off and leaves Payload's own few transitions, such as a checkbox filling in.
-- **Rail** turns the nav's collapse button into a 64px rail of Lucide icons, with each label as a tooltip. The rail is kept per browser in a `<cookiePrefix>-nav-rail` cookie, so Reset leaves it alone. At 768px and below the nav is Payload's own drawer. Browsers without CSS anchor positioning, such as Safari 18 and older, keep Payload's own collapse button and show the Appearance button in the page header instead of the rail. **Hidden** keeps Payload's own collapse.
+- **Rail** turns the nav's collapse button into a 64px rail of Lucide icons, with each label as a tooltip. The rail is kept per browser in a `<cookiePrefix>-nav-rail` cookie, so Reset leaves it alone. At 768px and below the nav is Payload's own drawer. **Hidden** closes the nav the way Payload does.
 
 A signed-in editor's setup is saved in Payload's own preferences, so it follows them to every browser. It is mirrored in one cookie, `<cookiePrefix>-appearance`, next to Payload's own theme cookie, which the server uses on the login page and until a setup is saved. The server renders the setup, so pages never flash.
 
@@ -123,21 +123,21 @@ themePlugin({
   characters: ['payload', 'enhanced', 'studio'],
   options: { enhanced: { density: 'compact', icons: 'lucide' }, studio: { frame: 'flat' } },
   palette: 'neutral',
-  palettes: ['payload', 'neutral', 'warm', 'soft'],
+  palettes: [{ slug: 'payload' }, { slug: 'neutral' }, { slug: 'warm' }, { label: 'Brand', slug: 'brand' }],
   panel: ({ user }) => user?.role === 'admin',
   codeEditorFontSize: 13
 })
 ```
 
-| Key                  | Default                                     | Description                                                                                                                                                                                                                                                                                                                                                                                    |
-| -------------------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `character`          | `'enhanced'`                                | The style everyone starts with. It must be one of `characters`.                                                                                                                                                                                                                                                                                                                                |
-| `characters`         | `['payload', 'enhanced', 'studio']`         | The styles editors may pick. An editor whose style is no longer allowed gets `character`.                                                                                                                                                                                                                                                                                                      |
-| `options`            | Each style's defaults from the option table | Starting values per style, which editors start from and Reset returns to. Each style takes only its own options, so a typo is a type error. The Payload style has no options and no key. An editor's own Density, Motion and Nav carry to every style.                                                                                                                                         |
-| `palette`            | `'neutral'`                                 | The palette everyone starts with. It must be one of `palettes`.                                                                                                                                                                                                                                                                                                                                |
-| `palettes`           | `['payload', 'neutral', 'warm', 'soft']`    | The palettes editors may pick. An editor whose palette is no longer allowed gets `palette`. An editor's own palette applies only while more than one is allowed, and is kept until then.                                                                                                                                                                                                       |
-| `panel`              | `true`                                      | Who gets the Appearance panel: `true`, `false` or `({ user }) => boolean`. When it resolves to `false`, the editor gets no Appearance button and their saved setup is ignored. Signed-out views have no user, so there the cookie applies unless `panel` is `false`. With `true`, signing in loads the saved setup without a reload; with a function, it applies from the next full page load. |
-| `codeEditorFontSize` | `13`                                        | Font size for code editors in Comfortable density. Payload's default is 11. Fields that set `admin.editorOptions.fontSize` keep their own size. `false` turns it off.                                                                                                                                                                                                                          |
+| Key                  | Default                                     | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| -------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `character`          | `'enhanced'`                                | The style everyone starts with. It must be one of `characters`.                                                                                                                                                                                                                                                                                                                                                                                               |
+| `characters`         | `['payload', 'enhanced', 'studio']`         | The styles editors may pick. An editor whose style is no longer allowed gets `character`.                                                                                                                                                                                                                                                                                                                                                                     |
+| `options`            | Each style's defaults from the option table | Starting values per style, which editors start from and Reset returns to. Each style takes only its own options, so a typo is a type error. The Payload style has no options and no key. An editor's own Density, Motion and Nav carry to every style.                                                                                                                                                                                                        |
+| `palette`            | `'neutral'`                                 | The palette everyone starts with. It must be the `slug` of one of `palettes`.                                                                                                                                                                                                                                                                                                                                                                                 |
+| `palettes`           | Every built-in palette                      | The palettes editors may pick, in order. A built-in one needs only its `slug`: `payload`, `neutral`, `warm` or `soft`. Your own also needs a `label`, a string or one per language, and its colors in your CSS (see [Your own palette](#your-own-palette)). A `label` on a built-in one renames it. An editor whose palette is no longer allowed gets `palette`. An editor's own palette applies only while more than one is allowed, and is kept until then. |
+| `panel`              | `true`                                      | Who gets the Appearance panel: `true`, `false` or `({ user }) => boolean`. When it resolves to `false`, the editor gets no Appearance button and their saved setup is ignored. Signed-out views have no user, so there the cookie applies unless `panel` is `false`. Signing in reloads the server data, so the saved setup and a function's answer for the new user apply without a full page load.                                                          |
+| `codeEditorFontSize` | `13`                                        | Font size for code editors in Comfortable density. Payload's default is 11. Fields that set `admin.editorOptions.fontSize` keep their own size. `false` turns it off.                                                                                                                                                                                                                                                                                         |
 
 A setup from Share setup has the same shape, so pasting it into `themePlugin()` makes it everyone's default:
 
@@ -255,7 +255,7 @@ Every palette but Payload's is drawn from one short sheet of tokens. Payload's s
 | `--payloadpack-action-primary`        | Primary buttons, checked toggles, a picked date, selection borders, the active tab and the focus    |
 | `--payloadpack-accent`                | Links and status marks                                                                              |
 | `--payloadpack-bg-subtle`             | Quiet fills, hovers and presses: banners, pills, thumbnails and focused options                     |
-| `--payloadpack-bg-selected`           | Selected nav links, rows and options; the nav link turns flat with no selected shadow               |
+| `--payloadpack-bg-selected`           | Selected nav links, rows and options; flat with `--payloadpack-elevation-selected: none`            |
 | `--payloadpack-bg-field`              | Text fields, selects and code editors, a shade lighter than the surface in dark mode                |
 | `--payloadpack-bg-popover`            | Menus, select lists, the date picker and the slash menu; the surface, lighter in dark               |
 | `--payloadpack-border-default`        | Lines and field borders                                                                             |
@@ -276,7 +276,7 @@ Every palette but Payload's is drawn from one short sheet of tokens. Payload's s
 | `--payloadpack-radius-card`           | Cards, dialogs, the date picker and Studio's frame, on top of Corners                               |
 | `--payloadpack-motion-hover-duration` | How long fields, buttons and cards take to change on hover and focus                                |
 | `--payloadpack-motion-hover-easing`   | The curve of that change                                                                            |
-| `--payloadpack-motion-enter-duration` | How long popups, menus and tooltips take to appear; they close in two thirds of it                  |
+| `--payloadpack-motion-enter-duration` | How long popups, menus and tooltips take to appear; they close in two thirds, tooltips within 200ms |
 | `--payloadpack-motion-enter-easing`   | The curve they appear and close on                                                                  |
 | `--payloadpack-motion-panel-duration` | How long the nav takes to collapse and open                                                         |
 | `--payloadpack-motion-panel-easing`   | The curve it moves on                                                                               |
@@ -297,6 +297,35 @@ html {
   --payloadpack-motion-panel-duration: 300ms;
 }
 ```
+
+### Your own palette
+
+A palette of your own is one CSS block in your admin stylesheet, named by a slug, and an entry in `palettes`. The quickest start is **Custom** in the Appearance panel: pick the colors, press **Copy as CSS**, paste the block and rename `custom` to your slug. `custom` itself is reserved for each editor's own palette.
+
+```css
+[data-palette='brand'] {
+  --payloadpack-bg-app: #f4f5f9;
+  --payloadpack-bg-surface: #ffffff;
+  --payloadpack-text-primary: #1b1d29;
+  --payloadpack-action-primary: #4f46e5;
+  --payloadpack-accent: #4f46e5;
+
+  &[data-theme='dark'] {
+    --payloadpack-bg-app: #0f1018;
+    --payloadpack-bg-surface: #151724;
+    --payloadpack-text-primary: #e6e8f2;
+    --payloadpack-action-primary: #818cf8;
+  }
+}
+```
+
+```ts
+themePlugin({
+  palettes: [{ slug: 'neutral' }, { slug: 'warm' }, { label: 'Brand', slug: 'brand' }]
+})
+```
+
+The panel draws its card from the same CSS, and it works with every style.
 
 Each toolbar sizes its buttons from its own token. All but the menu items and sidebar tabs default to Payload's `--button-height`:
 
@@ -347,6 +376,7 @@ Switches take their colors from the toggle tokens and their shape from these. Se
 ## Requirements
 
 - Payload `4.0.0-beta.6` or later
+- Safari 17, Chrome 114 or Firefox 128 or later, the browsers Payload 4's admin needs
 - Next.js `16.4.2` or later
 - React 19
 

@@ -6,6 +6,7 @@ import { generatePayloadViewport, handleServerFunctions, RootLayout } from '@pay
 import React from 'react'
 
 import { importMap } from './admin/importMap.js'
+import './custom.css'
 
 export const generateViewport = generatePayloadViewport
 

@@ -10,10 +10,13 @@ export const isEditable = (panel: Panel, user: undefined | User) =>
 
 export const preferenceKey = 'payloadpack-appearance'
 
+export const accountOf = (user: null | undefined | { collection: string; id: number | string }) =>
+  user ? `${user.collection}:${user.id}` : undefined
+
 export type Settings = {
   character: Character
   options: Partial<Record<Character, Values>>
-  palette: Palette
+  palette: string
   palettes: Palette[]
 }
 
@@ -33,10 +36,11 @@ export const baseTokens: Base = {
 export type CustomPalette = { accent: string; dark: Base; light: Base }
 
 export type Choices = {
+  at?: number
   character?: Character
   custom?: CustomPalette
   options?: Partial<Record<Character, Values>>
-  palette?: Palette | typeof customPalette
+  palette?: string
   personal?: Values
 }
 
@@ -100,10 +104,17 @@ export function normalize(settings: Settings, input: unknown): Choices {
   const custom = customOf(raw.custom)
   const picksCustom = custom && settings.palettes.length > 1 && raw.palette === customPalette
   const choices = {
+    at: typeof raw.at === 'number' && Number.isFinite(raw.at) ? raw.at : undefined,
     character,
     custom,
     options: options.length ? Object.fromEntries(options) : undefined,
-    palette: picksCustom ? customPalette : pick(settings.palettes, settings.palette, raw.palette),
+    palette: picksCustom
+      ? customPalette
+      : pick(
+          settings.palettes.map(({ slug }) => slug),
+          settings.palette,
+          raw.palette
+        ),
     personal
   }
 
@@ -151,9 +162,13 @@ export function pasteSetup(settings: Settings, choices: Choices, text: string): 
   if (!pasted) {
     return undefined
   }
-  const { character: named } = JSON.parse(text) as { character?: unknown }
-  if (named !== undefined && !(typeof named === 'string' && Object.hasOwn(settings.options, named))) {
-    return normalize(settings, { ...choices, custom: pasted.custom ?? choices.custom, palette: pasted.palette })
+  const { character: named, palette } = JSON.parse(text) as { character?: unknown; palette?: unknown }
+  if (typeof named !== 'string' || !Object.hasOwn(settings.options, named)) {
+    return normalize(settings, {
+      ...choices,
+      custom: pasted.custom ?? choices.custom,
+      palette: palette === undefined ? choices.palette : pasted.palette
+    })
   }
   const character = pasted.character ?? settings.character
   const declared = settings.options[character] ?? {}
@@ -174,18 +189,34 @@ export const paletteCss = (name: string, { accent, dark, light }: CustomPalette)
 
 const setupKeys = ['character', 'custom', 'options', 'palette', 'personal']
 
-export function parseChoices(settings: Settings, text: string | undefined): Choices | undefined {
+const parseJson = (text: string | undefined): unknown => {
   if (!text) {
     return undefined
   }
 
   try {
-    const parsed: unknown = JSON.parse(text)
-    return isRecord(parsed) && setupKeys.some((key) => Object.hasOwn(parsed, key)) ? normalize(settings, parsed) : undefined
+    return JSON.parse(text)
   } catch (error) {
     if (error instanceof SyntaxError) {
       return undefined
     }
     throw error
   }
+}
+
+export function parseChoices(settings: Settings, text: string | undefined): Choices | undefined {
+  const parsed = parseJson(text)
+  return isRecord(parsed) && setupKeys.some((key) => Object.hasOwn(parsed, key)) ? normalize(settings, parsed) : undefined
+}
+
+export function storedChoices(settings: Settings, preference: unknown, cookie: string | undefined, account: string | undefined) {
+  const parsed = parseJson(cookie)
+  const fromCookie = isRecord(parsed) ? normalize(settings, parsed) : undefined
+  if (preference == null) {
+    return { choices: fromCookie ?? {}, storedIsOlder: false }
+  }
+  const stored = normalize(settings, preference)
+  const newer =
+    fromCookie && account !== undefined && isRecord(parsed) && parsed.by === account && (fromCookie.at ?? 0) > (stored.at ?? 0)
+  return newer ? { choices: fromCookie, storedIsOlder: true } : { choices: stored, storedIsOlder: false }
 }

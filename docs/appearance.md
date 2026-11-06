@@ -10,7 +10,9 @@ Built: the three characters with every option below, the Payload, Neutral, Warm 
 
 Built since: an editor's own palette with **Custom colors** and **Copy as CSS**. The accent is part of a palette: the panel has no accent picker and the plugin has no `accent` option.
 
-Planned, not built: palettes a developer defines in CSS and lists by name in `palettes`, and a heading font.
+Built since: palettes a developer defines in CSS and lists in `palettes` with a label.
+
+Planned, not built: a heading font.
 
 ## Characters
 
@@ -62,12 +64,12 @@ A palette is CSS, the way Tailwind v4 defines design tokens: a block scoped to `
 | Warm    | a faintly tinted field, white cards              | the same tint on near-black, cards a shade lighter than the field   | `#c2410c`, also its primary  |
 | Soft    | white cards on a `#fafafa` field, `#333333` text | `#1a1a1a` views beside a `#1f1f1f` nav, menus the same `#1f1f1f`    | `#0078e7`, `#4e9cf6` in dark |
 
-- The Payload palette applies no overrides, so plain Payload is the Payload character with the Payload palette. Today's look is Enhanced with Neutral, the zero-config default.
+- The Payload palette applies no overrides, so plain Payload is the Payload character with the Payload palette. The Payload character styles only the theme's own elements, apart from one margin that keeps the user menu clear of the nav's Appearance button. Today's look is Enhanced with Neutral, the zero-config default.
 - A palette's primary is its `--payloadpack-action-primary` line, per version. Neutral sets it to `#0a0a0a` in light mode and to its text color in dark mode, so its primary buttons are near-black in light mode and near-white in dark mode; Warm sets it to its copper accent. Text on it turns black or white by its lightness, and a nearly white primary gets a faint edge in light mode.
 - A palette's accent is its `--payloadpack-accent` line, and a palette without one keeps Payload's blue. Neutral sets its accent to its text color in each version, so it has no blue at all. One accent serves both versions: the theme mixes the shades itself.
 - Fills never take the accent. Selected and open items fill grey, from Payload's `--color-bg-tertiary`, with the text color on top. Every solid selection, such as a picked date, takes the primary. In menus an open item looks like a hovered one. The focus ring takes the primary's hue: the outline at most 0.6 oklch lightness in light mode and at least 0.6 in dark mode, the field ring at 0.7 with 60% of the chroma in light mode and 0.55 in dark mode, so it stays visible on any primary and Neutral's stays grey.
 - Editors create a palette with the dashed **Custom** tile after the palettes. It starts from the current palette's four base colors and its light accent, read from the browser so any CSS palette works, and shows those four colors for each mode and the accent. Borders and muted text are mixed from them, and its secondary text is 62% of its text color, so it keeps AA contrast. Every color is a `#rrggbb`, stored lowercase and checked on the server like every other choice. The provider renders it as the same CSS block, named `custom`, in a `<style>` element in the server HTML, and saves it into their setup, so a shared setup carries it to colleagues. Picking another palette keeps it in the setup; **Remove custom colors** drops it.
-- **Copy as CSS** copies an editor's palette as the CSS block the page renders. Planned: developers paste it into their admin stylesheet (Payload's `custom.scss`) under their own name and list that name in `themePlugin({ palettes: [...] })` to offer it to everyone.
+- **Copy as CSS** copies an editor's palette as the CSS block the page renders. Developers paste it into their admin stylesheet (Payload's `custom.scss`) under their own slug and list it in `themePlugin({ palettes: [...] })` with a label to offer it to everyone.
 - The package ships no palette named after another company or product.
 
 ## Plugin config
@@ -78,13 +80,13 @@ themePlugin({
   characters: ['enhanced', 'studio'],
   options: { studio: { frame: 'flat' } },
   palette: 'warm',
-  palettes: ['payload', 'warm', 'clay'],
+  palettes: [{ slug: 'payload' }, { slug: 'warm' }, { label: 'Clay', slug: 'clay' }],
   panel: ({ user }) => user?.role === 'admin'
 })
 ```
 
 - `character` and `palette` are the defaults. Zero config is `'enhanced'` and `'neutral'`.
-- `characters` lists the characters editors may pick. `palettes` lists the palettes they may pick by name: built-in ones, and later your own palettes defined in CSS, such as `clay` above. The config never holds colors. Default: everything built in. The plugin throws at startup when a default isn't allowed.
+- `characters` lists the characters editors may pick. `palettes` lists the palettes they may pick as `{ slug, label }`: built-in ones by slug alone, and your own palettes defined in CSS with a `label`, such as `clay` above, as a string or one per language like Payload's labels. The panel shows the label, or the built-in name when there is none. The config never holds colors. Default: everything built in. The plugin throws at startup when a default isn't allowed or a palette takes the reserved slug `custom`.
 - `options` holds option values per character. Each key is typed with only that character's options, so `options: { payload: { frame: 'flat' } }` is a type error: the Payload character has no key.
 - `panel` is `true`, `false` or `({ user }) => boolean`. Default `true`. When it resolves to `false`, the editor gets no panel button and their saved setup is ignored.
 - `codeEditorFontSize` stays as it is.
@@ -98,10 +100,12 @@ A setup is what an editor picked: a character, that character's options, their p
 - The server checks every value against the allowed characters, palettes and each option's values. Anything unknown falls back to its default.
 - Signed-in editors' setups are saved in Payload's own preferences (`payload-preferences`, key `payloadpack-appearance`), so a setup follows the editor to every browser. The server reads it with the page and renders the attributes, so there is no flash.
 - The same setup is mirrored into a `<cookiePrefix>-appearance` cookie, which the server uses on the login page and every other signed-out view. With no saved preference yet, the cookie applies for signed-in editors too.
+- Every change stamps the setup with its time (`at`), and the cookie also names the account that wrote it (`by`). The server renders the stored setup unless this account's cookie is newer, which happens when a reload cut off the save; the provider then saves that cookie's setup, so the two agree again. Shared and pasted setups carry no stamp.
 - `panel` is not called on signed-out views, which have no user. The cookie applies there unless `panel` is `false`.
+- Payload signs in without a page load, so when the signed-in account changes the provider calls `useRouter().refresh()`. The server then reads that editor's setup and asks `panel` again, and the provider, keyed by account, starts over with both.
 - After the login form, the provider loads the saved setup without a reload when `panel` is `true`. The client cannot call a `panel` function, so with one the setup applies from the next full page load.
 - Reset puts the active character's options and the personal options back to their defaults, and keeps the character, the palette and the editor's own colors. The footer offers Undo for a few seconds.
-- Sharing: the **Share setup** menu's **Copy setup** copies the setup as JSON, with the character and palette always included, so another editor gets the same look. **Paste setup** reads a copied setup from the clipboard, checks it like any other, and the footer says so for a moment when the clipboard holds no valid setup. A pasted setup replaces the character, its options, the personal options that character has and the palette, and keeps your options for other characters and your other personal options. A setup that carries an editor's own palette replaces yours; one without keeps it. A setup for a style this site doesn't offer brings only its palette. A developer can paste the same JSON into `themePlugin()` to make it the site default, unless it uses the editor's own palette.
+- Sharing: the **Share setup** menu's **Copy setup** copies the setup as JSON, with the character and palette always included, so another editor gets the same look. **Paste setup** reads a copied setup from the clipboard, checks it like any other, and the footer says so for a moment when the clipboard holds no valid setup. A pasted setup replaces the character, its options, the personal options that character has and the palette, and keeps your options for other characters and your other personal options. A setup that carries an editor's own palette replaces yours; one without keeps it. A setup without a style, or with one this site doesn't offer, brings only its palette, and keeps yours when it has none. A developer can paste the same JSON into `themePlugin()` to make it the site default, unless it uses the editor's own palette.
 - The old `admin-theme`, `density` and `icons` cookies are left to expire. There are no shims for the old attributes, cookies or the `appearanceControls` export.
 
 ## Theme
@@ -110,7 +114,7 @@ Theme is Payload's own light/dark preference: the panel calls `useTheme().setThe
 
 ## The Appearance panel
 
-- A Lucide `palette` icon button, on every Default-template view. Under Enhanced and Studio it sits in the nav beside the collapse button (`beforeNav`, placed with CSS anchor positioning): right of it under Studio, left of it under Enhanced, and under it in the rail. Under the Payload character, on phones and while a `hidden` nav is closed, it is in the header actions (`admin.components.actions`) instead. The sheet both buttons open renders once in the theme's provider, so the nav button opens it on custom views too. Custom views render no header actions, so under the Payload character, on phones and while a `hidden` nav is closed they have no Appearance button. Signed-out views have no slot for it.
+- A Lucide `palette` icon button, on every Default-template view. While the nav is open it sits in the nav: under Studio right of the nav toggle, under Enhanced left of it on the user menu's row, under the Payload character left of Payload's own collapse button on the user menu's row, and under the toggle in the rail. While the nav is closed and on phones it is in the header actions (`admin.components.actions`) instead. The sheet both buttons open renders once in the theme's provider, so the nav button opens it on custom views too. Custom views render no header actions, so on phones and while the nav is closed they have no Appearance button. Signed-out views have no slot for it.
 - It opens a side sheet docked to the right edge, full height, 360px wide, built on the native `popover` attribute: Escape and a click outside close it. The page stays visible beside it.
 - At 768px and below the sheet rises from the bottom, 70% of the screen high, with a close button in its header.
 - Every change applies at once. There is no Save button. Each change is saved on top of the setup stored at that moment, read again for every save, so another tab never erases what it saved; with nothing stored yet, it saves the setup on screen. When a save fails or the server answers with an error, the status line says the setup resets on the next page load.
@@ -130,15 +134,15 @@ With `nav: 'rail'`, a collapsed nav becomes a 64px rail of icons instead of disa
 - Our own collapse button replaces Payload's `.nav__close`. Payload's nav stays open as far as Payload knows; the rail is our attribute shrinking `--nav-width`. Payload's real closed state makes the nav `inert`, so it cannot be styled into a rail.
 - The collapsed state lives in its own small cookie, so Reset does not expand the nav, and the server renders it with no flash.
 - The rail always shows the Lucide nav icons, even with `icons: 'payload'`.
-- Each icon shows its link's label as a tooltip on hover and focus, through CSS anchor positioning.
+- Each icon shows its link's label as a tooltip on hover and focus: the label is `position: fixed` without offsets, so it stays beside its icon but outside the nav's scroll area.
 - Group labels give way to dividers. A collapsed group shows as one chevron button, with the group name as its tooltip, that opens the group through Payload's own toggle.
 - The rail hides the Collections and Folders tabs, and closing the nav clicks the first tab, because Payload keeps the active tab in `SidebarTabsClient` state with no setter. While another tab is active anyway, such as one saved on another device, the rail shows the tab icons instead, so the editor can switch back: Payload hides the inactive panel with `display: none !important` in its earlier cascade layer, which no theme rule can override.
 - Payload closes the nav when the window shrinks past 1440px or 1024px. While the rail is on, the provider reopens it with `useNav().setNavOpen(true)`, without saving that.
 - At 768px and below the rail is off and the nav is Payload's full-screen drawer.
 - Under Studio the user menu stays in the rail as the first letter of the editor's name or email in a 32px ring. With motion on, the email blurs and fades out at full size as the rail closes, the button turns into the ring while nothing shows, and the capital letter blurs and fades in. Opening runs the same in reverse. A registered `--payloadpack-avatar` property in `motion.css` drives the blur.
-- The rail toggle, the nav's Appearance button and the rail's labels are placed with CSS anchor positioning, so every rule that uses it sits in `@supports (anchor-name: --a)`. Without it, as in Safari 18 and older, the nav keeps Payload's own collapse button, the Appearance button stays in the page header, and the Share setup menu opens in the middle of the screen.
-- `nav: 'hidden'` leaves Payload's collapse exactly as it is.
-- Under Studio the collapse button keeps its row at the top left of the nav and only centers itself in the rail, and the user menu at the bottom is hidden like the header's under Enhanced.
+- Payload's nav header has no slot, so under Enhanced and Studio the nav toggle and the nav's Appearance button render as one bar at the top of the nav list (`NavBar` in `beforeNav`), sticky so the links scroll under it, and Payload's own collapse button is hidden. Under Enhanced the bar sits on the user menu's row instead: it is `position: absolute` against the sticky `.nav`, so it stays out of the scroll, its top centers it on `--button-height`, and the user menu leaves room for it.
+- `nav: 'hidden'` closes the nav from the same toggle with Payload's `useNav().setNavOpen(false, true)`, and returns focus to the header's menu button the way Payload's own button does.
+- Under Studio the collapse button keeps its row at the top left of the nav and only centers itself in the rail.
 
 ## Scoping and folders
 

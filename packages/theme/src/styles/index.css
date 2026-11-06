@@ -1,4 +1,5 @@
 @import '../characters/shared.css';
+@import '../characters/payload/payload.css';
 @import '../characters/enhanced/enhanced.css';
 @import '../characters/studio/studio.css';
 @import '../palettes/palette.css';
@@ -19,6 +20,7 @@
 @import './fields/switch.css';
 @import './appearance-panel.css';
 @import './rail.css';
+@import './nav-bar.css';
 
 @font-face {
   font-family: payloadpack-geist;

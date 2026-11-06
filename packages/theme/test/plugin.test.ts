@@ -11,8 +11,17 @@ const settingsOf = async (pluginConfig: ThemePluginConfig) => {
 }
 
 it('offers editors the allowed palettes, every built-in one by default', async () => {
-  expect((await settingsOf({})).palettes).toEqual(['payload', 'neutral', 'warm', 'soft'])
-  expect((await settingsOf({ palette: 'warm', palettes: ['warm', 'neutral'] })).palettes).toEqual(['warm', 'neutral'])
+  expect((await settingsOf({})).palettes).toEqual([{ slug: 'payload' }, { slug: 'neutral' }, { slug: 'warm' }, { slug: 'soft' }])
+  expect((await settingsOf({ palette: 'warm', palettes: [{ slug: 'warm' }, { slug: 'neutral' }] })).palettes).toEqual([
+    { slug: 'warm' },
+    { slug: 'neutral' }
+  ])
+})
+
+it("offers the app's own palettes with their labels next to the built-in ones", async () => {
+  const palettes = [{ slug: 'neutral' as const }, { label: { de: 'Marke', en: 'Brand' }, slug: 'brand' }]
+
+  expect(await settingsOf({ palette: 'brand', palettes })).toMatchObject({ palette: 'brand', palettes })
 })
 
 it('gives every supported language the English panel labels, and lets the app override them', async () => {
@@ -29,14 +38,10 @@ it('gives every supported language the English panel labels, and lets the app ov
   expect(translations.de.payloadpack.colorMode).toBe('Theme')
 })
 
-it('puts the rail toggle and the Appearance button after the app nav components', async () => {
+it('puts the nav bar after the app nav components', async () => {
   const config = await themePlugin({})({ admin: { components: { beforeNav: ['/nav#Banner'] } } } as Config)
 
-  expect(config.admin?.components?.beforeNav).toEqual([
-    '/nav#Banner',
-    '@payloadpack/theme/client#RailToggle',
-    { path: '@payloadpack/theme/rsc#AppearanceServerPanel', serverProps: { panel: true, place: 'nav' } }
-  ])
+  expect(config.admin?.components?.beforeNav).toEqual(['/nav#Banner', '@payloadpack/theme/client#NavBar'])
 })
 
 it('throws when the default character is not allowed', () => {
@@ -44,7 +49,11 @@ it('throws when the default character is not allowed', () => {
 })
 
 it('throws when the default palette is not allowed', () => {
-  expect(() => themePlugin({ palettes: ['payload'] })).toThrow("palette 'neutral'")
+  expect(() => themePlugin({ palettes: [{ slug: 'payload' }] })).toThrow("palette 'neutral'")
+})
+
+it("throws when a palette takes the slug of the editor's own palette", () => {
+  expect(() => themePlugin({ palettes: [{ slug: 'neutral' }, { label: 'Mine', slug: 'custom' }] })).toThrow("'custom'")
 })
 
 it('gives every checkbox field without its own list cell the checkbox cell', async () => {

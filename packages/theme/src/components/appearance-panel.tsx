@@ -1,6 +1,7 @@
 'use client'
 
 import { PayloadIcon, useConfig, useTheme, useTranslation, XIcon } from '@payloadcms/ui'
+import type { StaticLabel } from 'payload'
 import { Fragment, type ReactNode, useEffect, useId, useRef, useState } from 'react'
 
 import { characters as registry, type Option, options } from '../characters/index.js'
@@ -205,12 +206,18 @@ export function AppearanceSheet() {
   } = useAppearance()
   const { autoMode, setTheme, theme } = useTheme()
   const { config } = useConfig()
-  const { t } = useTranslation<object, TranslationKey>()
+  const { i18n, t } = useTranslation<object, TranslationKey>()
   const [focusEditor, setFocusEditor] = useState(false)
   const [status, setStatus] = useStatus()
   const shown: Status | undefined = unsaved ? { message: t('payloadpack:setupUnsaved'), tone: 'error' } : status
   const characterName = t(`payloadpack:character${capitalize(character)}` as TranslationKey)
   const css = custom && paletteCss(customPalette, custom)
+  const paletteName = ({ label, slug }: { label?: StaticLabel; slug: string }) => {
+    if (!label) {
+      return t(`payloadpack:palette${capitalize(slug)}` as TranslationKey)
+    }
+    return typeof label === 'string' ? label : (label[i18n.language] ?? Object.values(label)[0])
+  }
   const supported = Object.keys(registry[character].defaults) as Option[]
 
   const blocked = () => setStatus({ message: t('payloadpack:clipboardBlocked'), tone: 'error' })
@@ -272,26 +279,29 @@ export function AppearanceSheet() {
                 <>
                   <div className="payloadpack-appearance-panel__cards">
                     <RadioGroup
-                      choices={[...palettes, ...(custom ? [customPalette] : [])].map((name) => ({
+                      choices={[...palettes, ...(custom ? [{ slug: customPalette }] : [])].map((choice) => ({
                         label: (
                           <>
                             <span aria-hidden="true" className="payloadpack-appearance-panel__halves">
                               {halves.map((half) => (
-                                <span data-palette={name} data-theme={half} key={half}>
+                                <span data-palette={choice.slug} data-theme={half} key={half}>
                                   <span />
                                   <span />
                                   <span />
                                 </span>
                               ))}
                             </span>
-                            {t(`payloadpack:palette${capitalize(name)}` as TranslationKey)}
+                            {paletteName(choice)}
                           </>
                         ),
-                        value: name
+                        value: choice.slug
                       }))}
                       className="payloadpack-appearance-panel__palettes"
                       labelledBy={labelId}
-                      onChange={setPalette}
+                      onChange={(next) => {
+                        setFocusEditor(false)
+                        setPalette(next)
+                      }}
                       selected={palette}
                     />
                     {!custom && (

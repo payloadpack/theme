@@ -1,3 +1,4 @@
+import { RouterAdapterContext } from '@payloadcms/ui'
 import { createElement } from 'react'
 import { renderToString } from 'react-dom/server'
 import { expect, it } from 'vitest'
@@ -5,19 +6,24 @@ import { expect, it } from 'vitest'
 import { AppearanceProvider } from '../src/components/appearance-provider.js'
 import { type Choices, type CustomPalette, paletteCss, type Settings } from '../src/lib/appearance.js'
 
+const router = { back: () => {}, push: () => {}, refresh: () => {}, replace: () => {} }
+
 const render = (settings: Settings, initialChoices: Choices = {}, initialRail = false) =>
   renderToString(
-    createElement(AppearanceProvider, {
-      children: null,
-      codeEditorFontSize: false,
-      cookieName: 'payload-appearance',
-      editable: true,
-      initialChoices,
-      initialRail,
-      loadsOnSignIn: true,
-      preferenceURL: '/api/payload-preferences/payloadpack-appearance',
-      railCookieName: 'payload-nav-rail',
-      settings
+    createElement(RouterAdapterContext, {
+      value: { Link: () => null, params: {}, pathname: '/admin', router, searchParams: new URLSearchParams() },
+      children: createElement(AppearanceProvider, {
+        children: null,
+        codeEditorFontSize: false,
+        cookieName: 'payload-appearance',
+        editable: true,
+        initialChoices,
+        initialRail,
+        preferenceURL: '/api/payload-preferences/payloadpack-appearance',
+        railCookieName: 'payload-nav-rail',
+        settings,
+        storedIsOlder: false
+      })
     })
   )
 
@@ -40,7 +46,7 @@ const settings: Settings = {
   character: 'enhanced',
   options: { enhanced: { density: 'comfortable', icons: 'lucide' } },
   palette: 'neutral',
-  palettes: ['payload', 'neutral']
+  palettes: [{ slug: 'payload' }, { slug: 'neutral' }]
 }
 
 it('keeps the initial appearance inside its inline script', () => {

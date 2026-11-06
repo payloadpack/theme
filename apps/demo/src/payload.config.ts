@@ -134,7 +134,17 @@ export default buildConfig({
   editor: lexicalEditor(),
   globals,
   onInit: seed,
-  plugins: [themePlugin()],
+  plugins: [
+    themePlugin({
+      palettes: [
+        { slug: 'payload' },
+        { slug: 'neutral' },
+        { slug: 'warm' },
+        { slug: 'soft' },
+        { label: 'Indigo', slug: 'indigo' }
+      ]
+    })
+  ],
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: { outputFile: path.resolve(dirname, 'payload-types.ts') }
 })
