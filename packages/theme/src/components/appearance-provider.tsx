@@ -25,6 +25,7 @@ import {
   parseChoices,
   pasteSetup,
   preferenceKey,
+  resetCharacter,
   resolve,
   type Settings,
   setupOf
@@ -192,11 +193,11 @@ export function AppearanceProvider({
       characters: Object.keys(settings.options) as Character[],
       palettes: settings.palettes,
       paste: (text: string) => {
-        const pasted = parseChoices(settings, text)
-        if (pasted) {
-          update((current) => pasteSetup(settings, current, pasted))
+        const valid = parseChoices(settings, text) !== undefined
+        if (valid) {
+          update((current) => pasteSetup(settings, current, text) ?? current)
         }
-        return pasted !== undefined
+        return valid
       },
       rail,
       removeCustom: () =>
@@ -207,7 +208,7 @@ export function AppearanceProvider({
         })),
       reset: () => {
         const { options: before, personal } = choices
-        update((current) => ({ ...current, options: { ...current.options, [character]: undefined }, personal: undefined }))
+        update((current) => resetCharacter(settings, current, character))
         return () =>
           update((current) => ({ ...current, options: { ...current.options, [character]: before?.[character] }, personal }))
       },

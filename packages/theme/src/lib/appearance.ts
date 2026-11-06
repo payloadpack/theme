@@ -134,7 +134,27 @@ export const setupOf = ({ character, custom, palette, values }: ReturnType<typeo
   ...(palette === customPalette ? { custom } : {})
 })
 
-export function pasteSetup(settings: Settings, choices: Choices, pasted: Choices): Choices {
+export const resetCharacter = (settings: Settings, choices: Choices, character: Character): Choices => {
+  const defaults = settings.options[character] ?? {}
+  return {
+    ...choices,
+    options: { ...choices.options, [character]: undefined },
+    personal: only(
+      choices.personal ?? {},
+      (option, value) => !Object.hasOwn(defaults, option) || defaults[option as Option] === value
+    )
+  }
+}
+
+export function pasteSetup(settings: Settings, choices: Choices, text: string): Choices | undefined {
+  const pasted = parseChoices(settings, text)
+  if (!pasted) {
+    return undefined
+  }
+  const { character: named } = JSON.parse(text) as { character?: unknown }
+  if (named !== undefined && !(typeof named === 'string' && Object.hasOwn(settings.options, named))) {
+    return normalize(settings, { ...choices, custom: pasted.custom ?? choices.custom, palette: pasted.palette })
+  }
   const character = pasted.character ?? settings.character
   const declared = settings.options[character] ?? {}
   return normalize(settings, {

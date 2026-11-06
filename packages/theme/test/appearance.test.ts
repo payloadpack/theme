@@ -9,6 +9,7 @@ import {
   paletteCss,
   parseChoices,
   pasteSetup,
+  resetCharacter,
   resolve,
   type Settings,
   setupOf
@@ -85,13 +86,36 @@ it('pasting a setup replaces the personal options its style declares and keeps t
   }
   const mine = { personal: { density: 'compact', nav: 'hidden' } } as const
 
-  expect(pasteSetup(both, mine, { character: 'payload', palette: 'neutral' }).personal).toEqual(mine.personal)
+  expect(pasteSetup(both, mine, JSON.stringify({ character: 'payload', palette: 'neutral' }))?.personal).toEqual(mine.personal)
   const studio = pasteSetup(
     both,
     mine,
-    normalize(both, { character: 'studio', options: { studio: { density: 'compact', nav: 'rail' } } })
+    JSON.stringify({ character: 'studio', options: { studio: { density: 'compact', nav: 'rail' } } })
   )
-  expect(resolve(both, studio).values).toEqual({ density: 'compact', nav: 'rail' })
+  expect(resolve(both, studio ?? {}).values).toEqual({ density: 'compact', nav: 'rail' })
+})
+
+it('pasting a setup for a style this site does not offer takes only its palette and keeps your options', () => {
+  const mine = { options: { enhanced: { icons: 'payload' } }, personal: { density: 'comfortable' } } as const
+
+  expect(
+    pasteSetup(
+      settings,
+      mine,
+      JSON.stringify({ character: 'studio', options: { studio: { icons: 'payload' } }, palette: 'payload' })
+    )
+  ).toEqual({ ...mine, palette: 'payload' })
+})
+
+it("resets a style without dropping a personal pick that is this style's default but not another's", () => {
+  const both: Settings = {
+    ...settings,
+    options: { enhanced: { density: 'comfortable', radius: 'md' }, payload: {}, studio: { density: 'compact', radius: 'lg' } }
+  }
+  const choices = { options: { enhanced: { radius: 'full' } }, personal: { density: 'comfortable' } } as const
+
+  expect(normalize(both, resetCharacter(both, choices, 'enhanced'))).toEqual({ personal: { density: 'comfortable' } })
+  expect(normalize(both, resetCharacter(both, choices, 'studio'))).toEqual({ options: { enhanced: { radius: 'full' } } })
 })
 
 it('reads a cookie that holds only personal choices', () => {
