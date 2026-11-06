@@ -1092,6 +1092,27 @@ test.describe('Motion', () => {
     expect(await transitions()).toEqual([])
   })
 
+  for (const [name, width, nav, open] of [
+    ['on a phone', 768, 'rail', true],
+    ['below 1440px with the nav hidden and closed', 1024, 'hidden', false]
+  ] as const) {
+    test(`loading a page ${name} runs no layout transitions`, async ({ page }) => {
+      await page.setViewportSize({ height: 800, width })
+      await page.context().addCookies([appearance({ options: { enhanced: { nav } } })])
+      await page.request.post('/api/payload-preferences/nav', { data: { value: { open } } })
+      const transitions = await recordTransitions(page, ['template-default', 'template-default__wrap', 'nav'])
+      try {
+        await page.goto('/admin')
+        await hydrated(page)
+        await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))))
+
+        expect(await transitions()).toEqual([])
+      } finally {
+        await page.request.delete('/api/payload-preferences/nav')
+      }
+    })
+  }
+
   test('the nav slides open and closed, and the appearance panel slides in', async ({ page }) => {
     const transitions = await recordTransitions(page, ['template-default', 'payloadpack-appearance-panel__sheet'])
     await page.route('**/api/payload-preferences/nav*', (route) =>
