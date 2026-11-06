@@ -6,6 +6,7 @@ import { createElement, Fragment } from 'react'
 import { buildConfig } from 'payload'
 import { fileURLToPath } from 'url'
 
+import { collections, globals } from './collections'
 import { seed } from './seed'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -125,11 +126,13 @@ export default buildConfig({
         }
       ],
       versions: { drafts: true }
-    }
+    },
+    ...collections
   ],
   cookiePrefix: 'theme-demo',
   db: sqliteAdapter({ client: { url: process.env.DATABASE_URI || '' } }),
   editor: lexicalEditor(),
+  globals,
   onInit: seed,
   plugins: [themePlugin()],
   secret: process.env.PAYLOAD_SECRET || '',
