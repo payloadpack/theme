@@ -98,6 +98,7 @@ export function AppearanceProvider({
   const [unsaved, setUnsaved] = useState(false)
   const latest = useRef(choices)
   const saving = useRef(Promise.resolve())
+  const pending = useRef<((current: Choices) => Choices)[]>([])
   const { user } = useAuth()
   const signedInAs = useRef(accountOf(user))
   const { getPreference } = usePreferences()
@@ -172,11 +173,20 @@ export function AppearanceProvider({
     const update = (change: (current: Choices) => Choices) => {
       setDraft(undefined)
       setChoices((current) => normalize(settings, change(current)))
+      pending.current.push(change)
       saving.current = saving.current
         .then(async () => {
+          const changes = pending.current.splice(0)
+          if (!changes.length) {
+            return
+          }
           const stored = await fetch(preferenceURL, { credentials: 'include' })
           const saved: unknown = stored.ok ? (await stored.json()).value : null
-          const value = normalize(settings, change(saved == null ? latest.current : normalize(settings, saved)))
+          const base = saved == null ? latest.current : normalize(settings, saved)
+          const value = normalize(
+            settings,
+            changes.reduce((current, apply) => apply(current), base)
+          )
           const response = await fetch(preferenceURL, {
             body: JSON.stringify({ value }),
             credentials: 'include',

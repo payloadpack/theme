@@ -302,6 +302,7 @@ test.describe('Appearance panel', () => {
     await expect(html).toHaveAttribute('data-palette', 'warm')
     await expect(status).toBeEmpty()
 
+    await page.waitForLoadState('networkidle')
     await page.reload()
     await expect(html).toHaveAttribute('data-radius', 'sm')
   })
