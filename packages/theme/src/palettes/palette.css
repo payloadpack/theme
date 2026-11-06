@@ -261,17 +261,22 @@
       box-shadow: var(--payloadpack-elevation-selected, var(--payloadpack-raised-shadow));
     }
 
-    .nav {
-      --color-bg-hover: color-mix(
+    & {
+      --payloadpack-nav-hover: color-mix(
         in oklab,
         var(--payloadpack-text-primary) var(--payloadpack-hover-step),
         var(--payloadpack-bg-app)
       );
-      --color-bg-pressed: color-mix(
+      --payloadpack-nav-pressed: color-mix(
         in oklab,
         var(--payloadpack-text-primary) var(--payloadpack-pressed-step),
         var(--payloadpack-bg-app)
       );
+    }
+
+    .nav {
+      --color-bg-hover: var(--payloadpack-nav-hover);
+      --color-bg-pressed: var(--payloadpack-nav-pressed);
     }
 
     a.nav__link:not(.nav__link--selected):hover::before,
