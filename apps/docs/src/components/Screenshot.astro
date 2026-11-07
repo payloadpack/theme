@@ -23,7 +23,7 @@ const screenshotByColorScheme = { dark: readScreenshot(`${name}-dark`), light: r
     Object.entries(screenshotByColorScheme).map(([colorScheme, screenshot]) => (
       <Image
         alt={alt}
-        class={`docs-screenshot-${colorScheme}`}
+        class={colorScheme === 'dark' ? 'light:sl-hidden' : 'dark:sl-hidden'}
         densities={[2]}
         src={screenshot}
         width={screenshot.width / 2}

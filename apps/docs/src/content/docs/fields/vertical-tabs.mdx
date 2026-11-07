@@ -1,0 +1,23 @@
+---
+title: Vertical tabs
+description: List a tabs field's tabs in a column beside its fields. Works with every style and palette.
+---
+
+import Screenshot from '../../../components/Screenshot.astro'
+
+<Screenshot alt="A tabs field with General and Advanced listed in a column beside a Meta Title field" name="vertical-tabs" />
+
+```ts
+import { VERTICAL_TABS } from '@payloadpack/theme'
+
+const field = {
+  type: 'tabs',
+  admin: { className: VERTICAL_TABS },
+  tabs: [
+    { label: 'General', fields: [] },
+    { label: 'Advanced', fields: [] }
+  ]
+}
+```
+
+From 768px wide the tabs stack in a 270px column on the left. Narrower screens keep Payload's horizontal tabs. In both layouts the Left and Right arrow keys move between tabs.

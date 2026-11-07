@@ -8,12 +8,12 @@ export default defineConfig({
     starlight({
       title: '@payloadpack/theme',
       description: 'A warmer, roomier admin theme for Payload 4.',
-      logo: { src: '../../.github/assets/icons/logo.svg' },
       social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/payloadpack/theme' }],
       customCss: ['@fontsource-variable/inter', './src/styles/docs.css'],
       components: {
         PageTitle: './src/components/PageTitle.astro',
-        Sidebar: './src/components/Sidebar.astro'
+        Sidebar: './src/components/Sidebar.astro',
+        SiteTitle: './src/components/SiteTitle.astro'
       },
       expressiveCode: {
         defaultProps: { frame: 'code' },
@@ -37,10 +37,14 @@ export default defineConfig({
         }
       },
       sidebar: [
-        { label: 'Get started', items: ['index', 'installation'] },
-        { label: 'Appearance', items: ['appearance-panel', 'styles', 'palettes'] },
-        { label: 'Fields and nav', items: ['field-layouts', 'nav-icons'] },
-        { label: 'Reference', items: ['configuration', 'customize', 'translations'] }
+        { slug: 'index', attrs: { 'data-icon': 'book-open' } },
+        { slug: 'installation', attrs: { 'data-icon': 'download' } },
+        { slug: 'configuration', attrs: { 'data-icon': 'settings-2' } },
+        {
+          label: 'Guides',
+          items: ['appearance-panel', 'styles', 'palettes', 'nav-icons', 'customize', 'translations']
+        },
+        { label: 'Fields', items: ['fields/vertical-tabs', 'fields/radio-cards', 'fields/switch'] }
       ]
     })
   ]

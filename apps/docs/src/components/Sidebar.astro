@@ -1,10 +1,36 @@
 ---
 import MobileMenuFooter from '@astrojs/starlight/components/MobileMenuFooter.astro'
+import bookOpenIcon from 'lucide-static/icons/book-open.svg?raw'
+import downloadIcon from 'lucide-static/icons/download.svg?raw'
+import settingsIcon from 'lucide-static/icons/settings-2.svg?raw'
+
+const lucideIconSvgByName: Record<string, string> = {
+  'book-open': bookOpenIcon,
+  download: downloadIcon,
+  'settings-2': settingsIcon
+}
 
 const { sidebar } = Astro.locals.starlightRoute
+
+const readLucideIconSvg = (iconName: unknown) => (typeof iconName === 'string' ? lucideIconSvgByName[iconName] : undefined)
 ---
 
 <div class="docs-sidebar">
+  <ul>
+    {
+      sidebar.map(
+        (page) =>
+          page.type === 'link' && (
+            <li>
+              <a aria-current={page.isCurrent ? 'page' : undefined} href={page.href}>
+                <Fragment set:html={readLucideIconSvg(page.attrs['data-icon'])} />
+                {page.label}
+              </a>
+            </li>
+          )
+      )
+    }
+  </ul>
   {
     sidebar.map(
       (group) =>

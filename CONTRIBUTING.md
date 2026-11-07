@@ -48,10 +48,10 @@ The README's panel tour GIFs are recorded from the demo too, but every recording
 cd apps/demo && bun run panel-tour
 ```
 
-The icon tiles in `.github/assets/icons` are drawn from Lucide. Change the icons in `apps/docs/scripts/render-icon-tiles.mjs`, then:
+The logo, the README's feature icons and the docs favicon are drawn by `apps/docs/scripts/render-brand-assets.mjs`, from the payloadpack logo, Lucide icons and the brand gradient. After changing it:
 
 ```sh
-cd apps/docs && bun run icons
+cd apps/docs && bun run brand
 ```
 
 ## Docs

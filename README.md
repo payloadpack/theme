@@ -1,5 +1,8 @@
 <p align="center">
-  <img width="64" height="64" alt="" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/icons/logo.svg">
+  <picture>
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/icons/logo-light.svg">
+    <img width="64" height="64" alt="" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/icons/logo-dark.svg">
+  </picture>
 </p>
 
 <h1 align="center">@payloadpack/theme</h1>
