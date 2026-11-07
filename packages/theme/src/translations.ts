@@ -1,6 +1,6 @@
-import type { Option, OptionValue } from './characters/index.js'
+import type { OptionName, OptionValue } from './characters/index.js'
 
-type OptionKey = { [O in Option]: O | `${O}${Capitalize<OptionValue<O>>}` }[Option]
+type OptionKey = { [O in OptionName]: O | `${O}${Capitalize<OptionValue<O>>}` }[OptionName]
 
 const payloadpack = {
   accent: 'Accent',

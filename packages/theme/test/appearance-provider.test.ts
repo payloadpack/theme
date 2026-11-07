@@ -4,32 +4,46 @@ import { renderToString } from 'react-dom/server'
 import { expect, it } from 'vitest'
 
 import { AppearanceProvider } from '../src/components/appearance-provider.js'
-import { type Choices, type CustomPalette, paletteCss, type Settings } from '../src/lib/appearance.js'
+import {
+  type CustomPalette,
+  customPaletteCss,
+  type EditorAppearanceChoices,
+  type SiteAppearanceSettings
+} from '../src/lib/appearance.js'
 
 const router = { back: () => {}, push: () => {}, refresh: () => {}, replace: () => {} }
 
-const render = (settings: Settings, initialChoices: Choices = {}, initialRail = false) =>
+const renderProviderHtml = (
+  siteSettings: SiteAppearanceSettings,
+  initialEditorChoices: EditorAppearanceChoices = {},
+  initialRailCollapsed = false
+) =>
   renderToString(
     createElement(RouterAdapterContext, {
       value: { Link: () => null, params: {}, pathname: '/admin', router, searchParams: new URLSearchParams() },
       children: createElement(AppearanceProvider, {
-        account: undefined,
+        accountKey: undefined,
+        appearanceCookieName: 'payload-appearance',
+        canEdit: true,
         children: null,
         codeEditorFontSize: false,
-        cookieName: 'payload-appearance',
-        editable: true,
-        initialChoices,
-        initialRail,
+        initialChoicesUnsaved: false,
+        initialEditorChoices,
+        initialRailCollapsed,
         preferenceURL: '/api/payload-preferences/payloadpack-appearance',
         railCookieName: 'payload-nav-rail',
-        initialUnsaved: false,
-        settings
+        siteSettings
       })
     })
   )
 
-const runScript = (settings: Settings, initialChoices: Choices = {}, initialRail = false) => {
-  const script = render(settings, initialChoices, initialRail).match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? ''
+const runInlineDatasetScript = (
+  siteSettings: SiteAppearanceSettings,
+  initialEditorChoices: EditorAppearanceChoices = {},
+  initialRailCollapsed = false
+) => {
+  const script =
+    renderProviderHtml(siteSettings, initialEditorChoices, initialRailCollapsed).match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? ''
   const dataset = {}
 
   new Function('document', script)({ documentElement: { dataset } })
@@ -43,7 +57,7 @@ const custom: CustomPalette = {
   light: { background: '#f1f0ec', primary: '#1c1b18', surface: '#ffffff', text: '#1c1b18' }
 }
 
-const settings: Settings = {
+const siteSettings: SiteAppearanceSettings = {
   character: 'enhanced',
   options: { enhanced: { density: 'comfortable', icons: 'lucide' } },
   palette: 'neutral',
@@ -53,7 +67,7 @@ const settings: Settings = {
 it('keeps the initial appearance inside its inline script', () => {
   const density = '</script><script>alert(1)</script>' as 'compact'
 
-  expect(runScript({ ...settings, options: { enhanced: { density, icons: 'lucide' } } })).toEqual({
+  expect(runInlineDatasetScript({ ...siteSettings, options: { enhanced: { density, icons: 'lucide' } } })).toEqual({
     character: 'enhanced',
     density,
     icons: 'lucide',
@@ -62,8 +76,13 @@ it('keeps the initial appearance inside its inline script', () => {
 })
 
 it('sets the palette and leaves the accent to the palette CSS', () => {
-  expect(runScript(settings)).toEqual({ character: 'enhanced', density: 'comfortable', icons: 'lucide', palette: 'neutral' })
-  expect(runScript(settings, { custom, palette: 'custom' })).toEqual({
+  expect(runInlineDatasetScript(siteSettings)).toEqual({
+    character: 'enhanced',
+    density: 'comfortable',
+    icons: 'lucide',
+    palette: 'neutral'
+  })
+  expect(runInlineDatasetScript(siteSettings, { custom, palette: 'custom' })).toEqual({
     character: 'enhanced',
     density: 'comfortable',
     icons: 'lucide',
@@ -72,15 +91,15 @@ it('sets the palette and leaves the accent to the palette CSS', () => {
 })
 
 it('renders the custom palette into the server HTML as the CSS block Copy as CSS copies', () => {
-  expect(render(settings, { custom })).toContain(`<style>${paletteCss('custom', custom)}</style>`)
-  expect(render(settings, {})).not.toContain('<style>')
+  expect(renderProviderHtml(siteSettings, { custom })).toContain(`<style>${customPaletteCss('custom', custom)}</style>`)
+  expect(renderProviderHtml(siteSettings, {})).not.toContain('<style>')
 })
 
 it('renders the collapsed rail only while the nav option is rail', () => {
-  const withNav: Settings = { ...settings, options: { enhanced: { nav: 'rail' } } }
+  const withNav: SiteAppearanceSettings = { ...siteSettings, options: { enhanced: { nav: 'rail' } } }
 
-  expect(runScript(withNav, {}, true)).toEqual({ character: 'enhanced', nav: 'rail', palette: 'neutral', rail: '' })
-  expect(runScript(withNav, { personal: { nav: 'hidden' } }, true)).toEqual({
+  expect(runInlineDatasetScript(withNav, {}, true)).toEqual({ character: 'enhanced', nav: 'rail', palette: 'neutral', rail: '' })
+  expect(runInlineDatasetScript(withNav, { personal: { nav: 'hidden' } }, true)).toEqual({
     character: 'enhanced',
     nav: 'hidden',
     palette: 'neutral'

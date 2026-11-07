@@ -4,14 +4,22 @@ import { PayloadIcon, useConfig, useTheme, useTranslation, XIcon } from '@payloa
 import type { StaticLabel } from 'payload'
 import { Fragment, type ReactNode, useCallback, useEffect, useId, useRef, useState } from 'react'
 
-import { characters as registry, type Option, options } from '../characters/index.js'
-import { type Base, bases, baseTokens, type CustomPalette, customPalette, hexOf, paletteCss } from '../lib/appearance.js'
+import { allowedOptionValues, characters as registry, type OptionName } from '../characters/index.js'
+import {
+  baseColorTokenNames,
+  type CustomPalette,
+  customPaletteBaseColorNames,
+  type CustomPaletteBaseColors,
+  customPaletteCss,
+  customPaletteSlug,
+  parseHexColor
+} from '../lib/appearance.js'
 import type { TranslationKey } from '../translations.js'
 import { useAppearance } from './appearance-provider.js'
 
-const colorModes = ['light', 'dark', 'auto'] as const
+const themeModes = ['light', 'dark', 'auto'] as const
 
-const halves = ['light', 'dark'] as const
+const paletteModes = ['light', 'dark'] as const
 
 const SHEET_ID = 'payloadpack-appearance'
 
@@ -23,7 +31,7 @@ const UNDO_MS = 8000
 
 const capitalize = (text: string) => `${text[0].toUpperCase()}${text.slice(1)}`
 
-const toHex = (color: string) => {
+const cssColorToHex = (color: string) => {
   const context = document.createElement('canvas').getContext('2d', { willReadFrequently: true })
   if (!context) {
     throw new Error('A 2D canvas is needed to read palette colors')
@@ -33,21 +41,23 @@ const toHex = (color: string) => {
   return `#${[...context.getImageData(0, 0, 1, 1).data.slice(0, 3)].map((channel) => channel.toString(16).padStart(2, '0')).join('')}`
 }
 
-const readPalette = (cards: Element, name: string): CustomPalette => {
-  const color = (probe: HTMLElement, value: string) => {
+const readRenderedPaletteColors = (paletteCardsElement: Element, paletteSlug: string): CustomPalette => {
+  const resolveColorToHex = (probe: HTMLElement, value: string) => {
     probe.style.color = value
-    return toHex(getComputedStyle(probe).color)
+    return cssColorToHex(getComputedStyle(probe).color)
   }
-  const read = (half: (typeof halves)[number]) => {
+  const readPaletteMode = (mode: (typeof paletteModes)[number]) => {
     const probe = document.createElement('span')
-    Object.assign(probe.dataset, { palette: name, theme: half })
-    cards.append(probe)
-    const base = Object.fromEntries(bases.map((key) => [key, color(probe, `var(${baseTokens[key]})`)])) as Base
-    const accent = color(probe, 'var(--payloadpack-accent, var(--ramp-blue-500))')
+    Object.assign(probe.dataset, { palette: paletteSlug, theme: mode })
+    paletteCardsElement.append(probe)
+    const baseColors = Object.fromEntries(
+      customPaletteBaseColorNames.map((key) => [key, resolveColorToHex(probe, `var(${baseColorTokenNames[key]})`)])
+    ) as CustomPaletteBaseColors
+    const accent = resolveColorToHex(probe, 'var(--payloadpack-accent, var(--ramp-blue-500))')
     probe.remove()
-    return { accent, base }
+    return { accent, base: baseColors }
   }
-  const [light, dark] = [read('light'), read('dark')]
+  const [light, dark] = [readPaletteMode('light'), readPaletteMode('dark')]
   return { accent: light.accent, dark: dark.base, light: light.base }
 }
 
@@ -79,25 +89,22 @@ function ColorField({
   onChange: (value: string, persist?: boolean) => void
   value: string
 }) {
-  const input = useRef<HTMLInputElement>(null)
-  const [draft, setDraft] = useState(value)
-
-  useEffect(() => setDraft(value), [value])
+  const colorPickerInput = useRef<HTMLInputElement>(null)
+  const [typedHex, setTypedHex] = useState<string>()
 
   useEffect(() => {
-    const element = input.current
+    const element = colorPickerInput.current
     const commit = () => element && onChange(element.value)
     element?.addEventListener('change', commit)
     return () => element?.removeEventListener('change', commit)
   }, [onChange])
 
-  const commitHex = () => {
-    const typed = hexOf(draft.trim().replace(/^#?/, '#'))
+  const commitTypedHex = () => {
+    const typed = typedHex && parseHexColor(typedHex.trim().replace(/^#?/, '#'))
     if (typed && typed !== value) {
       onChange(typed)
-    } else {
-      setDraft(value)
     }
+    setTypedHex(undefined)
   }
 
   return (
@@ -106,39 +113,39 @@ function ColorField({
         aria-label={label}
         autoFocus={autoFocus}
         onChange={(event) => onChange(event.target.value, false)}
-        ref={input}
+        ref={colorPickerInput}
         type="color"
         value={value}
       />
       <input
         aria-label={`${label} hex`}
-        onBlur={commitHex}
-        onChange={(event) => setDraft(event.target.value)}
-        onKeyDown={(event) => event.key === 'Enter' && commitHex()}
+        onBlur={commitTypedHex}
+        onChange={(event) => setTypedHex(event.target.value)}
+        onKeyDown={(event) => event.key === 'Enter' && commitTypedHex()}
         spellCheck={false}
-        value={draft}
+        value={typedHex ?? value}
       />
     </div>
   )
 }
 
-type Status = { message: string; tone?: 'error'; undo?: () => void }
+type StatusMessage = { message: string; tone?: 'error'; undo?: () => void }
 
-function useStatus() {
-  const [status, setStatus] = useState<Status>()
+function useStatusMessage() {
+  const [statusMessage, setStatusMessage] = useState<StatusMessage>()
 
   useEffect(() => {
-    if (!status) {
+    if (!statusMessage) {
       return
     }
-    const timeout = setTimeout(() => setStatus(undefined), status.undo ? UNDO_MS : STATUS_MS)
+    const timeout = setTimeout(() => setStatusMessage(undefined), statusMessage.undo ? UNDO_MS : STATUS_MS)
     return () => clearTimeout(timeout)
-  }, [status])
+  }, [statusMessage])
 
-  return [status, setStatus] as const
+  return [statusMessage, setStatusMessage] as const
 }
 
-type Choice<V extends string> = { label: ReactNode; name?: string; value: V }
+type RadioChoice<V extends string> = { label: ReactNode; name?: string; value: V }
 
 function RadioGroup<V extends string>({
   choices,
@@ -147,7 +154,7 @@ function RadioGroup<V extends string>({
   onChange,
   selected
 }: {
-  choices: Choice<V>[]
+  choices: RadioChoice<V>[]
   className: string
   labelledBy: string
   onChange: (value: V) => void
@@ -174,7 +181,7 @@ function RadioGroup<V extends string>({
   )
 }
 
-function Section({ children, label }: { children: (labelId: string) => ReactNode; label: string }) {
+function PanelSection({ children, label }: { children: (labelId: string) => ReactNode; label: string }) {
   const id = useId()
 
   return (
@@ -185,55 +192,168 @@ function Section({ children, label }: { children: (labelId: string) => ReactNode
   )
 }
 
-export function AppearanceSheet() {
-  const {
-    changed,
-    character,
-    characters,
-    custom,
-    palette,
-    palettes,
-    paste,
-    removeCustom,
-    reset,
-    setCharacter,
-    setCustom,
-    setOption,
-    setPalette,
-    setup,
-    failed,
-    values
-  } = useAppearance()
-  const { autoMode, setTheme, theme } = useTheme()
-  const { config } = useConfig()
+function PaletteSection({ copyToClipboard }: { copyToClipboard: (text: string, message: string) => void }) {
+  const { allowedPalettes, customPalette, palette, removeCustomPalette, setCustomPalette, setPalette } = useAppearance()
   const { i18n, t } = useTranslation<object, TranslationKey>()
-  const [focusEditor, setFocusEditor] = useState(false)
-  const focusesAdd = useRef(false)
-  const fineTune = useRef<HTMLElement>(null)
-  const focusUndo = useCallback((element: HTMLButtonElement | null) => {
-    element?.focus()
-    return () => {
-      if (element && document.activeElement === element) {
-        fineTune.current?.focus()
-      }
-    }
-  }, [])
-  const [status, setStatus] = useStatus()
-  const shown: Status | undefined = status ?? (failed ? { message: t('payloadpack:setupUnsaved'), tone: 'error' } : undefined)
-  const characterName = t(`payloadpack:character${capitalize(character)}` as TranslationKey)
-  const css = custom && paletteCss(customPalette, custom)
-  const paletteName = ({ label, slug }: { label?: StaticLabel; slug: string }) => {
+  const [focusFirstColorField, setFocusFirstColorField] = useState(false)
+  const focusCustomButtonNext = useRef(false)
+  const customCss = customPalette && customPaletteCss(customPaletteSlug, customPalette)
+  const paletteLabel = ({ label, slug }: { label?: StaticLabel; slug: string }) => {
     if (!label) {
       return t(`payloadpack:palette${capitalize(slug)}` as TranslationKey)
     }
     return typeof label === 'string' ? label : (label[i18n.language] ?? label[i18n.fallbackLanguage] ?? Object.values(label)[0])
   }
-  const supported = Object.keys(registry[character].defaults) as Option[]
 
-  const blocked = () => setStatus({ message: t('payloadpack:clipboardBlocked'), tone: 'error' })
+  return (
+    <PanelSection label={t('payloadpack:palette')}>
+      {(labelId) => (
+        <>
+          <div className="payloadpack-appearance-panel__cards">
+            <RadioGroup
+              choices={[...allowedPalettes, ...(customPalette ? [{ slug: customPaletteSlug }] : [])].map((choice) => ({
+                label: (
+                  <>
+                    <span aria-hidden="true" className="payloadpack-appearance-panel__halves">
+                      {paletteModes.map((mode) => (
+                        <span data-palette={choice.slug} data-theme={mode} key={mode}>
+                          <span />
+                          <span />
+                          <span />
+                        </span>
+                      ))}
+                    </span>
+                    {paletteLabel(choice)}
+                  </>
+                ),
+                value: choice.slug
+              }))}
+              className="payloadpack-appearance-panel__palettes"
+              labelledBy={labelId}
+              onChange={(next) => {
+                setFocusFirstColorField(false)
+                setPalette(next)
+              }}
+              selected={palette}
+            />
+            {!customPalette && (
+              <button
+                aria-label={t('payloadpack:customColors')}
+                className="payloadpack-appearance-panel__add"
+                ref={(element) => {
+                  if (element && focusCustomButtonNext.current) {
+                    focusCustomButtonNext.current = false
+                    element.focus()
+                  }
+                }}
+                onClick={(event) => {
+                  const paletteCards = event.currentTarget
+                    .closest('section')
+                    ?.querySelector('.payloadpack-appearance-panel__halves')
+                  if (paletteCards) {
+                    setFocusFirstColorField(true)
+                    setCustomPalette(readRenderedPaletteColors(paletteCards, palette))
+                  }
+                }}
+                type="button">
+                {t('payloadpack:paletteCustom')}
+              </button>
+            )}
+          </div>
+          {palette === customPaletteSlug && customPalette && customCss && (
+            <div className="payloadpack-appearance-panel__editor">
+              <span />
+              {paletteModes.map((mode) => (
+                <span key={mode}>{t(`payloadpack:${mode}`)}</span>
+              ))}
+              {customPaletteBaseColorNames.map((baseColorName, row) => (
+                <Fragment key={baseColorName}>
+                  <span>{t(`payloadpack:${baseColorName}`)}</span>
+                  {paletteModes.map((mode, column) => (
+                    <ColorField
+                      autoFocus={focusFirstColorField && row === 0 && column === 0}
+                      key={mode}
+                      label={`${t(`payloadpack:${baseColorName}`)}, ${t(`payloadpack:${mode}`)}`}
+                      onChange={(value, persist) =>
+                        setCustomPalette(
+                          { ...customPalette, [mode]: { ...customPalette[mode], [baseColorName]: value } },
+                          persist
+                        )
+                      }
+                      value={customPalette[mode][baseColorName]}
+                    />
+                  ))}
+                </Fragment>
+              ))}
+              <span>{t('payloadpack:accent')}</span>
+              <ColorField
+                label={`${t('payloadpack:accent')}, ${t('payloadpack:bothModes')}`}
+                onChange={(value, persist) => setCustomPalette({ ...customPalette, accent: value }, persist)}
+                value={customPalette.accent}
+              />
+              <div className="payloadpack-appearance-panel__actions">
+                <button
+                  className="payloadpack-appearance-panel__link"
+                  onClick={() => copyToClipboard(customCss, t('payloadpack:cssCopied'))}
+                  type="button">
+                  {t('payloadpack:copyCss')}
+                </button>
+                <button
+                  className="payloadpack-appearance-panel__link"
+                  onClick={() => {
+                    focusCustomButtonNext.current = true
+                    removeCustomPalette()
+                  }}
+                  type="button">
+                  {t('payloadpack:removeColors')}
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </PanelSection>
+  )
+}
 
-  const copy = (text: string, message: string) =>
-    navigator.clipboard ? void navigator.clipboard.writeText(text).then(() => setStatus({ message }), blocked) : blocked()
+export function AppearanceSheet() {
+  const {
+    allowedCharacters,
+    allowedPalettes,
+    changedOptionCount,
+    character,
+    optionValues,
+    pasteSetup,
+    resetCharacterOptions,
+    saveFailed,
+    setCharacter,
+    setOption,
+    shareableSetup
+  } = useAppearance()
+  const { autoMode, setTheme, theme } = useTheme()
+  const { config } = useConfig()
+  const { t } = useTranslation<object, TranslationKey>()
+  const fineTuneSummary = useRef<HTMLElement>(null)
+  const focusUndoButton = useCallback((element: HTMLButtonElement | null) => {
+    element?.focus()
+    return () => {
+      if (element && document.activeElement === element) {
+        fineTuneSummary.current?.focus()
+      }
+    }
+  }, [])
+  const [statusMessage, setStatusMessage] = useStatusMessage()
+  const visibleStatusMessage: StatusMessage | undefined =
+    statusMessage ?? (saveFailed ? { message: t('payloadpack:setupUnsaved'), tone: 'error' } : undefined)
+  const characterName = t(`payloadpack:character${capitalize(character)}` as TranslationKey)
+  const characterOptions = Object.keys(registry[character].defaults) as OptionName[]
+
+  const reportClipboardBlocked = () => setStatusMessage({ message: t('payloadpack:clipboardBlocked'), tone: 'error' })
+
+  const copyToClipboard = (text: string, message: string) =>
+    navigator.clipboard
+      ? void navigator.clipboard.writeText(text).then(() => setStatusMessage({ message }), reportClipboardBlocked)
+      : reportClipboardBlocked()
 
   const pasteFromClipboard = () =>
     navigator.clipboard
@@ -241,16 +361,17 @@ export function AppearanceSheet() {
           .readText()
           .then(
             (text) =>
-              setStatus(
-                paste(text)
+              setStatusMessage(
+                pasteSetup(text)
                   ? { message: t('payloadpack:setupPasted') }
                   : { message: t('payloadpack:invalidSetup'), tone: 'error' }
               ),
-            blocked
+            reportClipboardBlocked
           )
-      : blocked()
+      : reportClipboardBlocked()
 
-  const resetCharacter = () => setStatus({ message: t('payloadpack:resetDone', { character: characterName }), undo: reset() })
+  const resetCharacterWithUndo = () =>
+    setStatusMessage({ message: t('payloadpack:resetDone', { character: characterName }), undo: resetCharacterOptions() })
 
   return (
     <div className="payloadpack-appearance-panel">
@@ -271,130 +392,25 @@ export function AppearanceSheet() {
         </header>
         <div className="payloadpack-appearance-panel__body">
           {config.admin.theme === 'all' && (
-            <Section label={t('payloadpack:colorMode')}>
+            <PanelSection label={t('payloadpack:colorMode')}>
               {(labelId) => (
                 <RadioGroup
-                  choices={colorModes.map((mode) => ({ label: t(`payloadpack:${mode}`), value: mode }))}
+                  choices={themeModes.map((mode) => ({ label: t(`payloadpack:${mode}`), value: mode }))}
                   className="payloadpack-appearance-panel__segments"
                   labelledBy={labelId}
                   onChange={setTheme}
                   selected={autoMode ? 'auto' : theme}
                 />
               )}
-            </Section>
+            </PanelSection>
           )}
-          {palettes.length > 1 && (
-            <Section label={t('payloadpack:palette')}>
-              {(labelId) => (
-                <>
-                  <div className="payloadpack-appearance-panel__cards">
-                    <RadioGroup
-                      choices={[...palettes, ...(custom ? [{ slug: customPalette }] : [])].map((choice) => ({
-                        label: (
-                          <>
-                            <span aria-hidden="true" className="payloadpack-appearance-panel__halves">
-                              {halves.map((half) => (
-                                <span data-palette={choice.slug} data-theme={half} key={half}>
-                                  <span />
-                                  <span />
-                                  <span />
-                                </span>
-                              ))}
-                            </span>
-                            {paletteName(choice)}
-                          </>
-                        ),
-                        value: choice.slug
-                      }))}
-                      className="payloadpack-appearance-panel__palettes"
-                      labelledBy={labelId}
-                      onChange={(next) => {
-                        setFocusEditor(false)
-                        setPalette(next)
-                      }}
-                      selected={palette}
-                    />
-                    {!custom && (
-                      <button
-                        aria-label={t('payloadpack:customColors')}
-                        className="payloadpack-appearance-panel__add"
-                        ref={(element) => {
-                          if (element && focusesAdd.current) {
-                            focusesAdd.current = false
-                            element.focus()
-                          }
-                        }}
-                        onClick={(event) => {
-                          const cards = event.currentTarget
-                            .closest('section')
-                            ?.querySelector('.payloadpack-appearance-panel__halves')
-                          if (cards) {
-                            setFocusEditor(true)
-                            setCustom(readPalette(cards, palette))
-                          }
-                        }}
-                        type="button">
-                        {t('payloadpack:paletteCustom')}
-                      </button>
-                    )}
-                  </div>
-                  {palette === customPalette && custom && css && (
-                    <div className="payloadpack-appearance-panel__editor">
-                      <span />
-                      {halves.map((half) => (
-                        <span key={half}>{t(`payloadpack:${half}`)}</span>
-                      ))}
-                      {bases.map((base, row) => (
-                        <Fragment key={base}>
-                          <span>{t(`payloadpack:${base}`)}</span>
-                          {halves.map((half, column) => (
-                            <ColorField
-                              autoFocus={focusEditor && row === 0 && column === 0}
-                              key={half}
-                              label={`${t(`payloadpack:${base}`)}, ${t(`payloadpack:${half}`)}`}
-                              onChange={(value, persist) =>
-                                setCustom({ ...custom, [half]: { ...custom[half], [base]: value } }, persist)
-                              }
-                              value={custom[half][base]}
-                            />
-                          ))}
-                        </Fragment>
-                      ))}
-                      <span>{t('payloadpack:accent')}</span>
-                      <ColorField
-                        label={`${t('payloadpack:accent')}, ${t('payloadpack:bothModes')}`}
-                        onChange={(value, persist) => setCustom({ ...custom, accent: value }, persist)}
-                        value={custom.accent}
-                      />
-                      <div className="payloadpack-appearance-panel__actions">
-                        <button
-                          className="payloadpack-appearance-panel__link"
-                          onClick={() => copy(css, t('payloadpack:cssCopied'))}
-                          type="button">
-                          {t('payloadpack:copyCss')}
-                        </button>
-                        <button
-                          className="payloadpack-appearance-panel__link"
-                          onClick={() => {
-                            focusesAdd.current = true
-                            removeCustom()
-                          }}
-                          type="button">
-                          {t('payloadpack:removeColors')}
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-            </Section>
-          )}
-          <Section label={t('payloadpack:character')}>
+          {allowedPalettes.length > 1 && <PaletteSection copyToClipboard={copyToClipboard} />}
+          <PanelSection label={t('payloadpack:character')}>
             {(labelId) => (
               <>
-                {characters.length > 1 && (
+                {allowedCharacters.length > 1 && (
                   <RadioGroup
-                    choices={characters.map((name) => ({
+                    choices={allowedCharacters.map((name) => ({
                       label: (
                         <>
                           <span
@@ -426,25 +442,25 @@ export function AppearanceSheet() {
                 <p className="payloadpack-appearance-panel__description">
                   {t(`payloadpack:character${capitalize(character)}Description` as TranslationKey)}
                 </p>
-                {supported.length > 0 && (
+                {characterOptions.length > 0 && (
                   <details className="payloadpack-appearance-panel__fine-tune">
-                    <summary ref={fineTune}>
+                    <summary ref={fineTuneSummary}>
                       {t('payloadpack:fineTune', { character: characterName })}
-                      {changed > 0 && <span>{t('payloadpack:fineTuneChanged', { count: changed })}</span>}
+                      {changedOptionCount > 0 && <span>{t('payloadpack:fineTuneChanged', { count: changedOptionCount })}</span>}
                     </summary>
-                    {supported.map((option) => (
+                    {characterOptions.map((option) => (
                       <FineTuneRow
                         key={option}
                         label={t(`payloadpack:${option}`)}
                         onChange={(value) => setOption(option, value)}
                         option={option}
-                        selected={values[option]}
+                        selected={optionValues[option]}
                       />
                     ))}
                     <button
                       className="payloadpack-appearance-panel__link"
-                      disabled={changed === 0}
-                      onClick={resetCharacter}
+                      disabled={changedOptionCount === 0}
+                      onClick={resetCharacterWithUndo}
                       type="button">
                       {t('payloadpack:reset', { character: characterName })}
                     </button>
@@ -452,7 +468,7 @@ export function AppearanceSheet() {
                 )}
               </>
             )}
-          </Section>
+          </PanelSection>
         </div>
         <footer className="payloadpack-appearance-panel__footer">
           <button
@@ -461,14 +477,14 @@ export function AppearanceSheet() {
             type="button">
             {t('payloadpack:shareSetup')}
           </button>
-          <p className="payloadpack-appearance-panel__status" data-tone={shown?.tone} role="status">
-            {shown?.message}
-            {shown?.undo && (
+          <p className="payloadpack-appearance-panel__status" data-tone={visibleStatusMessage?.tone} role="status">
+            {visibleStatusMessage?.message}
+            {visibleStatusMessage?.undo && (
               <button
-                ref={focusUndo}
+                ref={focusUndoButton}
                 onClick={() => {
-                  shown.undo?.()
-                  setStatus(undefined)
+                  visibleStatusMessage.undo?.()
+                  setStatusMessage(undefined)
                 }}
                 type="button">
                 {t('payloadpack:undo')}
@@ -477,7 +493,7 @@ export function AppearanceSheet() {
           </p>
           <div className="payloadpack-appearance-panel__menu" id={SHARE_ID} popover="auto">
             <button
-              onClick={() => copy(JSON.stringify(setup, null, 2), t('payloadpack:setupCopied'))}
+              onClick={() => copyToClipboard(JSON.stringify(shareableSetup, null, 2), t('payloadpack:setupCopied'))}
               popoverTarget={SHARE_ID}
               popoverTargetAction="hide"
               type="button">
@@ -508,16 +524,16 @@ function LucideLogo() {
   )
 }
 
-function FineTuneRow<O extends Option>({
+function FineTuneRow<O extends OptionName>({
   label,
   onChange,
   option,
   selected
 }: {
   label: string
-  onChange: (value: (typeof options)[O][number]) => void
+  onChange: (value: (typeof allowedOptionValues)[O][number]) => void
   option: O
-  selected: (typeof options)[O][number] | undefined
+  selected: (typeof allowedOptionValues)[O][number] | undefined
 }) {
   const id = useId()
   const { t } = useTranslation<object, TranslationKey>()
@@ -526,7 +542,7 @@ function FineTuneRow<O extends Option>({
     <div className="payloadpack-appearance-panel__row" data-option={option}>
       <span id={id}>{label}</span>
       <RadioGroup
-        choices={options[option].map((value) => ({
+        choices={allowedOptionValues[option].map((value) => ({
           label:
             option === 'radius' ? (
               <span aria-hidden="true" className="payloadpack-appearance-panel__corner" data-value={value} />

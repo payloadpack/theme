@@ -11,7 +11,7 @@ import { seed } from './seed'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
-const choice = (title: string, description: string) =>
+const radioCardLabel = (title: string, description: string) =>
   createElement(Fragment, null, createElement('strong', null, title), createElement('span', null, description))
 
 const AMENITIES = [
@@ -83,9 +83,9 @@ export default buildConfig({
           type: 'radio',
           admin: { className: RADIO_CARDS },
           options: [
-            { label: choice('Plus', 'For individuals and small teams.'), value: 'plus' },
-            { label: choice('Pro', 'For growing businesses.'), value: 'pro' },
-            { label: choice('Enterprise', 'For large teams and enterprises.'), value: 'enterprise' }
+            { label: radioCardLabel('Plus', 'For individuals and small teams.'), value: 'plus' },
+            { label: radioCardLabel('Pro', 'For growing businesses.'), value: 'pro' },
+            { label: radioCardLabel('Enterprise', 'For large teams and enterprises.'), value: 'enterprise' }
           ]
         },
         { name: 'tags', type: 'select', hasMany: true, options: AMENITIES },

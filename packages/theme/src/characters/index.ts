@@ -1,7 +1,7 @@
 import { enhanced } from './enhanced/index.js'
 import { studio } from './studio/index.js'
 
-export const options = {
+export const allowedOptionValues = {
   radius: ['none', 'sm', 'md', 'lg', 'full'],
   font: ['inter', 'geist', 'system'],
   frame: ['boxed', 'flat'],
@@ -11,22 +11,24 @@ export const options = {
   nav: ['rail', 'hidden']
 } as const
 
-export type Option = keyof typeof options
+export type OptionName = keyof typeof allowedOptionValues
 
-export const personalOptions: readonly Option[] = ['density', 'motion', 'nav']
+export const personalOptions: readonly OptionName[] = ['density', 'motion', 'nav']
 
-export type OptionValue<O extends Option> = (typeof options)[O][number]
+export type OptionValue<O extends OptionName> = (typeof allowedOptionValues)[O][number]
 
-export type Values = { [O in Option]?: OptionValue<O> }
+export type OptionValues = { [O in OptionName]?: OptionValue<O> }
 
 export const characters = {
   payload: { defaults: {} },
   enhanced,
   studio
-} satisfies Record<string, { defaults: Values }>
+} satisfies Record<string, { defaults: OptionValues }>
 
 export type Character = keyof typeof characters
 
 export const defaultCharacter: Character = 'enhanced'
 
-export type CharacterValues<C extends Character> = { [O in keyof (typeof characters)[C]['defaults'] & Option]?: OptionValue<O> }
+export type CharacterOptionValues<C extends Character> = {
+  [O in keyof (typeof characters)[C]['defaults'] & OptionName]?: OptionValue<O>
+}

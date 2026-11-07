@@ -5,36 +5,36 @@ import { demoUser } from '../src/seed'
 import {
   authFile,
   baseURL,
-  choice,
-  clearSetup,
-  cookie,
-  customPalette,
+  buildCustomPalette,
+  clickAndWaitForSave,
+  deleteSavedAppearance,
+  demoCookie,
   findShowcase,
-  hydrated,
-  label,
   openAppearancePanel,
   openFineTune,
-  pickAndSave,
-  reloadWith,
-  saved,
-  saveSetup,
-  settled,
-  share
+  openShareMenuItem,
+  radioInGroup,
+  radioLabel,
+  saveAppearanceAndReload,
+  saveAppearancePreference,
+  waitForAnimations,
+  waitForAppearanceSave,
+  waitForHydration
 } from './demo'
 
 test.beforeEach(async ({ page }) => {
-  await clearSetup(page.request)
+  await deleteSavedAppearance(page.request)
 })
 
-const nextScripts = '**/_next/static/**/*.js'
+const nextScriptsGlob = '**/_next/static/**/*.js'
 
 const openShowcase = async (page: Page) => {
-  await page.context().addCookies([cookie('theme', 'dark')])
+  await page.context().addCookies([demoCookie('theme', 'dark')])
   await page.goto((await findShowcase(page)).path)
-  await hydrated(page)
+  await waitForHydration(page)
 }
 
-const size = async (page: Page, selector: string) => {
+const elementSize = async (page: Page, selector: string) => {
   const box = await page.locator(selector).first().boundingBox()
   return box && { height: box.height, width: box.width }
 }
@@ -56,18 +56,18 @@ const computedColor = (page: Page, color: string, theme?: string) =>
     [color, theme] as const
   )
 
-const hex = (rgb: string) =>
+const rgbToHex = (rgb: string) =>
   `#${(rgb.match(/\d+/g) ?? [])
     .slice(0, 3)
     .map((channel) => Number(channel).toString(16).padStart(2, '0'))
     .join('')}`
 
-const nearColor = async (page: Page, actual: string, expected: string) => {
-  const [a, b] = [await channels(page, 'oklab', actual), await channels(page, 'oklab', expected)]
+const isNearColor = async (page: Page, actual: string, expected: string) => {
+  const [a, b] = [await colorChannels(page, 'oklab', actual), await colorChannels(page, 'oklab', expected)]
   return a.length === b.length && a.every((value, index) => Math.abs(value - b[index]) < 0.004)
 }
 
-const style = (page: Page, selector: string, property: string, pseudoElement?: string) =>
+const computedStyleValue = (page: Page, selector: string, property: string, pseudoElement?: string) =>
   page
     .locator(selector)
     .first()
@@ -76,12 +76,12 @@ const style = (page: Page, selector: string, property: string, pseudoElement?: s
       pseudoElement
     ] as const)
 
-const channels = async (page: Page, space: 'oklab' | 'oklch', color: string) =>
+const colorChannels = async (page: Page, space: 'oklab' | 'oklch', color: string) =>
   (await computedColor(page, `${space}(from ${color} ${space === 'oklab' ? 'l a b' : 'l c h'})`))
     .match(/-?[\d.]+/g)
     ?.map(Number) ?? []
 
-const middle = async (locator: Locator) => {
+const verticalCenter = async (locator: Locator) => {
   const box = (await locator.boundingBox())!
   return box.y + box.height / 2
 }
@@ -99,14 +99,14 @@ const signOut = async (page: Page) => {
   await page.waitForURL(/\/admin\/login/)
 }
 
-const backgrounds = (page: Page) =>
+const htmlAndBodyBackgrounds = (page: Page) =>
   page.evaluate(() => [document.documentElement, document.body].map((element) => getComputedStyle(element).backgroundColor))
 
 test.describe('Logged out', () => {
   test.use({ storageState: { cookies: [], origins: [] } })
 
   test("defaults to Enhanced and Neutral with Enhanced's starting values", async ({ page }) => {
-    await page.context().addCookies([cookie('theme', 'dark')])
+    await page.context().addCookies([demoCookie('theme', 'dark')])
     await page.goto('/admin/login')
     const defaults = {
       character: 'enhanced',
@@ -130,7 +130,7 @@ test.describe('Logged out', () => {
     await page
       .context()
       .addCookies([
-        cookie('appearance', encodeURIComponent(JSON.stringify({ by: 'users:1', character: 'studio', palette: 'warm' })))
+        demoCookie('appearance', encodeURIComponent(JSON.stringify({ by: 'users:1', character: 'studio', palette: 'warm' })))
       ])
     await page.goto('/admin/login')
 
@@ -146,13 +146,13 @@ test.describe('Logged out', () => {
     const otherUser = { email: `other-${Date.now()}@payloadpack.com`, password: 'other' }
     const { doc: other } = await (await admin.post('/api/users', { data: otherUser })).json()
     const html = page.locator('html')
-    await clearSetup(admin)
+    await deleteSavedAppearance(admin)
 
     try {
       await signIn(page, demoUser)
       const sheet = await openAppearancePanel(page)
-      await pickAndSave(page, label(choice(sheet, 'Style', 'Studio')))
-      await pickAndSave(page, label(choice(sheet, 'Palette', 'Warm')))
+      await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Style', 'Studio')))
+      await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Palette', 'Warm')))
 
       await signOut(page)
       await expect(html).toHaveAttribute('data-character', 'enhanced')
@@ -161,14 +161,14 @@ test.describe('Logged out', () => {
       await signIn(page, otherUser)
       await expect(html).toHaveAttribute('data-character', 'enhanced')
       await expect(html).toHaveAttribute('data-palette', 'neutral')
-      await expect(choice(await openAppearancePanel(page), 'Style', 'Enhanced')).toBeChecked()
+      await expect(radioInGroup(await openAppearancePanel(page), 'Style', 'Enhanced')).toBeChecked()
 
       await signOut(page)
       await signIn(page, demoUser)
       await expect(html).toHaveAttribute('data-character', 'studio')
       await expect(html).toHaveAttribute('data-palette', 'warm')
     } finally {
-      await clearSetup(admin)
+      await deleteSavedAppearance(admin)
       await admin.delete(`/api/users/${other.id}`)
       await admin.dispose()
     }
@@ -182,7 +182,7 @@ test.describe('Logged out', () => {
     const html = page.locator('html')
     const appearanceCookie = async () =>
       (await page.context().cookies()).find(({ name }) => name === 'theme-demo-appearance')?.value
-    await clearSetup(admin)
+    await deleteSavedAppearance(admin)
 
     try {
       await signIn(page, demoUser)
@@ -190,7 +190,7 @@ test.describe('Logged out', () => {
       await page.route('**/api/payload-preferences/payloadpack-appearance', (route) =>
         route.request().method() === 'POST' ? route.fulfill({ body: '{}', status: 500 }) : route.continue()
       )
-      await label(choice(sheet, 'Palette', 'Warm')).click()
+      await radioLabel(radioInGroup(sheet, 'Palette', 'Warm')).click()
       await expect(sheet.getByRole('status')).toHaveAttribute('data-tone', 'error')
 
       await signOut(page)
@@ -198,27 +198,27 @@ test.describe('Logged out', () => {
       expect(JSON.parse(decodeURIComponent((await appearanceCookie()) ?? '{}'))).toMatchObject({ palette: 'warm' })
 
       await page.unrouteAll()
-      await Promise.all([saved(page), signIn(page, demoUser)])
+      await Promise.all([waitForAppearanceSave(page), signIn(page, demoUser)])
       await expect(html).toHaveAttribute('data-palette', 'warm')
       expect((await (await admin.get('/api/payload-preferences/payloadpack-appearance')).json()).value).toEqual({
         palette: 'warm'
       })
       await expect.poll(appearanceCookie).toBeUndefined()
     } finally {
-      await clearSetup(admin)
+      await deleteSavedAppearance(admin)
       await admin.dispose()
     }
   })
 
   test('signing in brings back the saved appearance and its panel without a reload', async ({ page, playwright }) => {
     const signedIn = await playwright.request.newContext({ baseURL, storageState: authFile })
-    await saveSetup(signedIn, { character: 'studio' })
+    await saveAppearancePreference(signedIn, { character: 'studio' })
     await signIn(page, demoUser)
 
     await expect(page.locator('html')).toHaveAttribute('data-character', 'studio')
     const sheet = await openAppearancePanel(page)
-    await expect(choice(sheet, 'Style', 'Studio')).toBeChecked()
-    await clearSetup(signedIn)
+    await expect(radioInGroup(sheet, 'Style', 'Studio')).toBeChecked()
+    await deleteSavedAppearance(signedIn)
     await signedIn.dispose()
   })
 })
@@ -240,14 +240,14 @@ test.describe('Theme plugin', () => {
     })
     await expect(code).toHaveCSS('font-size', '13px')
 
-    await saveSetup(page.request, { options: { enhanced: { density: 'compact' } } })
+    await saveAppearancePreference(page.request, { options: { enhanced: { density: 'compact' } } })
     await page.reload()
     await expect(code).toHaveCSS('font-size', '11px')
     await expect(smallCode).toHaveCSS('font-size', '10px')
   })
 
   test('ignores unknown values in a saved setup', async ({ page }) => {
-    await saveSetup(page.request, { character: 'constructor', options: { enhanced: { density: '</script>' } } })
+    await saveAppearancePreference(page.request, { character: 'constructor', options: { enhanced: { density: '</script>' } } })
     await page.goto('/admin')
 
     await expect(page.locator('html')).toHaveAttribute('data-character', 'enhanced')
@@ -255,7 +255,7 @@ test.describe('Theme plugin', () => {
   })
 
   test('renders the saved setup on the server, with no option attributes under Payload', async ({ page }) => {
-    await saveSetup(page.request, { character: 'payload', options: { enhanced: { density: 'compact' } } })
+    await saveAppearancePreference(page.request, { character: 'payload', options: { enhanced: { density: 'compact' } } })
 
     const html = await (await page.request.get('/admin')).text()
     expect(html).toContain(
@@ -270,16 +270,16 @@ test.describe('Theme plugin', () => {
   })
 
   test('paints the dashboard in the theme before hydration', async ({ page }) => {
-    await page.context().addCookies([cookie('theme', 'dark')])
+    await page.context().addCookies([demoCookie('theme', 'dark')])
 
-    await page.route(nextScripts, (route) => route.abort())
+    await page.route(nextScriptsGlob, (route) => route.abort())
     await page.goto('/admin')
-    const beforeHydration = await backgrounds(page)
+    const beforeHydration = await htmlAndBodyBackgrounds(page)
 
-    await page.unroute(nextScripts)
+    await page.unroute(nextScriptsGlob)
     await page.goto('/admin', { waitUntil: 'networkidle' })
 
-    expect(beforeHydration).toEqual(await backgrounds(page))
+    expect(beforeHydration).toEqual(await htmlAndBodyBackgrounds(page))
   })
 })
 
@@ -288,13 +288,13 @@ test.describe('Appearance panel', () => {
     const preference = '**/api/payload-preferences/payloadpack-appearance'
     await page.goto('/admin')
     const sheet = await openAppearancePanel(page)
-    await pickAndSave(page, label(choice(sheet, 'Palette', 'Soft')))
+    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Palette', 'Soft')))
 
     await page.route(preference, (route) => route.abort())
-    await label(choice(sheet, 'Palette', 'Warm')).click()
+    await radioLabel(radioInGroup(sheet, 'Palette', 'Warm')).click()
     await expect(page.locator('html')).toHaveAttribute('data-palette', 'warm')
     await page.unroute(preference)
-    await Promise.all([saved(page), page.reload()])
+    await Promise.all([waitForAppearanceSave(page), page.reload()])
 
     await expect(page.locator('html')).toHaveAttribute('data-palette', 'warm')
     expect((await (await page.request.get('/api/payload-preferences/payloadpack-appearance')).json()).value).toMatchObject({
@@ -335,7 +335,7 @@ test.describe('Appearance panel', () => {
     await openFineTune(sheet)
     await expect(sheet.locator('[data-option="nav"]')).toBeHidden()
 
-    await reloadWith(page, { options: { enhanced: { radius: 'none' } } })
+    await saveAppearanceAndReload(page, { options: { enhanced: { radius: 'none' } } })
     await expect(page.locator('html')).toHaveAttribute('data-radius', 'none')
     await expect(await openAppearancePanel(page)).toHaveCSS('border-top-left-radius', '0px')
   })
@@ -343,9 +343,9 @@ test.describe('Appearance panel', () => {
   test('picks Payload with nothing to fine-tune and no option attributes, and keeps it after a reload', async ({ page }) => {
     await page.goto('/admin')
     const sheet = await openAppearancePanel(page)
-    const payload = choice(sheet, 'Style', 'Payload')
+    const payload = radioInGroup(sheet, 'Style', 'Payload')
 
-    await pickAndSave(page, label(payload))
+    await clickAndWaitForSave(page, radioLabel(payload))
 
     await expect(payload).toBeChecked()
     await expect(sheet.getByText("Payload's own look. Nothing to fine-tune.")).toBeVisible()
@@ -365,21 +365,21 @@ test.describe('Appearance panel', () => {
     const html = page.locator('html')
 
     await openFineTune(sheet)
-    await label(choice(sheet, 'Density', 'Compact')).click()
-    await label(choice(sheet, 'Corners', 'Small')).click()
+    await radioLabel(radioInGroup(sheet, 'Density', 'Compact')).click()
+    await radioLabel(radioInGroup(sheet, 'Corners', 'Small')).click()
     await expect(html).toHaveAttribute('data-density', 'compact')
     await expect(html).toHaveAttribute('data-radius', 'sm')
 
-    await label(choice(sheet, 'Style', 'Studio')).click()
+    await radioLabel(radioInGroup(sheet, 'Style', 'Studio')).click()
     await expect(html).toHaveAttribute('data-density', 'compact')
     await expect(html).toHaveAttribute('data-radius', 'lg')
-    await expect(choice(sheet, 'Density', 'Compact')).toBeChecked()
+    await expect(radioInGroup(sheet, 'Density', 'Compact')).toBeChecked()
 
-    await label(choice(sheet, 'Style', 'Enhanced')).click()
+    await radioLabel(radioInGroup(sheet, 'Style', 'Enhanced')).click()
     await expect(html).toHaveAttribute('data-radius', 'sm')
 
-    await label(choice(sheet, 'Style', 'Payload')).click()
-    await label(choice(sheet, 'Style', 'Enhanced')).click()
+    await radioLabel(radioInGroup(sheet, 'Style', 'Payload')).click()
+    await radioLabel(radioInGroup(sheet, 'Style', 'Enhanced')).click()
     await expect(html).toHaveAttribute('data-density', 'compact')
   })
 
@@ -397,19 +397,19 @@ test.describe('Appearance panel', () => {
     await expect(sheet.getByRole('radiogroup', { name: 'Density' })).toBeVisible()
     await expect(reset).toBeDisabled()
 
-    await label(choice(sheet, 'Density', 'Compact')).click()
-    await pickAndSave(page, label(choice(sheet, 'Corners', 'Small')))
+    await radioLabel(radioInGroup(sheet, 'Density', 'Compact')).click()
+    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Corners', 'Small')))
     await expect(sheet.locator('summary')).toContainText('2 changed')
 
-    await pickAndSave(page, reset)
+    await clickAndWaitForSave(page, reset)
     await expect(html).toHaveAttribute('data-density', 'comfortable')
     await expect(html).toHaveAttribute('data-radius', 'md')
     await expect(reset).toBeDisabled()
     await expect(status).toContainText('Enhanced is back to its defaults.')
-    await pickAndSave(page, label(choice(sheet, 'Palette', 'Warm')))
-    await pickAndSave(page, label(choice(sheet, 'Corners', 'Large')))
+    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Palette', 'Warm')))
+    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Corners', 'Large')))
 
-    await pickAndSave(page, status.getByRole('button', { name: 'Undo' }))
+    await clickAndWaitForSave(page, status.getByRole('button', { name: 'Undo' }))
     await expect(html).toHaveAttribute('data-density', 'compact')
     await expect(html).toHaveAttribute('data-radius', 'lg')
     await expect(html).toHaveAttribute('data-palette', 'warm')
@@ -426,7 +426,7 @@ test.describe('Appearance panel', () => {
     const sheet = await openAppearancePanel(page)
 
     await openFineTune(sheet)
-    await pickAndSave(page, label(choice(sheet, 'Density', 'Compact')))
+    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Density', 'Compact')))
 
     const elsewhere = await browser.newContext({ baseURL, storageState: authFile })
     expect((await elsewhere.cookies()).map(({ name }) => name)).not.toContain('theme-demo-appearance')
@@ -440,16 +440,16 @@ test.describe('Appearance panel', () => {
   test('saves each change on top of what another tab saved since', async ({ page }) => {
     await page.goto('/admin')
     const sheet = await openAppearancePanel(page)
-    await saveSetup(page.request, { palette: 'warm' })
+    await saveAppearancePreference(page.request, { palette: 'warm' })
 
     await openFineTune(sheet)
-    await pickAndSave(page, label(choice(sheet, 'Density', 'Compact')))
+    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Density', 'Compact')))
 
     const stored = async () => (await (await page.request.get('/api/payload-preferences/payloadpack-appearance')).json()).value
     expect(await stored()).toEqual({ palette: 'warm', personal: { density: 'compact' } })
 
-    await saveSetup(page.request, { character: 'studio', palette: 'warm', personal: { density: 'compact' } })
-    await pickAndSave(page, label(choice(sheet, 'Palette', 'Soft')))
+    await saveAppearancePreference(page.request, { character: 'studio', palette: 'warm', personal: { density: 'compact' } })
+    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Palette', 'Soft')))
     expect(await stored()).toEqual({
       character: 'studio',
       palette: 'soft',
@@ -464,7 +464,7 @@ test.describe('Appearance panel', () => {
       route.request().method() === 'POST' ? route.fulfill({ body: '{}', status: 500 }) : route.continue()
     )
 
-    await label(choice(sheet, 'Palette', 'Warm')).click()
+    await radioLabel(radioInGroup(sheet, 'Palette', 'Warm')).click()
 
     await expect(sheet.getByRole('status')).toHaveText(
       'Your setup could not be saved yet. This browser keeps it and saves it with your next change or page load.'
@@ -474,15 +474,19 @@ test.describe('Appearance panel', () => {
 
   test('copies the setup in one browser and pastes it in another', async ({ browser, context, page }) => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write'])
-    await saveSetup(page.request, { character: 'payload', custom: customPalette('#be185d'), palette: 'custom' })
+    await saveAppearancePreference(page.request, {
+      character: 'payload',
+      custom: buildCustomPalette('#be185d'),
+      palette: 'custom'
+    })
     await page.goto('/admin')
     const sheet = await openAppearancePanel(page)
 
-    await (await share(sheet, 'Copy setup')).click()
+    await (await openShareMenuItem(sheet, 'Copy setup')).click()
     await expect(sheet.getByRole('status')).toHaveText('Setup copied. Paste it in another browser to get the same look.')
     const setup = await page.evaluate(() => navigator.clipboard.readText())
     const attributes = await page.locator('html').evaluate((html) => ({ ...html.dataset }))
-    await clearSetup(page.request)
+    await deleteSavedAppearance(page.request)
 
     const elsewhere = await browser.newContext({ baseURL, storageState: authFile })
     await elsewhere.grantPermissions(['clipboard-read', 'clipboard-write'])
@@ -493,13 +497,13 @@ test.describe('Appearance panel', () => {
     const writeClipboard = (text: string) => other.evaluate((value) => navigator.clipboard.writeText(value), text)
 
     await writeClipboard('not a setup')
-    await (await share(otherSheet, 'Paste setup')).click()
+    await (await openShareMenuItem(otherSheet, 'Paste setup')).click()
     await expect(status).toHaveText('There is no appearance setup on the clipboard.')
     await expect(status).toHaveAttribute('data-tone', 'error')
     await expect(other.locator('html')).toHaveAttribute('data-character', 'enhanced')
 
     await writeClipboard(setup)
-    await pickAndSave(other, await share(otherSheet, 'Paste setup'))
+    await clickAndWaitForSave(other, await openShareMenuItem(otherSheet, 'Paste setup'))
     await expect(status).toHaveText('Setup applied.')
     expect(await other.locator('html').evaluate((html) => ({ ...html.dataset }))).toEqual(attributes)
     await elsewhere.close()
@@ -515,7 +519,7 @@ test.describe('Appearance panel', () => {
     })
 
     expect((await status.boundingBox())!.height).toBeGreaterThan(48)
-    expect(await middle(sheet.getByRole('button', { name: 'Share setup' }))).toBeCloseTo(await middle(status), 0)
+    expect(await verticalCenter(sheet.getByRole('button', { name: 'Share setup' }))).toBeCloseTo(await verticalCenter(status), 0)
   })
 
   test('says the browser blocked the clipboard when it refuses or is missing', async ({ page }) => {
@@ -523,23 +527,24 @@ test.describe('Appearance panel', () => {
     const sheet = await openAppearancePanel(page)
     const status = sheet.getByRole('status')
 
-    await (await share(sheet, 'Paste setup')).click()
+    await (await openShareMenuItem(sheet, 'Paste setup')).click()
     await expect(status).toHaveText('The browser blocked the clipboard.')
     await expect(status).toHaveAttribute('data-tone', 'error')
     await expect(status).toBeEmpty()
 
     await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', { value: undefined }))
-    await (await share(sheet, 'Copy setup')).click()
+    await (await openShareMenuItem(sheet, 'Copy setup')).click()
     await expect(status).toHaveText('The browser blocked the clipboard.')
     await expect(status).toBeEmpty()
-    await (await share(sheet, 'Paste setup')).click()
+    await (await openShareMenuItem(sheet, 'Paste setup')).click()
     await expect(status).toHaveText('The browser blocked the clipboard.')
   })
 
   test("shows each icon set's logo", async ({ page }) => {
     await page.goto('/admin')
     const sheet = await openAppearancePanel(page)
-    const logo = (name: string) => label(choice(sheet, 'Icons', name)).locator('.payloadpack-appearance-panel__logo svg')
+    const logo = (name: string) =>
+      radioLabel(radioInGroup(sheet, 'Icons', name)).locator('.payloadpack-appearance-panel__logo svg')
 
     await openFineTune(sheet)
 
@@ -551,16 +556,16 @@ test.describe('Appearance panel', () => {
   test('moves through a group with the arrow keys, one Tab stop per group', async ({ page }) => {
     await page.goto('/admin')
     const sheet = await openAppearancePanel(page)
-    const dark = choice(sheet, 'Theme', 'Dark')
+    const dark = radioInGroup(sheet, 'Theme', 'Dark')
 
-    await choice(sheet, 'Theme', 'Light').focus()
+    await radioInGroup(sheet, 'Theme', 'Light').focus()
     await page.keyboard.press('ArrowRight')
     await expect(dark).toBeChecked()
     await expect(dark).toBeFocused()
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
 
     await page.keyboard.press('Tab')
-    await expect(choice(sheet, 'Palette', 'Neutral')).toBeFocused()
+    await expect(radioInGroup(sheet, 'Palette', 'Neutral')).toBeFocused()
   })
 
   test('keeps its own size and typeface whatever the density and typeface', async ({ page }) => {
@@ -572,7 +577,10 @@ test.describe('Appearance panel', () => {
     await page.goto('/admin')
     const enhanced = await look()
 
-    await saveSetup(page.request, { character: 'studio', options: { studio: { density: 'compact', font: 'system' } } })
+    await saveAppearancePreference(page.request, {
+      character: 'studio',
+      options: { studio: { density: 'compact', font: 'system' } }
+    })
     await page.reload()
 
     await expect(page.locator('body')).toHaveCSS('font-family', /^system-ui,/)
@@ -598,17 +606,17 @@ test.describe('Appearance panel', () => {
     expect(toggle.y + toggle.height / 2).toBe(menu.y + menu.height / 2)
     expect(menu.x + menu.width).toBeLessThan((await button.boundingBox())!.x)
 
-    await reloadWith(page, { character: 'studio' })
+    await saveAppearanceAndReload(page, { character: 'studio' })
     expect(await beside()).toBe('right')
 
     await page.route('**/api/payload-preferences/nav*', (route) =>
       route.request().method() === 'POST' ? route.fulfill({ json: {} }) : route.fallback()
     )
-    await reloadWith(page, { options: { enhanced: { nav: 'hidden' } } })
+    await saveAppearanceAndReload(page, { options: { enhanced: { nav: 'hidden' } } })
     await page.getByRole('button', { name: 'Hide sidebar' }).click()
     await expect(page.locator('.app-header').getByRole('button', { name: 'Appearance' })).toBeVisible()
 
-    await reloadWith(page, { character: 'payload' })
+    await saveAppearanceAndReload(page, { character: 'payload' })
     const inNav = page.locator('.nav').getByRole('button', { name: 'Appearance' })
     await expect(inNav).toBeVisible()
     await expect(page.locator('.app-header').getByRole('button', { name: 'Appearance' })).toBeHidden()
@@ -629,7 +637,7 @@ test.describe('Appearance panel', () => {
 
   test('stays reachable on custom views, which have no header actions, under every style', async ({ page }) => {
     for (const character of ['payload', 'enhanced', 'studio']) {
-      await saveSetup(page.request, { character })
+      await saveAppearancePreference(page.request, { character })
       await page.goto('/admin/toasts')
       await expect(page.getByRole('button', { name: 'Appearance' }), character).toBeVisible()
     }
@@ -639,7 +647,7 @@ test.describe('Appearance panel', () => {
     test(`the nav toggle, the Appearance button, nav links and group headings share one hover in ${theme} mode`, async ({
       page
     }) => {
-      await page.context().addCookies([cookie('theme', theme)])
+      await page.context().addCookies([demoCookie('theme', theme)])
       await page.goto('/admin')
       const hovered = async (locator: Locator, pseudo?: string) => {
         await locator.hover()
@@ -662,7 +670,7 @@ test.describe('Appearance panel', () => {
 
   for (const character of ['enhanced', 'studio']) {
     test(`${character} draws the nav toggle's and the Appearance button's focus rings alike`, async ({ page }) => {
-      await saveSetup(page.request, { character })
+      await saveAppearancePreference(page.request, { character })
       await page.goto('/admin')
       const ring = async (focus: string, ringed: string) => {
         await page.locator(focus).focus()
@@ -682,7 +690,7 @@ test.describe('Appearance panel', () => {
   }
 
   test("keeps Payload's header height under the Payload style", async ({ page }) => {
-    await saveSetup(page.request, { character: 'payload' })
+    await saveAppearancePreference(page.request, { character: 'payload' })
     await page.goto('/admin')
     const height = async () => (await page.locator('.app-header').boundingBox())?.height
     const withButton = await height()
@@ -702,7 +710,9 @@ test.describe('Appearance panel', () => {
   test('draws the bundled Lucide palette icon on the header button', async ({ page }) => {
     await page.goto('/admin')
 
-    expect(await style(page, '.payloadpack-appearance-panel__palette-icon', 'mask-image')).toContain('data:image/svg+xml')
+    expect(await computedStyleValue(page, '.payloadpack-appearance-panel__palette-icon', 'mask-image')).toContain(
+      'data:image/svg+xml'
+    )
   })
 
   test('segments sit 3px inside their track', async ({ page }) => {
@@ -724,15 +734,15 @@ test.describe('Appearance panel', () => {
     const sheet = await openAppearancePanel(page)
     const themeCookie = async () => (await page.context().cookies()).find(({ name }) => name === 'theme-demo-theme')?.value
 
-    await expect(choice(sheet, 'Theme', 'Automatic')).toBeChecked()
+    await expect(radioInGroup(sheet, 'Theme', 'Automatic')).toBeChecked()
 
-    await label(choice(sheet, 'Theme', 'Dark')).click()
+    await radioLabel(radioInGroup(sheet, 'Theme', 'Dark')).click()
 
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
-    await expect(choice(sheet, 'Theme', 'Dark')).toBeChecked()
+    await expect(radioInGroup(sheet, 'Theme', 'Dark')).toBeChecked()
     expect(await themeCookie()).toBe('dark')
 
-    await label(choice(sheet, 'Theme', 'Automatic')).click()
+    await radioLabel(radioInGroup(sheet, 'Theme', 'Automatic')).click()
 
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
     expect(await themeCookie()).toBeUndefined()
@@ -741,7 +751,7 @@ test.describe('Appearance panel', () => {
 
 test.describe('Theme values', () => {
   test('gives join tables the list rows in comfortable density and leaves them condensed in compact', async ({ page }) => {
-    await saveSetup(page.request, { options: { enhanced: { density: 'comfortable' } } })
+    await saveAppearancePreference(page.request, { options: { enhanced: { density: 'comfortable' } } })
     const { docs } = await (await page.request.get('/api/categories?where[name][equals]=Community&limit=1&depth=0')).json()
     const rowHeight = (row: Locator) => row.evaluate((element) => element.getBoundingClientRect().height)
     const joinRow = page.locator('.field-type.join').filter({ hasText: 'Products' }).locator('tbody tr').first()
@@ -751,18 +761,18 @@ test.describe('Theme values', () => {
     await page.goto(`/admin/collections/categories/${docs[0].id}`)
     expect(await rowHeight(joinRow)).toBe(listRow)
 
-    await reloadWith(page, { options: { enhanced: { density: 'compact' } } })
+    await saveAppearanceAndReload(page, { options: { enhanced: { density: 'compact' } } })
     expect(await rowHeight(joinRow)).toBeLessThan(listRow)
   })
 
   test("comfortable density sizes an upload's file actions and centers their icons", async ({ page }) => {
     await page.goto('/admin/collections/media')
     await page.locator('table tbody tr a').first().click()
-    await hydrated(page)
+    await waitForHydration(page)
     const actions = page.locator('.file-toolbar__right > *')
 
     await expect(actions).toHaveCount(3)
-    expect(await size(page, '.file-toolbar__filename-btn')).toMatchObject({ height: 36 })
+    expect(await elementSize(page, '.file-toolbar__filename-btn')).toMatchObject({ height: 36 })
     for (const action of await actions.all()) {
       const [box, icon] = [await action.boundingBox(), await action.locator('svg').boundingBox()]
       expect(box).toMatchObject({ height: 36, width: 36 })
@@ -776,17 +786,19 @@ test.describe('Theme values', () => {
 
     await expect(page.locator('.field-label').first()).toHaveCSS('font-size', '14px')
     await expect(page.locator('.field-type.text input').first()).toHaveCSS('font-size', '14px')
-    expect(await size(page, '.field-type.text input')).toMatchObject({ height: 36 })
-    expect(await size(page, '.doc-controls__controls .btn')).toMatchObject({ height: 36 })
-    expect(await size(page, '.nav__link')).toMatchObject({ height: 36 })
-    expect(await size(page, '.collapsible__toggle-wrap')).toMatchObject({ height: 44 })
-    expect(await size(page, '.collapsible__indicator')).toEqual({ height: 36, width: 36 })
-    expect(await size(page, '.collapsible__actions .popup-button')).toEqual({ height: 36, width: 36 })
-    expect(await size(page, '.slug-field-component__action-btn')).toEqual({ height: 28, width: 28 })
-    expect(await style(page, '.slug-field-component__action-btn', 'border-radius')).toBe(
-      await style(page, '.doc-controls__controls .btn', 'border-radius')
+    expect(await elementSize(page, '.field-type.text input')).toMatchObject({ height: 36 })
+    expect(await elementSize(page, '.doc-controls__controls .btn')).toMatchObject({ height: 36 })
+    expect(await elementSize(page, '.nav__link')).toMatchObject({ height: 36 })
+    expect(await elementSize(page, '.collapsible__toggle-wrap')).toMatchObject({ height: 44 })
+    expect(await elementSize(page, '.collapsible__indicator')).toEqual({ height: 36, width: 36 })
+    expect(await elementSize(page, '.collapsible__actions .popup-button')).toEqual({ height: 36, width: 36 })
+    expect(await elementSize(page, '.slug-field-component__action-btn')).toEqual({ height: 28, width: 28 })
+    expect(await computedStyleValue(page, '.slug-field-component__action-btn', 'border-radius')).toBe(
+      await computedStyleValue(page, '.doc-controls__controls .btn', 'border-radius')
     )
-    expect(await style(page, '.fixed-toolbar + .editor-container .ContentEditable__root', 'padding-top')).toBe('24px')
+    expect(await computedStyleValue(page, '.fixed-toolbar + .editor-container .ContentEditable__root', 'padding-top')).toBe(
+      '24px'
+    )
 
     const popupMaxHeight = await page
       .locator('.popup__scroll-container')
@@ -795,8 +807,8 @@ test.describe('Theme values', () => {
     expect(popupMaxHeight).toBe(true)
 
     await page.locator('.doc-controls__popup-button').click()
-    await settled(page.locator('.doc-controls__popup'))
-    expect(await size(page, '.doc-controls__popup .popup-button-list__button')).toMatchObject({ height: 32 })
+    await waitForAnimations(page.locator('.doc-controls__popup'))
+    expect(await elementSize(page, '.doc-controls__popup .popup-button-list__button')).toMatchObject({ height: 32 })
 
     await page.locator('.date-time-picker input').first().click()
     await expect(page.locator('.react-datepicker__header__dropdown')).toHaveCSS('padding-left', '0px')
@@ -806,7 +818,7 @@ test.describe('Theme values', () => {
     await page.goto('/admin/collections/showcase')
     const table = page.locator('table')
 
-    expect(await size(page, '.list-controls .dots')).toEqual({ height: 36, width: 36 })
+    expect(await elementSize(page, '.list-controls .dots')).toEqual({ height: 36, width: 36 })
 
     const before = await table.boundingBox()
     await page.locator('table tbody tr').first().locator('.checkbox-input__input').click()
@@ -837,7 +849,10 @@ test.describe('Theme values', () => {
       'color',
       await computedColor(page, 'var(--color-text-secondary)')
     )
-    await expect(cards.first()).toHaveCSS('border-radius', await style(page, '.field-type.text input', 'border-radius'))
+    await expect(cards.first()).toHaveCSS(
+      'border-radius',
+      await computedStyleValue(page, '.field-type.text input', 'border-radius')
+    )
   })
 
   test('switches slide a light thumb and line the description up with the label', async ({ page }) => {
@@ -845,13 +860,13 @@ test.describe('Theme values', () => {
     const field = page.locator(`.${SWITCH}`)
     const track = field.locator('.checkbox-input__visuals')
 
-    const box = await size(page, `.${SWITCH} .checkbox-input__visuals`)
+    const box = await elementSize(page, `.${SWITCH} .checkbox-input__visuals`)
     expect(box?.height).toBe(24)
     expect(box?.width).toBeCloseTo(41.2, 1)
     await expect(track).toHaveCSS('grid-template-columns', /^0px 17\.\d+px 17\.\d+px$/)
     await expect(track).toHaveCSS('border-top-color', 'rgba(0, 0, 0, 0)')
     await expect(track).toHaveCSS('background-color', await computedColor(page, 'var(--payloadpack-toggle-border)'))
-    expect(await style(page, `.${SWITCH} .checkbox-input__visuals`, 'background-color', '::before')).toBe(
+    expect(await computedStyleValue(page, `.${SWITCH} .checkbox-input__visuals`, 'background-color', '::before')).toBe(
       await computedColor(page, 'var(--ramp-white-1000)')
     )
 
@@ -860,7 +875,7 @@ test.describe('Theme values', () => {
     await expect(track).toHaveCSS('grid-template-columns', /^17\.\d+px 17\.\d+px 0px$/)
     await expect(track).toHaveCSS('border-top-color', 'rgba(0, 0, 0, 0)')
     await expect(track).toHaveCSS('background-color', await computedColor(page, 'var(--payloadpack-toggle-checked-bg)'))
-    expect(await style(page, `.${SWITCH} .checkbox-input__visuals`, 'background-color', '::before')).toBe(
+    expect(await computedStyleValue(page, `.${SWITCH} .checkbox-input__visuals`, 'background-color', '::before')).toBe(
       await computedColor(page, 'var(--payloadpack-toggle-mark)')
     )
 
@@ -876,13 +891,13 @@ test.describe('Theme values', () => {
 
     await field.getByText('Notify subscribers').click()
     await page.evaluate(() => (document.documentElement.dataset.theme = 'light'))
-    expect(await style(page, `.${SWITCH} .checkbox-input__visuals`, 'background-color', '::before')).toBe(
+    expect(await computedStyleValue(page, `.${SWITCH} .checkbox-input__visuals`, 'background-color', '::before')).toBe(
       await computedColor(page, 'var(--ramp-white-1000)')
     )
   })
 
   test('Payload icons keep the Payload tick without its halo', async ({ page }) => {
-    await saveSetup(page.request, { options: { enhanced: { icons: 'payload' } } })
+    await saveAppearancePreference(page.request, { options: { enhanced: { icons: 'payload' } } })
     await openShowcase(page)
     const featured = page.locator('.field-type.checkbox').filter({ hasText: 'Featured' })
     await featured.getByRole('checkbox').check()
@@ -895,7 +910,7 @@ test.describe('Theme values', () => {
     await page.goto('/admin')
     await page.getByRole('button', { name: 'Pinned' }).click()
 
-    expect(await size(page, '.activity-widget__select-documents')).toMatchObject({ height: 36 })
+    expect(await elementSize(page, '.activity-widget__select-documents')).toMatchObject({ height: 36 })
   })
 
   test('API key buttons sit inside the field like the slug buttons', async ({ page }) => {
@@ -920,20 +935,22 @@ test.describe('Theme values', () => {
   test('lucide icon sizes and mappings', async ({ page }) => {
     await openShowcase(page)
 
-    await expect.poll(() => style(page, '.date-time-picker svg.icon--calendar', 'mask-size')).toBe('min(100%, 14px) auto')
-    expect(await style(page, '.dropdown-indicator svg.icon--chevron', 'mask-size')).toBe('min(100%, 12px) auto')
-    expect(await style(page, '.multi-value svg.icon--edit', 'mask-size')).toBe('min(100%, 12px) auto')
-    expect(await style(page, '.collapsible__indicator svg.icon--chevron', 'mask-size')).toBe('min(100%, 16px) auto')
-    expect(await style(page, '.collapsible__actions svg.icon--more', 'mask-size')).toBe('min(100%, 16px) auto')
-    expect(await style(page, '.sidebar-tabs__tab svg.icon--align-justified', '--payloadpack-icon')).toContain(
+    await expect
+      .poll(() => computedStyleValue(page, '.date-time-picker svg.icon--calendar', 'mask-size'))
+      .toBe('min(100%, 14px) auto')
+    expect(await computedStyleValue(page, '.dropdown-indicator svg.icon--chevron', 'mask-size')).toBe('min(100%, 12px) auto')
+    expect(await computedStyleValue(page, '.multi-value svg.icon--edit', 'mask-size')).toBe('min(100%, 12px) auto')
+    expect(await computedStyleValue(page, '.collapsible__indicator svg.icon--chevron', 'mask-size')).toBe('min(100%, 16px) auto')
+    expect(await computedStyleValue(page, '.collapsible__actions svg.icon--more', 'mask-size')).toBe('min(100%, 16px) auto')
+    expect(await computedStyleValue(page, '.sidebar-tabs__tab svg.icon--align-justified', '--payloadpack-icon')).toContain(
       'data:image/svg+xml'
     )
-    expect(await style(page, '.nav__link', 'mask-image', '::after')).toContain('data:image/svg+xml')
+    expect(await computedStyleValue(page, '.nav__link', 'mask-image', '::after')).toContain('data:image/svg+xml')
   })
 
   test('lets a click on a Lucide icon reach the control under it', async ({ page }) => {
     await page.goto('/admin/collections/products')
-    await hydrated(page)
+    await waitForHydration(page)
     const clickIcon = async (name: string) => {
       const box = await page.locator(`.segmented-control__option:has(input[value="${name}"]) svg`).boundingBox()
       await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2)
@@ -952,8 +969,8 @@ test.describe('Theme values', () => {
   for (const character of ['enhanced', 'studio']) {
     for (const theme of ['light', 'dark']) {
       test(`sidebar tabs match the panel's segments under ${character} in ${theme} mode`, async ({ page }) => {
-        await saveSetup(page.request, { character })
-        await page.context().addCookies([cookie('theme', theme)])
+        await saveAppearancePreference(page.request, { character })
+        await page.context().addCookies([demoCookie('theme', theme)])
         await page.goto('/admin')
         const segments = (await openAppearancePanel(page)).locator('.payloadpack-appearance-panel__segments').first()
         const read = (locator: Locator, properties: string[]) =>
@@ -987,7 +1004,7 @@ test.describe('Theme values', () => {
   }
 
   test('hide sidebar button shows the focus ring', async ({ page }) => {
-    await saveSetup(page.request, { options: { enhanced: { nav: 'hidden' } } })
+    await saveAppearancePreference(page.request, { options: { enhanced: { nav: 'hidden' } } })
     await page.goto('/admin')
     await page.getByRole('button', { name: 'Hide sidebar' }).focus()
 
@@ -997,7 +1014,7 @@ test.describe('Theme values', () => {
 
   test('the toasts preview reuses the list heading and marks its nav link', async ({ page }) => {
     await page.goto('/admin/collections/showcase')
-    const listTitle = await style(page, '.list-header__title', 'font-size')
+    const listTitle = await computedStyleValue(page, '.list-header__title', 'font-size')
     await page.goto('/admin/toasts')
 
     await expect(page.locator('.list-header__title')).toHaveCSS('font-size', listTitle)
@@ -1008,7 +1025,7 @@ test.describe('Theme values', () => {
     test(`${character} widens the nav and lines it up on one gutter, with the group chevron inside its ring`, async ({
       page
     }) => {
-      await saveSetup(page.request, { character })
+      await saveAppearancePreference(page.request, { character })
       await page.goto('/admin')
       const group = page.locator('.nav-group__toggle').first()
       await group.hover()
@@ -1033,10 +1050,10 @@ test.describe('Theme values', () => {
       expect(nav.width).toBe(288)
       expect(nav.highlight).toEqual(nav.tabs)
       expect(nav.chevron).toBe(20)
-      expect(await style(page, '.nav-group__toggle', 'font-size')).toBe('12px')
-      expect(await style(page, '.nav-group:not(:first-child)', 'margin-left', '::before')).toBe('12px')
-      expect(await style(page, '.nav-group__toggle', 'inset', '::before')).toBe(
-        await style(page, '.nav__link', 'inset', '::before')
+      expect(await computedStyleValue(page, '.nav-group__toggle', 'font-size')).toBe('12px')
+      expect(await computedStyleValue(page, '.nav-group:not(:first-child)', 'margin-left', '::before')).toBe('12px')
+      expect(await computedStyleValue(page, '.nav-group__toggle', 'inset', '::before')).toBe(
+        await computedStyleValue(page, '.nav__link', 'inset', '::before')
       )
     })
   }
@@ -1059,8 +1076,8 @@ test.describe('Theme values', () => {
     expect(wide.advanced).toEqual({ left: wide.general.left, top: wide.general.bottom })
     expect(wide.list).toBe(270)
     expect(wide.content).toBeGreaterThan(wide.general.right)
-    expect(await style(page, `.${VERTICAL_TABS} .tabs-field__tab-button--active`, 'width', '::after')).toBe('3px')
-    expect(await style(page, `.${VERTICAL_TABS} .tabs-field__tab-button--active`, 'height', '::after')).toBe(
+    expect(await computedStyleValue(page, `.${VERTICAL_TABS} .tabs-field__tab-button--active`, 'width', '::after')).toBe('3px')
+    expect(await computedStyleValue(page, `.${VERTICAL_TABS} .tabs-field__tab-button--active`, 'height', '::after')).toBe(
       `${wide.general.bottom - wide.general.top}px`
     )
 
@@ -1090,18 +1107,18 @@ test.describe('Theme values', () => {
     await openShowcase(page)
     await page.addStyleTag({ content: 'html { --payloadpack-row-button-height: 2.5rem; }' })
 
-    expect(await size(page, '.collapsible__indicator')).toEqual({ height: 40, width: 40 })
-    expect(await size(page, '.collapsible__actions .popup-button')).toEqual({ height: 40, width: 40 })
-    expect(await size(page, '.collapsible__toggle-wrap')).toMatchObject({ height: 48 })
-    expect(await size(page, '.doc-controls__controls .btn')).toMatchObject({ height: 36 })
-    expect(await size(page, '.doc-header .doc-tab')).toMatchObject({ height: 36 })
+    expect(await elementSize(page, '.collapsible__indicator')).toEqual({ height: 40, width: 40 })
+    expect(await elementSize(page, '.collapsible__actions .popup-button')).toEqual({ height: 40, width: 40 })
+    expect(await elementSize(page, '.collapsible__toggle-wrap')).toMatchObject({ height: 48 })
+    expect(await elementSize(page, '.doc-controls__controls .btn')).toMatchObject({ height: 36 })
+    expect(await elementSize(page, '.doc-header .doc-tab')).toMatchObject({ height: 36 })
   })
 
   test('app CSS picks the nav icon for its own collection', async ({ page }) => {
     await page.goto('/admin')
     await page.addStyleTag({ content: "#nav-showcase { --payloadpack-icon: url('/icons/chef-hat.svg'); }" })
 
-    expect(await style(page, '#nav-showcase', 'mask-image', '::after')).toContain('/icons/chef-hat.svg')
+    expect(await computedStyleValue(page, '#nav-showcase', 'mask-image', '::after')).toContain('/icons/chef-hat.svg')
     expect((await page.request.get('/icons/chef-hat.svg')).headers()['content-type']).toContain('image/svg+xml')
   })
 
@@ -1121,16 +1138,18 @@ test.describe('Radius', () => {
   test("md keeps Payload's own radii", async ({ page }) => {
     const radii = () =>
       Promise.all([
-        ...['--radius-small', '--radius-chip', '--radius-medium', '--radius-large'].map((token) => style(page, 'html', token)),
-        style(page, button, 'border-radius'),
-        style(page, field, 'border-radius')
+        ...['--radius-small', '--radius-chip', '--radius-medium', '--radius-large'].map((token) =>
+          computedStyleValue(page, 'html', token)
+        ),
+        computedStyleValue(page, button, 'border-radius'),
+        computedStyleValue(page, field, 'border-radius')
       ])
 
-    await saveSetup(page.request, { character: 'payload' })
+    await saveAppearancePreference(page.request, { character: 'payload' })
     await openShowcase(page)
     const payload = await radii()
 
-    await saveSetup(page.request, {})
+    await saveAppearancePreference(page.request, {})
     await openShowcase(page)
 
     await expect(page.locator('html')).toHaveAttribute('data-radius', 'md')
@@ -1138,14 +1157,14 @@ test.describe('Radius', () => {
   })
 
   test('none squares buttons, fields, the switch, the sidebar tabs and popups', async ({ page }) => {
-    await saveSetup(page.request, { options: { enhanced: { radius: 'none' } } })
+    await saveAppearancePreference(page.request, { options: { enhanced: { radius: 'none' } } })
     await openShowcase(page)
     const track = page.locator(`.${SWITCH} .checkbox-input__visuals`)
 
     await expect(page.locator(button).first()).toHaveCSS('border-radius', '0px')
     await expect(page.locator(field).first()).toHaveCSS('border-radius', '0px')
     await expect(track).toHaveCSS('border-radius', '0px')
-    expect(await style(page, `.${SWITCH} .checkbox-input__visuals`, 'border-radius', '::before')).toBe('0px')
+    expect(await computedStyleValue(page, `.${SWITCH} .checkbox-input__visuals`, 'border-radius', '::before')).toBe('0px')
     await expect(page.locator('.sidebar-tabs__tabs')).toHaveCSS('border-radius', '0px')
 
     await page.getByRole('button', { name: 'More options' }).first().click()
@@ -1153,7 +1172,7 @@ test.describe('Radius', () => {
   })
 
   test('full makes buttons, fields, tabs and menus pills without doming collapsibles', async ({ page }) => {
-    await saveSetup(page.request, { options: { enhanced: { radius: 'full' } } })
+    await saveAppearancePreference(page.request, { options: { enhanced: { radius: 'full' } } })
     await openShowcase(page)
 
     await expect(page.locator(button).first()).toHaveCSS('border-radius', '18px')
@@ -1166,7 +1185,7 @@ test.describe('Radius', () => {
   })
 
   test("studio's large menus, slash menu and toasts follow their items, not the card tier", async ({ page }) => {
-    await saveSetup(page.request, { character: 'studio' })
+    await saveAppearancePreference(page.request, { character: 'studio' })
     await openShowcase(page)
 
     await page.getByRole('button', { name: 'More options' }).first().click()
@@ -1203,10 +1222,10 @@ test.describe('Motion', () => {
   }
 
   test("morphs Studio's user menu into its initial and back without the letter jumping", async ({ page }) => {
-    await saveSetup(page.request, { character: 'studio' })
+    await saveAppearancePreference(page.request, { character: 'studio' })
     const transitions = await recordTransitions(page, ['user-menu__trigger', 'btn__label'])
     await page.goto('/admin')
-    await hydrated(page)
+    await waitForHydration(page)
     await page.addStyleTag({ content: 'html { --payloadpack-motion-panel-duration: 1s !important; }' })
     const morph = () =>
       page.evaluate(async () => {
@@ -1321,7 +1340,7 @@ test.describe('Motion', () => {
   test('loading a Studio page below 1440px runs no layout transitions', async ({ page }) => {
     await page.setViewportSize({ height: 900, width: 1268 })
     const transitions = await recordTransitions(page, ['template-default', 'template-default__wrap', 'nav'])
-    await saveSetup(page.request, { character: 'studio' })
+    await saveAppearancePreference(page.request, { character: 'studio' })
     await page.goto('/admin/collections/showcase')
     await page.locator('.template-default--nav-open').waitFor()
     await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))))
@@ -1335,12 +1354,12 @@ test.describe('Motion', () => {
   ] as const) {
     test(`loading a page ${name} runs no layout transitions`, async ({ page }) => {
       await page.setViewportSize({ height: 800, width })
-      await saveSetup(page.request, { options: { enhanced: { nav } } })
+      await saveAppearancePreference(page.request, { options: { enhanced: { nav } } })
       await page.request.post('/api/payload-preferences/nav', { data: { value: { open } } })
       const transitions = await recordTransitions(page, ['template-default', 'template-default__wrap', 'nav'])
       try {
         await page.goto('/admin')
-        await hydrated(page)
+        await waitForHydration(page)
         await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))))
 
         expect(await transitions()).toEqual([])
@@ -1355,7 +1374,7 @@ test.describe('Motion', () => {
     await page.route('**/api/payload-preferences/nav*', (route) =>
       route.request().method() === 'POST' ? route.fulfill({ json: {} }) : route.fallback()
     )
-    await saveSetup(page.request, { options: { enhanced: { nav: 'hidden' } } })
+    await saveAppearancePreference(page.request, { options: { enhanced: { nav: 'hidden' } } })
     await page.goto('/admin')
 
     await page.getByRole('button', { name: 'Hide sidebar' }).click()
@@ -1368,7 +1387,7 @@ test.describe('Motion', () => {
   })
 
   for (const [name, setup] of [
-    ['motion is off', (page: Page) => saveSetup(page.request, { options: { enhanced: { motion: 'off' } } })],
+    ['motion is off', (page: Page) => saveAppearancePreference(page.request, { options: { enhanced: { motion: 'off' } } })],
     ['the OS reduces motion', (page: Page) => page.emulateMedia({ reducedMotion: 'reduce' })]
   ] as const) {
     test(`popups and select menus open and close at once when ${name}`, async ({ page }) => {
@@ -1440,7 +1459,7 @@ test.describe('Motion', () => {
     await openShowcase(page)
     expect(await ringDurations()).toEqual(fields.map(() => '0.1s'))
 
-    await reloadWith(page, { options: { enhanced: { motion: 'off' } } })
+    await saveAppearanceAndReload(page, { options: { enhanced: { motion: 'off' } } })
     expect(await ringDurations()).toEqual(fields.map(() => 'none'))
     await expect(page.locator('.radio-input__styled-radio').first()).toHaveCSS('transition-duration', '0s')
   })
@@ -1464,7 +1483,7 @@ test.describe('Motion', () => {
 test.describe('Neutral palette', () => {
   test('has no blue left in light or dark', async ({ page }) => {
     for (const theme of ['light', 'dark']) {
-      await page.context().addCookies([cookie('theme', theme)])
+      await page.context().addCookies([demoCookie('theme', theme)])
       await page.goto('/admin/collections/showcase')
 
       for (const token of [
@@ -1474,10 +1493,12 @@ test.describe('Neutral palette', () => {
         '--color-text-brand',
         '--ramp-blue-500'
       ]) {
-        const [, chroma] = await channels(page, 'oklch', await computedColor(page, `var(${token})`))
+        const [, chroma] = await colorChannels(page, 'oklch', await computedColor(page, `var(${token})`))
         expect(chroma, `${theme} ${token}`).toBeLessThan(0.02)
       }
-      expect(await style(page, '.nav__link--selected', 'color')).toBe(await style(page, 'body', 'color'))
+      expect(await computedStyleValue(page, '.nav__link--selected', 'color')).toBe(
+        await computedStyleValue(page, 'body', 'color')
+      )
     }
   })
 
@@ -1495,12 +1516,16 @@ test.describe('Neutral palette', () => {
       'background-color',
       await computedColor(page, 'var(--payloadpack-toggle-mark)')
     )
-    expect(await style(page, '.field-type.checkbox .checkbox-input__check', 'mask-image')).toContain('data:image/svg+xml')
-    expect(await size(page, '.field-type.checkbox .checkbox-input__input')).toEqual({ height: 18, width: 18 })
-    expect(await size(page, '.field-type.checkbox .checkbox-input__check')).toEqual({ height: 18, width: 18 })
+    expect(await computedStyleValue(page, '.field-type.checkbox .checkbox-input__check', 'mask-image')).toContain(
+      'data:image/svg+xml'
+    )
+    expect(await elementSize(page, '.field-type.checkbox .checkbox-input__input')).toEqual({ height: 18, width: 18 })
+    expect(await elementSize(page, '.field-type.checkbox .checkbox-input__check')).toEqual({ height: 18, width: 18 })
     await expect(featured.locator('.field-description')).toHaveCSS('padding-left', '26px')
 
-    expect(await middle(featured.locator('.checkbox-input__input'))).toBe(await middle(featured.locator('.field-label')))
+    expect(await verticalCenter(featured.locator('.checkbox-input__input'))).toBe(
+      await verticalCenter(featured.locator('.field-label'))
+    )
   })
 
   test('a click changes the checkbox in one step', async ({ page }) => {
@@ -1556,8 +1581,8 @@ test.describe('Neutral palette', () => {
       await computedColor(page, 'var(--payloadpack-bg-app)')
     ]
     const [[surfaceLightness], [backgroundLightness]] = [
-      await channels(page, 'oklab', surface),
-      await channels(page, 'oklab', background)
+      await colorChannels(page, 'oklab', surface),
+      await colorChannels(page, 'oklab', background)
     ]
 
     expect(surfaceLightness).toBeLessThan(0.2)
@@ -1567,9 +1592,9 @@ test.describe('Neutral palette', () => {
     await expect(page.locator('body')).toHaveCSS('color', await computedColor(page, 'var(--payloadpack-text-primary)'))
     await expect
       .poll(async () =>
-        nearColor(
+        isNearColor(
           page,
-          await style(page, '.field-type.text input', 'background-color'),
+          await computedStyleValue(page, '.field-type.text input', 'background-color'),
           await computedColor(page, 'var(--color-bg-elevated)')
         )
       )
@@ -1579,7 +1604,7 @@ test.describe('Neutral palette', () => {
       await computedColor(page, 'var(--color-border)')
     )
     expect(
-      await nearColor(
+      await isNearColor(
         page,
         await computedColor(page, 'var(--accessibility-focus-color)'),
         await computedColor(page, 'var(--payloadpack-action-primary)')
@@ -1589,13 +1614,13 @@ test.describe('Neutral palette', () => {
     await page.getByRole('button', { name: 'More options' }).first().click()
     const popup = page.locator('.popup__content:visible').first()
     await expect(popup).toHaveCSS('border-radius', '9px')
-    expect(await style(page, '.popup__content:popover-open', 'box-shadow')).toContain(
+    expect(await computedStyleValue(page, '.popup__content:popover-open', 'box-shadow')).toContain(
       `${await computedColor(page, 'var(--color-border)')} 0px 0px 0px 1px,`
     )
   })
 
   test('enhanced contrast reaches radios and secondary text', async ({ page }) => {
-    await page.context().addCookies([cookie('high-contrast-mode', 'true')])
+    await page.context().addCookies([demoCookie('high-contrast-mode', 'true')])
     await openShowcase(page)
 
     await expect(page.locator('.radio-input:not(.radio-input--is-selected) .radio-input__styled-radio').first()).toHaveCSS(
@@ -1617,16 +1642,16 @@ test.describe('Neutral palette', () => {
     const title = page.locator('#field-title')
     const ring = async () => {
       await title.click()
-      await settled(title)
+      await waitForAnimations(title)
       await expect(title).toHaveCSS('box-shadow', /0px 0px 0px 3px/)
-      return channels(page, 'oklch', await style(page, '#field-title', 'border-top-color'))
+      return colorChannels(page, 'oklch', await computedStyleValue(page, '#field-title', 'border-top-color'))
     }
 
     const [dark, darkChroma] = await ring()
     expect(dark).toBeCloseTo(0.55, 2)
     expect(darkChroma).toBeLessThan(0.02)
 
-    await page.context().addCookies([cookie('theme', 'light')])
+    await page.context().addCookies([demoCookie('theme', 'light')])
     await page.reload()
     const [light, lightChroma] = await ring()
     expect(light).toBeGreaterThan(dark)
@@ -1644,14 +1669,14 @@ test.describe('Neutral palette', () => {
       'color',
       await computedColor(page, 'var(--payloadpack-text-primary)')
     )
-    const lightTint = await computedColor(page, await style(page, '.toast-error', '--payloadpack-toast-icon'))
+    const lightTint = await computedColor(page, await computedStyleValue(page, '.toast-error', '--payloadpack-toast-icon'))
     await expect(error.locator('.toast-icon .icon')).toHaveCSS('color', lightTint)
-    expect(await style(page, '.toast-error .toast-icon svg', '--payloadpack-icon')).toContain('octagon-x')
+    expect(await computedStyleValue(page, '.toast-error .toast-icon svg', '--payloadpack-icon')).toContain('octagon-x')
 
     await page.getByRole('button', { name: 'With action' }).click()
     await expect(page.locator('.payload-toast-item [data-button]')).toHaveCSS('height', '24px')
 
-    await page.context().addCookies([cookie('theme', 'dark')])
+    await page.context().addCookies([demoCookie('theme', 'dark')])
     await page.reload()
     await page.getByRole('button', { name: 'Success', exact: true }).click()
     const success = page.locator('.payload-toast-item[data-type="success"]')
@@ -1660,7 +1685,7 @@ test.describe('Neutral palette', () => {
       'background-color',
       await computedColor(page, 'var(--color-bg-elevated)')
     )
-    const darkTint = await computedColor(page, await style(page, '.toast-success', '--payloadpack-toast-icon'))
+    const darkTint = await computedColor(page, await computedStyleValue(page, '.toast-success', '--payloadpack-toast-icon'))
     await expect(success.locator('.toast-icon .icon')).toHaveCSS('color', darkTint)
     expect(darkTint).not.toBe(lightTint)
   })
@@ -1669,13 +1694,13 @@ test.describe('Neutral palette', () => {
 test.describe('Every palette but Payload', () => {
   for (const palette of ['neutral', 'warm', 'soft'] satisfies NonNullable<ThemePluginConfig['palette']>[]) {
     test.describe(palette, () => {
-      test.beforeEach(({ page }) => saveSetup(page.request, { palette }))
+      test.beforeEach(({ page }) => saveAppearancePreference(page.request, { palette }))
 
       for (const theme of ['light', 'dark']) {
         test(`menu items light up neutral and visible against the menu, icon and background at once, in ${theme} mode`, async ({
           page
         }) => {
-          await page.context().addCookies([cookie('theme', theme)])
+          await page.context().addCookies([demoCookie('theme', theme)])
           await page.goto((await findShowcase(page)).path)
           await page.getByRole('button', { name: 'More options' }).first().click()
           const item = page.locator('#action-duplicate')
@@ -1695,8 +1720,8 @@ test.describe('Every palette but Payload', () => {
             return { color: style.color, hovered: style.backgroundColor, icon: icon.opacity, menu: menu.backgroundColor, text }
           })
           const [[hoveredLightness, hoveredChroma], [menuLightness]] = [
-            await channels(page, 'oklch', colors.hovered),
-            await channels(page, 'oklch', colors.menu)
+            await colorChannels(page, 'oklch', colors.hovered),
+            await colorChannels(page, 'oklch', colors.menu)
           ]
 
           expect(Math.abs(hoveredLightness - menuLightness)).toBeGreaterThan(0.04)
@@ -1751,10 +1776,10 @@ test.describe('Every palette but Payload', () => {
       })
 
       test('dark tabs and segments set the active one clearly apart from its track', async ({ page }) => {
-        await page.context().addCookies([cookie('theme', 'dark')])
+        await page.context().addCookies([demoCookie('theme', 'dark')])
         await page.goto('/admin/collections/showcase')
         const lightness = async (selector: string) =>
-          (await channels(page, 'oklab', await style(page, selector, 'background-color')))[0]
+          (await colorChannels(page, 'oklab', await computedStyleValue(page, selector, 'background-color')))[0]
 
         expect((await lightness('.sidebar-tabs__tabs')) - (await lightness('.sidebar-tabs__tab--active'))).toBeGreaterThan(0.05)
 
@@ -1771,26 +1796,26 @@ test.describe('Every palette but Payload', () => {
 test.describe('Raised nav pill', () => {
   for (const palette of ['neutral', 'warm'] satisfies NonNullable<ThemePluginConfig['palette']>[]) {
     test.describe(palette, () => {
-      test.beforeEach(({ page }) => saveSetup(page.request, { palette }))
+      test.beforeEach(({ page }) => saveAppearancePreference(page.request, { palette }))
 
       test('the selected nav link is a white pill lifted by a shadow, and the other links are muted', async ({ page }) => {
-        await page.context().addCookies([cookie('theme', 'light')])
+        await page.context().addCookies([demoCookie('theme', 'light')])
         await page.goto('/admin/collections/showcase')
 
-        expect(await style(page, '.nav__link--selected', 'background-color', '::before')).toBe(
+        expect(await computedStyleValue(page, '.nav__link--selected', 'background-color', '::before')).toBe(
           await computedColor(page, 'var(--color-bg-elevated)')
         )
-        expect(await style(page, '.nav__link--selected', 'box-shadow', '::before')).not.toBe('none')
-        expect(await style(page, '.nav__link:not(.nav__link--selected)', 'color')).toBe(
+        expect(await computedStyleValue(page, '.nav__link--selected', 'box-shadow', '::before')).not.toBe('none')
+        expect(await computedStyleValue(page, '.nav__link:not(.nav__link--selected)', 'color')).toBe(
           await computedColor(page, 'var(--color-text-secondary)')
         )
       })
 
       test('the dark selected nav link steps clearly above the nav', async ({ page }) => {
-        await page.context().addCookies([cookie('theme', 'dark')])
+        await page.context().addCookies([demoCookie('theme', 'dark')])
         await page.goto('/admin/collections/showcase')
         const lightness = async (selector: string, pseudo?: string) =>
-          (await channels(page, 'oklab', await style(page, selector, 'background-color', pseudo)))[0]
+          (await colorChannels(page, 'oklab', await computedStyleValue(page, selector, 'background-color', pseudo)))[0]
 
         expect((await lightness('.nav__link--selected', '::before')) - (await lightness('.nav'))).toBeGreaterThan(0.08)
       })
@@ -1800,15 +1825,15 @@ test.describe('Raised nav pill', () => {
 
 test.describe('Payload palette', () => {
   test("Payload keeps Payload's own backgrounds and blue", async ({ page }) => {
-    await saveSetup(page.request, { character: 'payload', palette: 'payload' })
+    await saveAppearancePreference(page.request, { character: 'payload', palette: 'payload' })
     await openShowcase(page)
 
     await expect(page.locator('html')).toHaveAttribute('data-palette', 'payload')
     await expect(page.locator('html')).toHaveCSS('background-color', 'rgb(44, 44, 44)')
     await expect(page.locator('.nav')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
-    expect(await style(page, 'html', '--ramp-blue-400')).toBe('#80caff')
+    expect(await computedStyleValue(page, 'html', '--ramp-blue-400')).toBe('#80caff')
 
-    await page.context().addCookies([cookie('theme', 'light')])
+    await page.context().addCookies([demoCookie('theme', 'light')])
     await page.reload()
     await expect(page.locator('html')).toHaveCSS('background-color', 'rgb(255, 255, 255)')
   })
@@ -1816,7 +1841,7 @@ test.describe('Payload palette', () => {
   test("Payload applies no theme stylesheet to Payload's own elements, apart from room for the nav's Appearance button", async ({
     page
   }) => {
-    await saveSetup(page.request, { character: 'payload', palette: 'payload' })
+    await saveAppearancePreference(page.request, { character: 'payload', palette: 'payload' })
     await openShowcase(page)
 
     const { applied, total } = await page.evaluate(() => {
@@ -1859,14 +1884,14 @@ test.describe('Payload palette', () => {
 
 test.describe('App palettes', () => {
   test("offers the app's own palette under its label, drawn from the app's CSS in both modes", async ({ page }) => {
-    await page.context().addCookies([cookie('theme', 'light')])
+    await page.context().addCookies([demoCookie('theme', 'light')])
     await page.goto('/admin/collections/showcase')
     const sheet = await openAppearancePanel(page)
 
-    await pickAndSave(page, label(choice(sheet, 'Palette', 'Indigo')))
+    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Palette', 'Indigo')))
     await expect(page.locator('html')).toHaveAttribute('data-palette', 'indigo')
-    expect(hex(await computedColor(page, 'var(--color-bg-brand)'))).toBe('#4f46e5')
-    expect(hex(await computedColor(page, 'var(--color-bg-brand)', 'dark'))).toBe('#818cf8')
+    expect(rgbToHex(await computedColor(page, 'var(--color-bg-brand)'))).toBe('#4f46e5')
+    expect(rgbToHex(await computedColor(page, 'var(--color-bg-brand)', 'dark'))).toBe('#818cf8')
 
     await page.reload()
     await expect(page.locator('html')).toHaveAttribute('data-palette', 'indigo')
@@ -1909,8 +1934,8 @@ test.describe('Floating surfaces', () => {
       test(`edges toasts, menus, select lists and the date picker with one 1px ring on ${palette} in ${theme} mode`, async ({
         page
       }) => {
-        await saveSetup(page.request, { character: 'studio', palette })
-        await page.context().addCookies([cookie('theme', theme)])
+        await saveAppearancePreference(page.request, { character: 'studio', palette })
+        await page.context().addCookies([demoCookie('theme', theme)])
         await page.goto('/admin/toasts')
         await page.getByRole('button', { name: 'Success' }).click()
         await outlined(page.locator('.payload-toast-item').first(), 'toast')
@@ -1939,8 +1964,8 @@ test.describe('Custom palette', () => {
     accent: string,
     { primary, theme = 'light' }: { primary?: string; theme?: string } = {}
   ) => {
-    await page.context().addCookies([cookie('theme', theme)])
-    await saveSetup(page.request, { custom: customPalette(accent, primary), palette: 'custom' })
+    await page.context().addCookies([demoCookie('theme', theme)])
+    await saveAppearancePreference(page.request, { custom: buildCustomPalette(accent, primary), palette: 'custom' })
   }
 
   test('lays the palettes out three per row and ends them with a dashed Custom tile', async ({ page }) => {
@@ -1961,12 +1986,12 @@ test.describe('Custom palette', () => {
   test('Custom colors start from the current palette, apply each color at once and keep it through a reload', async ({
     page
   }) => {
-    await page.context().addCookies([cookie('theme', 'light')])
+    await page.context().addCookies([demoCookie('theme', 'light')])
     await page.goto('/admin/collections/showcase')
     const html = page.locator('html')
     const header = page.locator('.nav__header')
     const sheet = await openAppearancePanel(page)
-    const neutral = async (token: string, theme?: string) => hex(await computedColor(page, `var(${token})`, theme))
+    const neutral = async (token: string, theme?: string) => rgbToHex(await computedColor(page, `var(${token})`, theme))
     const expected = {
       accent: await neutral('--payloadpack-accent'),
       darkBackground: await neutral('--payloadpack-bg-app', 'dark'),
@@ -1976,9 +2001,9 @@ test.describe('Custom palette', () => {
       lightPrimary: await neutral('--payloadpack-action-primary')
     }
 
-    await pickAndSave(page, sheet.getByRole('button', { name: 'Custom colors' }))
+    await clickAndWaitForSave(page, sheet.getByRole('button', { name: 'Custom colors' }))
     await expect(html).toHaveAttribute('data-palette', 'custom')
-    await expect(choice(sheet, 'Palette', 'Custom')).toBeChecked()
+    await expect(radioInGroup(sheet, 'Palette', 'Custom')).toBeChecked()
     await expect(field(sheet, 'Light', 'Background')).toHaveValue(expected.lightBackground)
     await expect(field(sheet, 'Light', 'Primary')).toHaveValue(expected.lightPrimary)
     await expect(field(sheet, 'Dark', 'Primary')).toHaveValue(expected.darkPrimary)
@@ -2006,13 +2031,13 @@ test.describe('Custom palette', () => {
     })
     expect(secondaryContrast).toBeGreaterThanOrEqual(4.5)
 
-    await Promise.all([saved(page), field(sheet, 'Light', 'Background').fill('#eae6df')])
+    await Promise.all([waitForAppearanceSave(page), field(sheet, 'Light', 'Background').fill('#eae6df')])
     await expect(header).toHaveCSS('background-color', 'rgb(234, 230, 223)')
     await page.reload()
     await expect(header).toHaveCSS('background-color', 'rgb(234, 230, 223)')
   })
 
-  test('keeps focus in a hex field after Enter, and saves nothing for a field left as it was', async ({ page }) => {
+  test('keeps focus in a hex field after Enter, and saves nothing for a field left as it was or mistyped', async ({ page }) => {
     await saveCustom(page, '#c2410c')
     await page.goto('/admin')
     const sheet = await openAppearancePanel(page)
@@ -2030,10 +2055,16 @@ test.describe('Custom palette', () => {
     expect(saves).toHaveLength(0)
 
     await hex.fill('112233')
-    await Promise.all([saved(page), hex.press('Enter')])
+    await Promise.all([waitForAppearanceSave(page), hex.press('Enter')])
     await expect(hex).toBeFocused()
     await expect(hex).toHaveValue('#112233')
     await expect(page.locator('.nav__header')).toHaveCSS('background-color', 'rgb(17, 34, 51)')
+
+    await hex.fill('nope')
+    await hex.press('Enter')
+    await expect(hex).toHaveValue('#112233')
+    await page.waitForLoadState('networkidle')
+    expect(saves).toHaveLength(1)
   })
 
   test('saves a dragged color once, when the picker commits', async ({ page }) => {
@@ -2068,9 +2099,9 @@ test.describe('Custom palette', () => {
 
   test("pasting a setup keeps your own palette and your other styles' options", async ({ context, page }) => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write'])
-    await saveSetup(page.request, {
+    await saveAppearancePreference(page.request, {
       character: 'studio',
-      custom: customPalette('#be185d'),
+      custom: buildCustomPalette('#be185d'),
       options: { studio: { font: 'inter' } },
       palette: 'neutral'
     })
@@ -2078,12 +2109,12 @@ test.describe('Custom palette', () => {
     const sheet = await openAppearancePanel(page)
 
     await page.evaluate(() => navigator.clipboard.writeText(JSON.stringify({ character: 'enhanced', palette: 'warm' })))
-    await pickAndSave(page, await share(sheet, 'Paste setup'))
+    await clickAndWaitForSave(page, await openShareMenuItem(sheet, 'Paste setup'))
     await expect(page.locator('html')).toHaveAttribute('data-character', 'enhanced')
     await expect(page.locator('html')).toHaveAttribute('data-palette', 'warm')
-    await expect(choice(sheet, 'Palette', 'Custom')).toBeAttached()
+    await expect(radioInGroup(sheet, 'Palette', 'Custom')).toBeAttached()
 
-    await pickAndSave(page, label(choice(sheet, 'Style', 'Studio')))
+    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Style', 'Studio')))
     await expect(page.locator('html')).toHaveAttribute('data-font', 'inter')
   })
 
@@ -2114,28 +2145,28 @@ test.describe('Custom palette', () => {
   test('keeps the focus in the panel after Remove custom colors, Reset and Undo', async ({ page }) => {
     await page.goto('/admin')
     const sheet = await openAppearancePanel(page)
-    await pickAndSave(page, sheet.getByRole('button', { name: 'Custom colors' }))
-    await pickAndSave(page, sheet.getByRole('button', { name: 'Remove custom colors' }))
+    await clickAndWaitForSave(page, sheet.getByRole('button', { name: 'Custom colors' }))
+    await clickAndWaitForSave(page, sheet.getByRole('button', { name: 'Remove custom colors' }))
     await expect(sheet.getByRole('button', { name: 'Custom colors' })).toBeFocused()
 
     await openFineTune(sheet)
-    await pickAndSave(page, label(choice(sheet, 'Density', 'Compact')))
-    await pickAndSave(page, sheet.getByRole('button', { name: 'Reset Enhanced' }))
+    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Density', 'Compact')))
+    await clickAndWaitForSave(page, sheet.getByRole('button', { name: 'Reset Enhanced' }))
     const undo = sheet.getByRole('button', { name: 'Undo' })
     await expect(undo).toBeFocused()
-    await pickAndSave(page, undo)
+    await clickAndWaitForSave(page, undo)
     await expect(sheet.locator('summary')).toBeFocused()
   })
 
   test('keeps the focus in the palettes when the arrow keys come back to Custom', async ({ page }) => {
     await page.goto('/admin')
     const sheet = await openAppearancePanel(page)
-    await pickAndSave(page, sheet.getByRole('button', { name: 'Custom colors' }))
-    const mine = choice(sheet, 'Palette', 'Custom')
+    await clickAndWaitForSave(page, sheet.getByRole('button', { name: 'Custom colors' }))
+    const mine = radioInGroup(sheet, 'Palette', 'Custom')
 
     await mine.focus()
-    await Promise.all([saved(page), page.keyboard.press('ArrowLeft')])
-    await Promise.all([saved(page), page.keyboard.press('ArrowRight')])
+    await Promise.all([waitForAppearanceSave(page), page.keyboard.press('ArrowLeft')])
+    await Promise.all([waitForAppearanceSave(page), page.keyboard.press('ArrowRight')])
     await expect(mine).toBeChecked()
     await expect(mine).toBeFocused()
   })
@@ -2145,10 +2176,10 @@ test.describe('Custom palette', () => {
     await page.goto('/admin')
     const sheet = await openAppearancePanel(page)
 
-    await pickAndSave(page, label(choice(sheet, 'Palette', 'Neutral')))
+    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Palette', 'Neutral')))
     await expect(page.locator('html')).toHaveAttribute('data-palette', 'neutral')
     await expect(sheet.getByRole('button', { name: 'Custom colors' })).toHaveCount(0)
-    await pickAndSave(page, label(choice(sheet, 'Palette', 'Custom')))
+    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Palette', 'Custom')))
     await expect(accent(sheet)).toHaveValue('#c2410c')
   })
 
@@ -2178,7 +2209,7 @@ test.describe('Custom palette', () => {
     const primary = page.locator('.btn--style-primary:visible').first()
 
     for (const theme of ['light', 'dark']) {
-      await page.context().addCookies([cookie('theme', theme)])
+      await page.context().addCookies([demoCookie('theme', theme)])
       await page.reload()
       await expect(primary).toHaveCSS('background-color', 'rgb(37, 99, 235)')
       expect(await computedColor(page, 'var(--payloadpack-toggle-checked-bg)')).toBe('rgb(37, 99, 235)')
@@ -2193,7 +2224,7 @@ test.describe('Custom palette', () => {
     await page.goto('/admin/collections/showcase')
     await expect(primary).toHaveCSS('color', 'oklch(0 0 0)')
 
-    await reloadWith(page, { custom: customPalette('#ffffff', '#c2410c'), palette: 'custom' })
+    await saveAppearanceAndReload(page, { custom: buildCustomPalette('#ffffff', '#c2410c'), palette: 'custom' })
     await expect(primary).toHaveCSS('color', 'oklch(1 0 0)')
   })
 
@@ -2201,7 +2232,7 @@ test.describe('Custom palette', () => {
     for (const theme of ['light', 'dark']) {
       await saveCustom(page, '#c2410c', { theme })
       await page.goto('/admin/collections/showcase')
-      const text = await style(page, 'body', 'color')
+      const text = await computedStyleValue(page, 'body', 'color')
 
       expect(await computedColor(page, 'var(--color-bg-selected)'), theme).toBe(
         await computedColor(page, 'var(--color-bg-tertiary)')
@@ -2222,11 +2253,11 @@ test.describe('Custom palette', () => {
     const submenu = page.locator('.popup-button-list__submenu-trigger')
     await submenu.hover()
     await page.locator('.popup-button-list__button', { hasText: 'Dark' }).hover()
-    await settled(submenu)
+    await waitForAnimations(submenu)
     const open = await background(submenu)
     const logOut = page.locator('.popup-button-list__button', { hasText: 'Log out' })
     await logOut.hover()
-    await settled(logOut)
+    await waitForAnimations(logOut)
 
     expect(await background(logOut)).toBe(open)
   })
@@ -2234,13 +2265,13 @@ test.describe('Custom palette', () => {
   test('the active tab bar takes the primary, not the accent', async ({ page }) => {
     await saveCustom(page, '#c2410c', { primary: '#1d4ed8' })
     await page.goto((await findShowcase(page)).path)
-    await hydrated(page)
+    await waitForHydration(page)
     const bar = await page
       .locator('.tabs__tab-button--active')
       .first()
       .evaluate((element) => getComputedStyle(element, '::after').backgroundColor)
 
-    expect(await nearColor(page, bar, '#1d4ed8')).toBe(true)
+    expect(await isNearColor(page, bar, '#1d4ed8')).toBe(true)
   })
 
   test('a white primary keeps its button edge in light mode', async ({ page }) => {
@@ -2248,13 +2279,18 @@ test.describe('Custom palette', () => {
     await page.goto('/admin/collections/showcase')
 
     await expect
-      .poll(async () => (await channels(page, 'oklab', await style(page, '.btn--style-primary:visible', 'border-top-color')))[3])
+      .poll(
+        async () =>
+          (
+            await colorChannels(page, 'oklab', await computedStyleValue(page, '.btn--style-primary:visible', 'border-top-color'))
+          )[3]
+      )
       .toBeGreaterThan(0)
   })
 })
 
 test.describe('Rail', () => {
-  const collapsed = cookie('nav-rail', 'true')
+  const collapsed = demoCookie('nav-rail', 'true')
   const navWidth = (page: Page) => page.locator('.nav').evaluate((nav) => nav.getBoundingClientRect().width)
   const afterNextFrame = (page: Page) =>
     page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))))
@@ -2266,7 +2302,7 @@ test.describe('Rail', () => {
   )
 
   test('collapses the nav into a 64px rail of Lucide icons without labels', async ({ page }) => {
-    await saveSetup(page.request, { options: { enhanced: { icons: 'payload' } } })
+    await saveAppearancePreference(page.request, { options: { enhanced: { icons: 'payload' } } })
     await page.goto('/admin')
     await page.getByRole('button', { name: 'Hide sidebar' }).click()
 
@@ -2343,11 +2379,11 @@ test.describe('Rail', () => {
 
     expect(await (await page.request.get('/admin')).text()).toContain('"nav":"rail","rail":""')
 
-    await page.route(nextScripts, (route) => route.abort())
+    await page.route(nextScriptsGlob, (route) => route.abort())
     await page.reload()
     expect(await navWidth(page)).toBe(64)
 
-    await page.unroute(nextScripts)
+    await page.unroute(nextScriptsGlob)
     await page.reload()
     await expect(page.getByRole('button', { name: 'Show sidebar' })).toBeVisible()
     expect(await navWidth(page)).toBe(64)
@@ -2356,8 +2392,8 @@ test.describe('Rail', () => {
   for (const palette of ['payload', 'neutral', 'warm', 'soft'] as const) {
     test(`draws every rail icon at 3:1 or more against the nav on ${palette}, in light and dark`, async ({ page }) => {
       for (const theme of ['light', 'dark']) {
-        await saveSetup(page.request, { palette })
-        await page.context().addCookies([cookie('theme', theme), collapsed])
+        await saveAppearancePreference(page.request, { palette })
+        await page.context().addCookies([demoCookie('theme', theme), collapsed])
         await page.goto('/admin')
         const contrast = await page
           .locator('.nav__link:not(.nav__link--selected)')
@@ -2403,10 +2439,10 @@ test.describe('Rail', () => {
     await expect(label).toHaveCSS('opacity', '1')
     const [link, tooltip] = await Promise.all([showcase.boundingBox(), label.boundingBox()])
     expect(tooltip!.x).toBeGreaterThanOrEqual(link!.x + link!.width)
-    expect(await middle(label)).toBeCloseTo(await middle(showcase), 0)
+    expect(await verticalCenter(label)).toBeCloseTo(await verticalCenter(showcase), 0)
 
     await page.addStyleTag({ content: '.nav__link-label { pointer-events: auto; }' })
-    await settled(label)
+    await waitForAnimations(label)
     expect(
       await label.evaluate((element) => {
         const box = element.getBoundingClientRect()
@@ -2431,7 +2467,7 @@ test.describe('Rail', () => {
     await showcase.hover()
 
     await expect(label).toHaveCSS('opacity', '1')
-    await settled(label)
+    await waitForAnimations(label)
     expect(
       await label.evaluate((element) => {
         const box = element.getBoundingClientRect()
@@ -2457,7 +2493,7 @@ test.describe('Rail', () => {
   })
 
   test("nav: 'hidden' closes the nav from the bar the way Payload's own button does", async ({ page }) => {
-    await saveSetup(page.request, { options: { enhanced: { nav: 'hidden' } } })
+    await saveAppearancePreference(page.request, { options: { enhanced: { nav: 'hidden' } } })
     await page.context().addCookies([collapsed])
     await page.goto('/admin')
 
@@ -2469,19 +2505,19 @@ test.describe('Rail', () => {
     await expect.poll(async () => (await page.locator('.template-default__wrap').boundingBox())?.x).toBe(0)
   })
 
-  for (const { nav, name, closes } of [
+  for (const { closes, name, nav } of [
     { closes: false, name: "keeps Payload's nav open", nav: 'rail' },
     { closes: true, name: 'lets Payload close the nav', nav: 'hidden' }
   ] as const) {
     test(`nav: '${nav}' ${name} when the window shrinks past 1440px`, async ({ page }) => {
-      await saveSetup(page.request, { options: { enhanced: { nav } } })
+      await saveAppearancePreference(page.request, { options: { enhanced: { nav } } })
       await page.setViewportSize({ height: 900, width: 1500 })
       await page.goto('/admin')
-      await hydrated(page)
+      await waitForHydration(page)
       await expect(page.locator('.nav')).not.toHaveAttribute('inert')
 
       await page.setViewportSize({ height: 900, width: 1300 })
-      await expect.poll(() => style(page, 'html', '--vw')).toBe('13px')
+      await expect.poll(() => computedStyleValue(page, 'html', '--vw')).toBe('13px')
       await afterNextFrame(page)
       expect(await page.locator('.nav').evaluate((nav) => (nav as HTMLElement).inert)).toBe(closes)
     })
@@ -2505,11 +2541,11 @@ test.describe('Studio character', () => {
 
   const openList = async (page: Page) => {
     await page.goto('/admin/collections/showcase')
-    await hydrated(page)
+    await waitForHydration(page)
   }
 
   test('renders its attributes and puts each view in a card on the field', async ({ page }) => {
-    await saveSetup(page.request, studio())
+    await saveAppearancePreference(page.request, studio())
     await openList(page)
     const html = page.locator('html')
     const card = page.locator('.template-default__wrap')
@@ -2535,13 +2571,13 @@ test.describe('Studio character', () => {
   })
 
   test('collapses into a rail beside the card, keeping the toggle in its row at the top', async ({ page }) => {
-    await saveSetup(page.request, studio())
+    await saveAppearancePreference(page.request, studio())
     await openList(page)
     const toggle = page.locator('.payloadpack-nav-toggle')
     const open = (await toggle.boundingBox())!
     await page.getByRole('button', { name: 'Hide sidebar' }).click()
     await expect(page.locator('html')).toHaveAttribute('data-rail', '')
-    await settled(page.locator('.template-default'))
+    await waitForAnimations(page.locator('.template-default'))
 
     const [nav, card, rail] = await Promise.all(
       ['.nav', '.template-default__wrap', '.payloadpack-nav-toggle'].map(
@@ -2577,7 +2613,7 @@ test.describe('Studio character', () => {
   })
 
   test("nav: 'hidden' hides the nav and lets the card fill the field", async ({ page }) => {
-    await saveSetup(page.request, studio({ nav: 'hidden' }))
+    await saveAppearancePreference(page.request, studio({ nav: 'hidden' }))
     await openList(page)
     const card = page.locator('.template-default__wrap')
 
@@ -2597,7 +2633,7 @@ test.describe('Studio character', () => {
   })
 
   test('flat drops the card', async ({ page }) => {
-    await saveSetup(page.request, studio({ frame: 'flat' }))
+    await saveAppearancePreference(page.request, studio({ frame: 'flat' }))
     await openList(page)
     const card = page.locator('.template-default__wrap')
 
@@ -2608,7 +2644,7 @@ test.describe('Studio character', () => {
   })
 
   test('moves the user menu to the bottom of the nav and opens its menu upward', async ({ page }) => {
-    await saveSetup(page.request, studio())
+    await saveAppearancePreference(page.request, studio())
     await openList(page)
     const nav = await page.locator('.nav').boundingBox()
     const trigger = page.locator('.user-menu__trigger')
@@ -2620,14 +2656,14 @@ test.describe('Studio character', () => {
     await trigger.click()
     const popup = page.locator('.user-menu .popup__content')
     await expect(popup).toBeVisible()
-    await settled(popup)
+    await waitForAnimations(popup)
     const box = await popup.boundingBox()
     expect((box?.y ?? 0) + (box?.height ?? 0)).toBeLessThanOrEqual(menu?.y ?? 0)
   })
 
   test('keeps the user menu and the toggle in place while a long nav scrolls between them', async ({ page }) => {
     await page.setViewportSize({ height: 640, width: 1280 })
-    await saveSetup(page.request, studio())
+    await saveAppearancePreference(page.request, studio())
     await openList(page)
     const scroller = page.locator('.nav__scroll')
     const menu = page.locator('.user-menu__trigger')
@@ -2657,7 +2693,7 @@ test.describe('Studio character', () => {
         fonts.push(new URL(request.url()).hostname)
       }
     })
-    await saveSetup(page.request, studio())
+    await saveAppearancePreference(page.request, studio())
     await openList(page)
     const body = page.locator('body')
 
@@ -2672,15 +2708,15 @@ test.describe('Studio character', () => {
     ).toBe(true)
     expect(fonts.every((hostname) => hostname === 'localhost')).toBe(true)
 
-    await reloadWith(page, studio({ font: 'inter' }))
+    await saveAppearanceAndReload(page, studio({ font: 'inter' }))
     await expect(body).toHaveCSS('font-family', /^Inter, "?Inter Fallback"?/)
 
-    await reloadWith(page, studio({ font: 'system' }))
+    await saveAppearanceAndReload(page, studio({ font: 'system' }))
     await expect(body).toHaveCSS('font-family', /^system-ui,/)
   })
 
   test("sets text in Geist's fallback at Geist's width, so nothing shifts when it loads", async ({ page }) => {
-    await saveSetup(page.request, studio())
+    await saveAppearancePreference(page.request, studio())
     await openList(page)
     const fallback = await page.evaluate(() =>
       document.fonts.load('14px payloadpack-geist-fallback').then(
@@ -2707,7 +2743,7 @@ test.describe('Studio character', () => {
 
   test('leaves Payload and Enhanced in their own layout and font', async ({ page }) => {
     for (const character of ['enhanced', 'payload']) {
-      await saveSetup(page.request, { character })
+      await saveAppearancePreference(page.request, { character })
       await openList(page)
 
       await expect(page.locator('.template-default__wrap')).toHaveCSS('margin', '0px')
@@ -2722,24 +2758,24 @@ test.describe('Studio character', () => {
 test.describe('Warm palette', () => {
   test('fills primary buttons with the copper accent in light and dark, and marks in light', async ({ page }) => {
     for (const theme of ['light', 'dark']) {
-      await saveSetup(page.request, { character: 'studio', palette: 'warm' })
-      await page.context().addCookies([cookie('theme', theme)])
+      await saveAppearancePreference(page.request, { character: 'studio', palette: 'warm' })
+      await page.context().addCookies([demoCookie('theme', theme)])
       await page.goto((await findShowcase(page)).path)
 
       await expect(page.locator('.btn--style-primary:visible').first()).toHaveCSS('background-color', 'rgb(194, 65, 12)')
     }
-    await page.context().addCookies([cookie('theme', 'light')])
+    await page.context().addCookies([demoCookie('theme', 'light')])
     await page.reload()
     const bar = await page
       .locator('.tabs__tab-button--active')
       .first()
       .evaluate((element) => getComputedStyle(element, '::after').backgroundColor)
-    expect(await nearColor(page, bar, await computedColor(page, 'var(--payloadpack-accent)'))).toBe(true)
+    expect(await isNearColor(page, bar, await computedColor(page, 'var(--payloadpack-accent)'))).toBe(true)
   })
 
   test('tints the field from the accent in light and dark, with cards on top', async ({ page }) => {
-    await saveSetup(page.request, { character: 'studio', palette: 'warm' })
-    await page.context().addCookies([cookie('theme', 'light')])
+    await saveAppearancePreference(page.request, { character: 'studio', palette: 'warm' })
+    await page.context().addCookies([demoCookie('theme', 'light')])
     await page.goto('/admin/collections/showcase')
     const field = page.locator('.template-default')
     const card = page.locator('.template-default__wrap')
@@ -2752,8 +2788,8 @@ test.describe('Warm palette', () => {
     }
 
     for (const theme of ['light', 'dark']) {
-      await saveSetup(page.request, { character: 'studio', palette: 'warm' })
-      await page.context().addCookies([cookie('theme', theme)])
+      await saveAppearancePreference(page.request, { character: 'studio', palette: 'warm' })
+      await page.context().addCookies([demoCookie('theme', theme)])
       await page.reload()
       const [background, surface] = [
         await computedColor(page, 'var(--payloadpack-bg-app)'),
@@ -2763,15 +2799,17 @@ test.describe('Warm palette', () => {
       await expect(field).toHaveCSS('background-color', background)
       await expect(page.locator('.nav')).toHaveCSS('background-color', background)
       await expect(card).toHaveCSS('background-color', surface)
-      expect(await followsAccent(() => style(page, '.template-default', 'background-color')), theme).toBe(true)
-      expect((await channels(page, 'oklab', surface))[0]).toBeGreaterThan((await channels(page, 'oklab', background))[0])
+      expect(await followsAccent(() => computedStyleValue(page, '.template-default', 'background-color')), theme).toBe(true)
+      expect((await colorChannels(page, 'oklab', surface))[0]).toBeGreaterThan(
+        (await colorChannels(page, 'oklab', background))[0]
+      )
     }
     expect(await followsAccent(() => computedColor(page, 'var(--color-bg-selected)'))).toBe(true)
   })
 
   test('tints the nav under Enhanced too', async ({ page }) => {
-    await saveSetup(page.request, { palette: 'warm' })
-    await page.context().addCookies([cookie('theme', 'light')])
+    await saveAppearancePreference(page.request, { palette: 'warm' })
+    await page.context().addCookies([demoCookie('theme', 'light')])
     await page.goto('/admin/collections/showcase')
 
     await expect(page.locator('.nav__header')).toHaveCSS(
@@ -2787,10 +2825,10 @@ test.describe('Warm palette', () => {
 
 test.describe('Token sheet', () => {
   const openShowcaseIn = async (page: Page, theme: 'dark' | 'light', palette: string) => {
-    await saveSetup(page.request, { palette })
-    await page.context().addCookies([cookie('theme', theme)])
+    await saveAppearancePreference(page.request, { palette })
+    await page.context().addCookies([demoCookie('theme', theme)])
     await page.goto((await findShowcase(page)).path)
-    await hydrated(page)
+    await waitForHydration(page)
   }
   const moreOptions = (page: Page) => page.getByRole('button', { name: 'More options' }).first()
   const userSheet = `
@@ -2812,14 +2850,16 @@ test.describe('Token sheet', () => {
     await openShowcaseIn(page, 'light', 'neutral')
     await page.addStyleTag({ content: userSheet })
     await expect(page.locator('.field-type.text input').first()).toHaveCSS('border-top-color', 'rgb(229, 229, 229)')
-    expect(await style(page, 'html', '--radius-large')).toBe('1rem')
+    expect(await computedStyleValue(page, 'html', '--radius-large')).toBe('1rem')
     await expect(page.locator('.template-default')).toHaveCSS('transition-duration', '0.3s')
 
     await openShowcaseIn(page, 'dark', 'neutral')
     await page.addStyleTag({ content: userSheet })
     await expect(page.locator('.field-type.text input').first()).toHaveCSS('border-top-color', 'rgb(38, 38, 38)')
     await moreOptions(page).click()
-    expect(await style(page, '.popup__content:popover-open', 'box-shadow')).toContain('rgb(38, 38, 38) 0px 0px 0px 1px')
+    expect(await computedStyleValue(page, '.popup__content:popover-open', 'box-shadow')).toContain(
+      'rgb(38, 38, 38) 0px 0px 0px 1px'
+    )
   })
 
   test("draws menus in the page's mode, and leaves Payload's dark menus on Payload's palette", async ({ page }) => {
@@ -2831,17 +2871,21 @@ test.describe('Token sheet', () => {
 
     await openShowcaseIn(page, 'light', 'payload')
     await moreOptions(page).click()
-    const [lightness] = await channels(page, 'oklab', await style(page, '.popup__content:popover-open', 'background-color'))
+    const [lightness] = await colorChannels(
+      page,
+      'oklab',
+      await computedStyleValue(page, '.popup__content:popover-open', 'background-color')
+    )
     expect(lightness).toBeLessThan(0.4)
   })
 })
 
 test.describe('Soft palette', () => {
   test('draws selection borders in the primary, not the blue accent', async ({ page }) => {
-    await saveSetup(page.request, { palette: 'soft' })
-    await page.context().addCookies([cookie('theme', 'light')])
+    await saveAppearancePreference(page.request, { palette: 'soft' })
+    await page.context().addCookies([demoCookie('theme', 'light')])
     await page.goto('/admin/collections/posts')
-    await hydrated(page)
+    await waitForHydration(page)
     await page.getByRole('button', { exact: true, name: 'Columns' }).click()
     const primary = await computedColor(page, 'var(--color-bg-brand)')
     await expect(page.locator('.columns-button__button')).toHaveCSS('border-top-color', primary)
@@ -2849,15 +2893,15 @@ test.describe('Soft palette', () => {
 
     await page.goto('/admin/collections/pages')
     await page.locator('table tbody tr a').first().click()
-    await hydrated(page)
-    expect(await style(page, '.tabs__tab-button--active', 'background-color', '::after')).toBe(primary)
+    await waitForHydration(page)
+    expect(await computedStyleValue(page, '.tabs__tab-button--active', 'background-color', '::after')).toBe(primary)
   })
 
   test('draws a checked row checkbox like every other checkbox, not in the blue accent', async ({ page }) => {
-    await saveSetup(page.request, { palette: 'soft' })
-    await page.context().addCookies([cookie('theme', 'dark')])
+    await saveAppearancePreference(page.request, { palette: 'soft' })
+    await page.context().addCookies([demoCookie('theme', 'dark')])
     await page.goto('/admin/collections/posts')
-    await hydrated(page)
+    await waitForHydration(page)
     await page.locator('.checkbox-input__control--muted').nth(1).check({ force: true })
     await page.mouse.move(0, 0)
     const visuals = page.locator('.checkbox-input__control--muted:checked + .checkbox-input__visuals').first()
@@ -2870,13 +2914,13 @@ test.describe('Soft palette', () => {
       ['light', 'rgb(238, 238, 238)'],
       ['dark', 'rgb(41, 41, 41)']
     ] as const) {
-      await saveSetup(page.request, { character: 'studio', palette: 'soft' })
-      await page.context().addCookies([cookie('theme', theme)])
+      await saveAppearancePreference(page.request, { character: 'studio', palette: 'soft' })
+      await page.context().addCookies([demoCookie('theme', theme)])
       await page.goto('/admin/collections/showcase')
-      await hydrated(page)
-      expect(await style(page, '.nav__link--selected', 'background-color', '::before')).toBe(fill)
-      expect(await style(page, '.nav__link--selected', 'box-shadow', '::before')).toBe('none')
-      expect(await style(page, '.sidebar-tabs__tab--active', 'box-shadow')).not.toBe('none')
+      await waitForHydration(page)
+      expect(await computedStyleValue(page, '.nav__link--selected', 'background-color', '::before')).toBe(fill)
+      expect(await computedStyleValue(page, '.nav__link--selected', 'box-shadow', '::before')).toBe('none')
+      expect(await computedStyleValue(page, '.sidebar-tabs__tab--active', 'box-shadow')).not.toBe('none')
     }
   })
 
@@ -2887,10 +2931,10 @@ test.describe('Soft palette', () => {
       ['dark', 'rgb(31, 31, 31)'],
       ['light', 'rgb(255, 255, 255)']
     ] as const) {
-      await saveSetup(page.request, { character: 'studio', palette: 'soft' })
-      await page.context().addCookies([cookie('theme', theme)])
+      await saveAppearancePreference(page.request, { character: 'studio', palette: 'soft' })
+      await page.context().addCookies([demoCookie('theme', theme)])
       await page.goto((await findShowcase(page)).path)
-      await hydrated(page)
+      await waitForHydration(page)
       await page.getByRole('button', { name: 'More options' }).first().click()
       await expect(page.locator('.popup__content:popover-open')).toHaveCSS('background-color', menu)
       await page.keyboard.press('Escape')
@@ -2921,7 +2965,7 @@ test.describe('Checkbox cells', () => {
 
   test("show a check or a muted x, and keep Payload's text for screen readers", async ({ page }) => {
     await page.goto('/admin/collections/products')
-    await hydrated(page)
+    await waitForHydration(page)
     const yes = page.locator('.payloadpack-checkbox-cell[data-value="true"] > *').first()
     const no = page.locator('.payloadpack-checkbox-cell[data-value="false"] > *').first()
     const mask = (cell: Locator) => cell.evaluate((element) => getComputedStyle(element, '::before').maskImage)
@@ -2937,7 +2981,7 @@ test.describe('Checkbox cells', () => {
 
   test('keep a checkbox in the first column a link to its document', async ({ page }) => {
     await page.goto(firstColumn('inStock'))
-    await hydrated(page)
+    await waitForHydration(page)
     const link = page.locator('.payloadpack-checkbox-cell > a').first()
 
     await expect(link).toHaveAttribute('href', /\/admin\/collections\/products\/\d+$/)
@@ -2947,9 +2991,9 @@ test.describe('Checkbox cells', () => {
   })
 
   test("keep Payload's own cell under the Payload style", async ({ page }) => {
-    await saveSetup(page.request, { character: 'payload' })
+    await saveAppearancePreference(page.request, { character: 'payload' })
     await page.goto('/admin/collections/products')
-    await hydrated(page)
+    await waitForHydration(page)
     const cell = page.locator('.payloadpack-checkbox-cell .bool-cell').first()
 
     await expect(cell).toHaveText(/^(true|false)$/)

@@ -1,193 +1,221 @@
 import type { User } from 'payload'
 
-import { type Character, type Option, options, personalOptions, type Values } from '../characters/index.js'
+import { allowedOptionValues, type Character, type OptionName, type OptionValues, personalOptions } from '../characters/index.js'
 import type { Palette } from '../palettes/index.js'
 
-export type Panel = boolean | ((args: { user: User }) => boolean)
+export type AppearancePanelAccess = boolean | ((args: { user: User }) => boolean)
 
-export const isEditable = (panel: Panel, user: undefined | User) =>
+export const canUserEditAppearance = (panel: AppearancePanelAccess, user: undefined | User) =>
   user !== undefined && (typeof panel === 'function' ? panel({ user }) : panel)
 
-export const preferenceKey = 'payloadpack-appearance'
+export const appearancePreferenceKey = 'payloadpack-appearance'
 
-export const accountOf = (user: null | undefined | { collection: string; id: number | string }) =>
+export const getUserAccountKey = (user: null | undefined | { collection: string; id: number | string }) =>
   user ? `${user.collection}:${user.id}` : undefined
 
-export type Settings = {
+export type SiteAppearanceSettings = {
   character: Character
-  options: Partial<Record<Character, Values>>
+  options: Partial<Record<Character, OptionValues>>
   palette: string
   palettes: Palette[]
 }
 
-export const customPalette = 'custom' as const
+export const customPaletteSlug = 'custom' as const
 
-export const bases = ['background', 'surface', 'text', 'primary'] as const
+export const customPaletteBaseColorNames = ['background', 'surface', 'text', 'primary'] as const
 
-export type Base = Record<(typeof bases)[number], string>
+export type CustomPaletteBaseColors = Record<(typeof customPaletteBaseColorNames)[number], string>
 
-export const baseTokens: Base = {
+export const baseColorTokenNames: CustomPaletteBaseColors = {
   background: '--payloadpack-bg-app',
   primary: '--payloadpack-action-primary',
   surface: '--payloadpack-bg-surface',
   text: '--payloadpack-text-primary'
 }
 
-export type CustomPalette = { accent: string; dark: Base; light: Base }
+export type CustomPalette = { accent: string; dark: CustomPaletteBaseColors; light: CustomPaletteBaseColors }
 
-export type Choices = {
+export type EditorAppearanceChoices = {
   character?: Character
   custom?: CustomPalette
-  options?: Partial<Record<Character, Values>>
+  options?: Partial<Record<Character, OptionValues>>
   palette?: string
-  personal?: Values
+  personal?: OptionValues
 }
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
+const isNonArrayObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value)
 
-export const isPersonal = (option: string) => (personalOptions as readonly string[]).includes(option)
+export const isPersonalOption = (option: string) => (personalOptions as readonly string[]).includes(option)
 
-const isOptionValue = (option: string, value: unknown) =>
-  Object.hasOwn(options, option) && (options[option as Option] as readonly unknown[]).includes(value)
+const isAllowedOptionValue = (option: string, value: unknown) =>
+  Object.hasOwn(allowedOptionValues, option) && (allowedOptionValues[option as OptionName] as readonly unknown[]).includes(value)
 
-const isCharacterValue = (option: string, value: unknown) => !isPersonal(option) && isOptionValue(option, value)
+const isAllowedCharacterOptionValue = (option: string, value: unknown) =>
+  !isPersonalOption(option) && isAllowedOptionValue(option, value)
 
-const isPersonalValue = (option: string, value: unknown) => isPersonal(option) && isOptionValue(option, value)
+const isAllowedPersonalOptionValue = (option: string, value: unknown) =>
+  isPersonalOption(option) && isAllowedOptionValue(option, value)
 
-const only = (values: object, keep: (option: string, value: unknown) => boolean) => {
+const filterOptionValues = (values: object, keep: (option: string, value: unknown) => boolean) => {
   const kept = Object.entries(values).filter(([option, value]) => keep(option, value))
-  return kept.length ? (Object.fromEntries(kept) as Values) : undefined
+  return kept.length ? (Object.fromEntries(kept) as OptionValues) : undefined
 }
 
-export const hexOf = (value: unknown) =>
+export const parseHexColor = (value: unknown) =>
   typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value) ? value.toLowerCase() : undefined
 
-const baseOf = (value: unknown) => {
-  const colors = isRecord(value) ? bases.map((base) => [base, hexOf(value[base])]) : []
-  return colors.length && colors.every(([, color]) => color) ? (Object.fromEntries(colors) as Base) : undefined
+const parseCustomPaletteBaseColors = (value: unknown) => {
+  const colors = isNonArrayObject(value) ? customPaletteBaseColorNames.map((base) => [base, parseHexColor(value[base])]) : []
+  return colors.length && colors.every(([, color]) => color) ? (Object.fromEntries(colors) as CustomPaletteBaseColors) : undefined
 }
 
-const customOf = (value: unknown): CustomPalette | undefined => {
-  const accent = isRecord(value) ? hexOf(value.accent) : undefined
-  const [dark, light] = isRecord(value) ? [baseOf(value.dark), baseOf(value.light)] : []
+const parseCustomPalette = (value: unknown): CustomPalette | undefined => {
+  const accent = isNonArrayObject(value) ? parseHexColor(value.accent) : undefined
+  const [dark, light] = isNonArrayObject(value)
+    ? [parseCustomPaletteBaseColors(value.dark), parseCustomPaletteBaseColors(value.light)]
+    : []
   return accent && dark && light ? { accent, dark, light } : undefined
 }
 
-const pick = (allowed: readonly string[], fallback: string, value: unknown) =>
+const pickAllowedNonDefaultValue = (allowed: readonly string[], fallback: string, value: unknown) =>
   typeof value === 'string' && value !== fallback && allowed.includes(value) ? value : undefined
 
-const changed = (defaults: object, input: unknown, isValid: (key: string, value: unknown) => boolean) => {
-  const picked = isRecord(input) ? input : {}
+const pickChangedOptionValues = (defaults: object, input: unknown, isValid: (key: string, value: unknown) => boolean) => {
+  const picked = isNonArrayObject(input) ? input : {}
   const kept = Object.entries(defaults).filter(([key, fallback]) => picked[key] !== fallback && isValid(key, picked[key]))
   return kept.length ? Object.fromEntries(kept.map(([key]) => [key, picked[key]])) : undefined
 }
 
-export function normalize(settings: Settings, input: unknown): Choices {
-  const raw = isRecord(input) ? input : {}
-  const pickedOptions = isRecord(raw.options) ? raw.options : {}
-  const character = pick(Object.keys(settings.options), settings.character, raw.character)
-  const options = Object.entries(settings.options).flatMap(([name, defaults]) => {
-    const values = changed(defaults, pickedOptions[name], isCharacterValue)
+export function normalizeEditorAppearanceChoices(
+  siteSettings: SiteAppearanceSettings,
+  untrustedInput: unknown
+): EditorAppearanceChoices {
+  const inputObject = isNonArrayObject(untrustedInput) ? untrustedInput : {}
+  const pickedOptions = isNonArrayObject(inputObject.options) ? inputObject.options : {}
+  const character = pickAllowedNonDefaultValue(Object.keys(siteSettings.options), siteSettings.character, inputObject.character)
+  const options = Object.entries(siteSettings.options).flatMap(([name, defaults]) => {
+    const values = pickChangedOptionValues(defaults, pickedOptions[name], isAllowedCharacterOptionValue)
     return values ? [[name, values]] : []
   })
-  const defaults = settings.options[(character ?? settings.character) as Character] ?? {}
-  const personal = isRecord(raw.personal)
-    ? only(
-        raw.personal,
+  const defaults = siteSettings.options[(character ?? siteSettings.character) as Character] ?? {}
+  const personal = isNonArrayObject(inputObject.personal)
+    ? filterOptionValues(
+        inputObject.personal,
         (option, value) =>
-          isPersonalValue(option, value) &&
-          Object.values(settings.options).some((values) => Object.hasOwn(values, option) && values[option as Option] !== value)
+          isAllowedPersonalOptionValue(option, value) &&
+          Object.values(siteSettings.options).some(
+            (values) => Object.hasOwn(values, option) && values[option as OptionName] !== value
+          )
       )
-    : changed(defaults, pickedOptions[character ?? settings.character], isPersonalValue)
-  const custom = customOf(raw.custom)
-  const picksCustom = custom && settings.palettes.length > 1 && raw.palette === customPalette
-  const choices = {
+    : pickChangedOptionValues(defaults, pickedOptions[character ?? siteSettings.character], isAllowedPersonalOptionValue)
+  const custom = parseCustomPalette(inputObject.custom)
+  const picksCustom = custom && siteSettings.palettes.length > 1 && inputObject.palette === customPaletteSlug
+  const normalizedChoices = {
     character,
     custom,
     options: options.length ? Object.fromEntries(options) : undefined,
     palette: picksCustom
-      ? customPalette
-      : pick(
-          settings.palettes.map(({ slug }) => slug),
-          settings.palette,
-          raw.palette
+      ? customPaletteSlug
+      : pickAllowedNonDefaultValue(
+          siteSettings.palettes.map(({ slug }) => slug),
+          siteSettings.palette,
+          inputObject.palette
         ),
     personal
   }
 
-  return Object.fromEntries(Object.entries(choices).filter(([, value]) => value !== undefined)) as Choices
+  return Object.fromEntries(
+    Object.entries(normalizedChoices).filter(([, value]) => value !== undefined)
+  ) as EditorAppearanceChoices
 }
 
-export function resolve(settings: Settings, choices: Choices) {
-  const character = choices.character ?? settings.character
-  const palette = choices.palette ?? settings.palette
-  const defaults = settings.options[character] ?? {}
-  const personal = only(
-    choices.personal ?? {},
-    (option, value) => Object.hasOwn(defaults, option) && defaults[option as Option] !== value
+export function resolveActiveAppearance(siteSettings: SiteAppearanceSettings, editorChoices: EditorAppearanceChoices) {
+  const character = editorChoices.character ?? siteSettings.character
+  const palette = editorChoices.palette ?? siteSettings.palette
+  const defaults = siteSettings.options[character] ?? {}
+  const personal = filterOptionValues(
+    editorChoices.personal ?? {},
+    (option, value) => Object.hasOwn(defaults, option) && defaults[option as OptionName] !== value
   )
   return {
-    changed: Object.keys({ ...choices.options?.[character], ...personal }).length,
+    changedOptionCount: Object.keys({ ...editorChoices.options?.[character], ...personal }).length,
     character,
-    custom: choices.custom,
-    palette,
-    values: { ...defaults, ...choices.options?.[character], ...personal }
+    customPalette: editorChoices.custom,
+    optionValues: { ...defaults, ...editorChoices.options?.[character], ...personal },
+    palette
   }
 }
 
-export const setupOf = ({ character, custom, palette, values }: ReturnType<typeof resolve>): Choices => ({
+export const buildShareableSetup = ({
   character,
-  ...(Object.keys(values).length ? { options: { [character]: values } } : {}),
+  customPalette,
+  optionValues,
+  palette
+}: ReturnType<typeof resolveActiveAppearance>): EditorAppearanceChoices => ({
+  character,
+  ...(Object.keys(optionValues).length ? { options: { [character]: optionValues } } : {}),
   palette,
-  ...(palette === customPalette ? { custom } : {})
+  ...(palette === customPaletteSlug ? { custom: customPalette } : {})
 })
 
-export const resetCharacter = (settings: Settings, choices: Choices, character: Character): Choices => {
-  const defaults = settings.options[character] ?? {}
+export const clearCharacterOptionOverrides = (
+  siteSettings: SiteAppearanceSettings,
+  editorChoices: EditorAppearanceChoices,
+  character: Character
+): EditorAppearanceChoices => {
+  const defaults = siteSettings.options[character] ?? {}
   return {
-    ...choices,
-    options: { ...choices.options, [character]: undefined },
-    personal: only(
-      choices.personal ?? {},
-      (option, value) => !Object.hasOwn(defaults, option) || defaults[option as Option] === value
+    ...editorChoices,
+    options: { ...editorChoices.options, [character]: undefined },
+    personal: filterOptionValues(
+      editorChoices.personal ?? {},
+      (option, value) => !Object.hasOwn(defaults, option) || defaults[option as OptionName] === value
     )
   }
 }
 
-export function pasteSetup(settings: Settings, choices: Choices, text: string): Choices | undefined {
-  const pasted = parseChoices(settings, text)
-  if (!pasted) {
+export function applyPastedSetup(
+  siteSettings: SiteAppearanceSettings,
+  editorChoices: EditorAppearanceChoices,
+  text: string
+): EditorAppearanceChoices | undefined {
+  const rawPastedChoices = parseRawEditorAppearanceChoices(text)
+  if (!rawPastedChoices) {
     return undefined
   }
-  const { character: named, palette } = JSON.parse(text) as { character?: unknown; palette?: unknown }
-  if (typeof named !== 'string' || !Object.hasOwn(settings.options, named)) {
-    return normalize(settings, {
-      ...choices,
-      custom: pasted.custom ?? choices.custom,
-      palette: palette === undefined ? choices.palette : pasted.palette
+  const pastedChoices = normalizeEditorAppearanceChoices(siteSettings, rawPastedChoices)
+  const { character: pastedCharacter, palette: rawPastedPalette } = rawPastedChoices
+  if (typeof pastedCharacter !== 'string' || !Object.hasOwn(siteSettings.options, pastedCharacter)) {
+    return normalizeEditorAppearanceChoices(siteSettings, {
+      ...editorChoices,
+      custom: pastedChoices.custom ?? editorChoices.custom,
+      palette: rawPastedPalette === undefined ? editorChoices.palette : pastedChoices.palette
     })
   }
-  const character = pasted.character ?? settings.character
-  const declared = settings.options[character] ?? {}
-  return normalize(settings, {
-    character: pasted.character,
-    custom: pasted.custom ?? choices.custom,
-    options: { ...choices.options, [character]: pasted.options?.[character] },
-    palette: pasted.palette,
-    personal: { ...only(choices.personal ?? {}, (option) => !Object.hasOwn(declared, option)), ...pasted.personal }
+  const character = pastedChoices.character ?? siteSettings.character
+  const declared = siteSettings.options[character] ?? {}
+  return normalizeEditorAppearanceChoices(siteSettings, {
+    character: pastedChoices.character,
+    custom: pastedChoices.custom ?? editorChoices.custom,
+    options: { ...editorChoices.options, [character]: pastedChoices.options?.[character] },
+    palette: pastedChoices.palette,
+    personal: {
+      ...filterOptionValues(editorChoices.personal ?? {}, (option) => !Object.hasOwn(declared, option)),
+      ...pastedChoices.personal
+    }
   })
 }
 
-const declarations = (base: Base, indent: string) =>
-  bases.map((name) => `${indent}${baseTokens[name]}: ${base[name]};\n`).join('')
+const baseColorDeclarations = (base: CustomPaletteBaseColors, indent: string) =>
+  customPaletteBaseColorNames.map((name) => `${indent}${baseColorTokenNames[name]}: ${base[name]};\n`).join('')
 
-export const paletteCss = (name: string, { accent, dark, light }: CustomPalette) =>
-  `[data-palette='${name}'] {\n${declarations(light, '  ')}  --payloadpack-accent: ${accent};\n  --payloadpack-text-secondary: color-mix(in srgb, var(--payloadpack-text-primary) 62%, transparent);\n\n  &[data-theme='dark'] {\n${declarations(dark, '    ')}  }\n}\n`
+export const customPaletteCss = (name: string, { accent, dark, light }: CustomPalette) =>
+  `[data-palette='${name}'] {\n${baseColorDeclarations(light, '  ')}  --payloadpack-accent: ${accent};\n  --payloadpack-text-secondary: color-mix(in srgb, var(--payloadpack-text-primary) 62%, transparent);\n\n  &[data-theme='dark'] {\n${baseColorDeclarations(dark, '    ')}  }\n}\n`
 
-const setupKeys = ['character', 'custom', 'options', 'palette', 'personal']
+const editorAppearanceChoiceKeys = ['character', 'custom', 'options', 'palette', 'personal']
 
-const parseJson = (text: string | undefined): unknown => {
+const parseJsonOrUndefined = (text: string | undefined): unknown => {
   if (!text) {
     return undefined
   }
@@ -202,14 +230,27 @@ const parseJson = (text: string | undefined): unknown => {
   }
 }
 
-export function parseChoices(settings: Settings, text: string | undefined): Choices | undefined {
-  const parsed = parseJson(text)
-  return isRecord(parsed) && setupKeys.some((key) => Object.hasOwn(parsed, key)) ? normalize(settings, parsed) : undefined
+function parseRawEditorAppearanceChoices(text: string | undefined) {
+  const parsed = parseJsonOrUndefined(text)
+  return isNonArrayObject(parsed) && editorAppearanceChoiceKeys.some((key) => Object.hasOwn(parsed, key)) ? parsed : undefined
 }
 
-export function storedChoices(settings: Settings, preference: unknown, cookie: string | undefined, account: string | undefined) {
-  const parsed = parseJson(cookie)
-  return isRecord(parsed) && account !== undefined && parsed.by === account
-    ? { choices: normalize(settings, parsed), unsaved: true }
-    : { choices: normalize(settings, preference), unsaved: false }
+export function parseEditorAppearanceChoices(
+  siteSettings: SiteAppearanceSettings,
+  text: string | undefined
+): EditorAppearanceChoices | undefined {
+  const rawChoices = parseRawEditorAppearanceChoices(text)
+  return rawChoices && normalizeEditorAppearanceChoices(siteSettings, rawChoices)
+}
+
+export function pickInitialEditorAppearanceChoices(
+  siteSettings: SiteAppearanceSettings,
+  savedPreferenceValue: unknown,
+  appearanceCookieValue: string | undefined,
+  accountKey: string | undefined
+) {
+  const parsedCookie = parseJsonOrUndefined(appearanceCookieValue)
+  return isNonArrayObject(parsedCookie) && accountKey !== undefined && parsedCookie.by === accountKey
+    ? { editorChoices: normalizeEditorAppearanceChoices(siteSettings, parsedCookie), unsavedInCookie: true }
+    : { editorChoices: normalizeEditorAppearanceChoices(siteSettings, savedPreferenceValue), unsavedInCookie: false }
 }

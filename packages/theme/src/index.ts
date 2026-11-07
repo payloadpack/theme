@@ -3,12 +3,12 @@ import { deepMergeSimple } from 'payload/shared'
 
 import {
   type Character,
+  type CharacterOptionValues,
   characters as registry,
-  type CharacterValues,
   defaultCharacter,
-  type Values
+  type OptionValues
 } from './characters/index.js'
-import { customPalette, type Panel, type Settings } from './lib/appearance.js'
+import { type AppearancePanelAccess, customPaletteSlug, type SiteAppearanceSettings } from './lib/appearance.js'
 import { type BuiltInPalette, builtInPalettes, defaultPalette, type Palette } from './palettes/index.js'
 import { translations } from './translations.js'
 
@@ -18,7 +18,7 @@ export const VERTICAL_TABS = 'payloadpack-vertical-tabs'
 export const RADIO_CARDS = 'payloadpack-radio-cards'
 export const SWITCH = 'payloadpack-switch'
 
-const withCheckboxCells = (fields: Field[]): Field[] =>
+const addCheckboxCellToFields = (fields: Field[]): Field[] =>
   fields.map((field) => {
     if (field.type === 'checkbox') {
       return field.admin?.components?.Cell
@@ -29,16 +29,16 @@ const withCheckboxCells = (fields: Field[]): Field[] =>
           }
     }
     if (field.type === 'tabs') {
-      return { ...field, tabs: field.tabs.map((tab) => ({ ...tab, fields: withCheckboxCells(tab.fields) })) }
+      return { ...field, tabs: field.tabs.map((tab) => ({ ...tab, fields: addCheckboxCellToFields(tab.fields) })) }
     }
     if ('fields' in field) {
-      return { ...field, fields: withCheckboxCells(field.fields) }
+      return { ...field, fields: addCheckboxCellToFields(field.fields) }
     }
     return field
   })
 
 type OptionsConfig = {
-  [C in Character as keyof (typeof registry)[C]['defaults'] extends never ? never : C]?: CharacterValues<C>
+  [C in Character as keyof (typeof registry)[C]['defaults'] extends never ? never : C]?: CharacterOptionValues<C>
 }
 
 export type ThemePluginConfig = {
@@ -48,7 +48,7 @@ export type ThemePluginConfig = {
   options?: OptionsConfig
   palette?: BuiltInPalette | (string & {})
   palettes?: Palette[]
-  panel?: Panel
+  panel?: AppearancePanelAccess
 }
 
 export function themePlugin(pluginConfig: ThemePluginConfig = {}): Plugin {
@@ -60,25 +60,27 @@ export function themePlugin(pluginConfig: ThemePluginConfig = {}): Plugin {
     palettes = builtInPalettes.map((slug) => ({ slug })),
     panel = true
   } = pluginConfig
-  const options: Partial<Record<Character, Values>> = pluginConfig.options ?? {}
+  const characterOptionOverrides: Partial<Record<Character, OptionValues>> = pluginConfig.options ?? {}
 
   if (!characters.includes(character)) {
     throw new Error(`themePlugin: character '${character}' is not one of characters: ${characters.join(', ')}`)
   }
 
-  const slugs = palettes.map(({ slug }) => slug)
+  const paletteSlugs = palettes.map(({ slug }) => slug)
 
-  if (!slugs.includes(palette)) {
-    throw new Error(`themePlugin: palette '${palette}' is not one of palettes: ${slugs.join(', ')}`)
+  if (!paletteSlugs.includes(palette)) {
+    throw new Error(`themePlugin: palette '${palette}' is not one of palettes: ${paletteSlugs.join(', ')}`)
   }
 
-  if (slugs.includes(customPalette)) {
-    throw new Error(`themePlugin: '${customPalette}' is the editor's own palette, so no palette may use it as its slug`)
+  if (paletteSlugs.includes(customPaletteSlug)) {
+    throw new Error(`themePlugin: '${customPaletteSlug}' is the editor's own palette, so no palette may use it as its slug`)
   }
 
-  const settings: Settings = {
+  const siteSettings: SiteAppearanceSettings = {
     character,
-    options: Object.fromEntries(characters.map((name) => [name, { ...registry[name].defaults, ...options[name] }])),
+    options: Object.fromEntries(
+      characters.map((name) => [name, { ...registry[name].defaults, ...characterOptionOverrides[name] }])
+    ),
     palette,
     palettes
   }
@@ -86,7 +88,7 @@ export function themePlugin(pluginConfig: ThemePluginConfig = {}): Plugin {
   return (config) => ({
     ...config,
     collections: characters.some((name) => name !== 'payload')
-      ? config.collections?.map((collection) => ({ ...collection, fields: withCheckboxCells(collection.fields) }))
+      ? config.collections?.map((collection) => ({ ...collection, fields: addCheckboxCellToFields(collection.fields) }))
       : config.collections,
     admin: {
       ...config.admin,
@@ -100,7 +102,7 @@ export function themePlugin(pluginConfig: ThemePluginConfig = {}): Plugin {
         beforeNav: [...(config.admin?.components?.beforeNav ?? []), `${PACKAGE_NAME}/client#NavBar`],
         providers: [
           ...(config.admin?.components?.providers ?? []),
-          { path: `${PACKAGE_NAME}/rsc#AppearanceServerProvider`, serverProps: { codeEditorFontSize, panel, settings } }
+          { path: `${PACKAGE_NAME}/rsc#AppearanceServerProvider`, serverProps: { codeEditorFontSize, panel, siteSettings } }
         ]
       }
     },

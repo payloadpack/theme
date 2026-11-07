@@ -4,52 +4,53 @@ export const authFile = 'tests/.auth/demo.json'
 
 export const baseURL = `http://localhost:${process.env.DEMO_PORT ?? 3020}`
 
-export const cookie = (name: string, value: string) => ({ name: `theme-demo-${name}`, url: baseURL, value })
+export const demoCookie = (name: string, value: string) => ({ name: `theme-demo-${name}`, url: baseURL, value })
 
-const setupPreference = '/api/payload-preferences/payloadpack-appearance'
+const appearancePreferenceURL = '/api/payload-preferences/payloadpack-appearance'
 
-export const clearSetup = (request: APIRequestContext) => request.delete(setupPreference)
+export const deleteSavedAppearance = (request: APIRequestContext) => request.delete(appearancePreferenceURL)
 
-export const saveSetup = (request: APIRequestContext, value: object) => request.post(setupPreference, { data: { value } })
+export const saveAppearancePreference = (request: APIRequestContext, value: object) =>
+  request.post(appearancePreferenceURL, { data: { value } })
 
-export const hydrated = (page: Page) => expect(page.locator('.nav')).toHaveClass(/nav--nav-hydrated/)
+export const waitForHydration = (page: Page) => expect(page.locator('.nav')).toHaveClass(/nav--nav-hydrated/)
 
-export const reloadWith = async (page: Page, setup: object) => {
-  await hydrated(page)
-  await saveSetup(page.request, setup)
+export const saveAppearanceAndReload = async (page: Page, setup: object) => {
+  await waitForHydration(page)
+  await saveAppearancePreference(page.request, setup)
   await page.reload()
 }
 
-export const saved = (page: Page) =>
-  page.waitForResponse((response) => response.url().endsWith(setupPreference) && response.request().method() === 'POST')
+export const waitForAppearanceSave = (page: Page) =>
+  page.waitForResponse((response) => response.url().endsWith(appearancePreferenceURL) && response.request().method() === 'POST')
 
-export const pickAndSave = (page: Page, control: Locator) => Promise.all([saved(page), control.click()])
+export const clickAndWaitForSave = (page: Page, control: Locator) => Promise.all([waitForAppearanceSave(page), control.click()])
 
-export const customPalette = (accent: string, primary?: string) => ({
+export const buildCustomPalette = (accent: string, primary?: string) => ({
   accent,
   dark: { background: '#0a0a09', primary: primary ?? '#f3f2ed', surface: '#0f0f0e', text: '#f3f2ed' },
   light: { background: '#ffffff', primary: primary ?? '#1a1a1a', surface: '#ffffff', text: '#1a1a1a' }
 })
 
-export const settled = (locator: Locator) =>
+export const waitForAnimations = (locator: Locator) =>
   locator.evaluate((element) => Promise.all(element.getAnimations({ subtree: true }).map((animation) => animation.finished)))
 
 export const openAppearancePanel = async (page: Page) => {
   await page.getByRole('button', { name: 'Appearance' }).click()
   const sheet = page.getByRole('dialog', { name: 'Appearance' })
   await sheet.waitFor()
-  await settled(sheet)
+  await waitForAnimations(sheet)
   return sheet
 }
 
-export const choice = (sheet: Locator, group: string, name: string) =>
+export const radioInGroup = (sheet: Locator, group: string, name: string) =>
   sheet.getByRole('radiogroup', { name: group }).getByRole('radio', { exact: true, name })
 
-export const label = (radio: Locator) => radio.locator('..')
+export const radioLabel = (radio: Locator) => radio.locator('..')
 
 export const openFineTune = (sheet: Locator) => sheet.locator('summary').click()
 
-export const share = async (sheet: Locator, action: 'Copy setup' | 'Paste setup') => {
+export const openShareMenuItem = async (sheet: Locator, action: 'Copy setup' | 'Paste setup') => {
   await sheet.getByRole('button', { name: 'Share setup' }).click()
   return sheet.getByRole('button', { name: action })
 }

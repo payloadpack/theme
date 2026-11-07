@@ -2,26 +2,30 @@ import type { Config } from 'payload'
 import { expect, it } from 'vitest'
 
 import { themePlugin, type ThemePluginConfig } from '../src/index.js'
-import type { Settings } from '../src/lib/appearance.js'
+import type { SiteAppearanceSettings } from '../src/lib/appearance.js'
 
-const settingsOf = async (pluginConfig: ThemePluginConfig) => {
+const siteSettingsFromPluginConfig = async (pluginConfig: ThemePluginConfig) => {
   const config = await themePlugin(pluginConfig)({} as Config)
-  const providers = config.admin?.components?.providers as { serverProps: { settings: Settings } }[]
-  return providers[0].serverProps.settings
+  const providers = config.admin?.components?.providers as { serverProps: { siteSettings: SiteAppearanceSettings } }[]
+  return providers[0].serverProps.siteSettings
 }
 
 it('offers editors the allowed palettes, every built-in one by default', async () => {
-  expect((await settingsOf({})).palettes).toEqual([{ slug: 'payload' }, { slug: 'neutral' }, { slug: 'warm' }, { slug: 'soft' }])
-  expect((await settingsOf({ palette: 'warm', palettes: [{ slug: 'warm' }, { slug: 'neutral' }] })).palettes).toEqual([
+  expect((await siteSettingsFromPluginConfig({})).palettes).toEqual([
+    { slug: 'payload' },
+    { slug: 'neutral' },
     { slug: 'warm' },
-    { slug: 'neutral' }
+    { slug: 'soft' }
   ])
+  expect(
+    (await siteSettingsFromPluginConfig({ palette: 'warm', palettes: [{ slug: 'warm' }, { slug: 'neutral' }] })).palettes
+  ).toEqual([{ slug: 'warm' }, { slug: 'neutral' }])
 })
 
 it("offers the app's own palettes with their labels next to the built-in ones", async () => {
   const palettes = [{ slug: 'neutral' as const }, { label: { de: 'Marke', en: 'Brand' }, slug: 'brand' }]
 
-  expect(await settingsOf({ palette: 'brand', palettes })).toMatchObject({ palette: 'brand', palettes })
+  expect(await siteSettingsFromPluginConfig({ palette: 'brand', palettes })).toMatchObject({ palette: 'brand', palettes })
 })
 
 it('gives every supported language the English panel labels, and lets the app override them', async () => {

@@ -7,45 +7,45 @@ import { AppearanceButton } from './appearance-panel.js'
 import { useAppearance } from './appearance-provider.js'
 
 export function NavBar() {
-  const { editable, rail, toggleRail, values } = useAppearance()
+  const { canEdit, optionValues, showsRail, toggleNavRail } = useAppearance()
   const { navOpen, navToggleRef, setNavOpen } = useNav()
   const { t } = useTranslation()
-  const returnsFocus = useRef(false)
+  const refocusNavToggle = useRef(false)
 
   useEffect(() => {
-    if (!navOpen && returnsFocus.current) {
-      returnsFocus.current = false
+    if (!navOpen && refocusNavToggle.current) {
+      refocusNavToggle.current = false
       navToggleRef?.current?.focus({ preventScroll: true })
     }
   }, [navOpen, navToggleRef])
 
-  if (!values.nav && !editable) {
+  if (!optionValues.nav && !canEdit) {
     return null
   }
 
   return (
     <div className="payloadpack-nav-bar">
-      {values.nav && (
+      {optionValues.nav && (
         <button
-          aria-expanded={values.nav === 'rail' ? !rail : navOpen}
-          aria-label={t(rail ? 'general:showSidebar' : 'general:hideSidebar')}
+          aria-expanded={optionValues.nav === 'rail' ? !showsRail : navOpen}
+          aria-label={t(showsRail ? 'general:showSidebar' : 'general:hideSidebar')}
           className="payloadpack-nav-toggle"
           onClick={() => {
-            if (values.nav === 'hidden') {
-              returnsFocus.current = true
+            if (optionValues.nav === 'hidden') {
+              refocusNavToggle.current = true
               setNavOpen(false, true)
               return
             }
-            if (!rail) {
+            if (!showsRail) {
               document.querySelector<HTMLElement>('.sidebar-tabs__tab:first-child:not(.sidebar-tabs__tab--active)')?.click()
             }
-            toggleRail()
+            toggleNavRail()
           }}
           type="button">
-          <SidebarToggle isActive={!rail} />
+          <SidebarToggle isActive={!showsRail} />
         </button>
       )}
-      {editable && <AppearanceButton place="nav" />}
+      {canEdit && <AppearanceButton place="nav" />}
     </div>
   )
 }

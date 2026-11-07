@@ -14,30 +14,30 @@ import {
   useSyncExternalStore
 } from 'react'
 
-import { type Character, type Option, type OptionValue, options } from '../characters/index.js'
+import { allowedOptionValues, type Character, type OptionName, type OptionValue } from '../characters/index.js'
 import { useMonacoFontSize } from '../hooks/use-monaco-font-size.js'
 import {
-  accountOf,
-  type Choices,
+  applyPastedSetup,
+  buildShareableSetup,
+  clearCharacterOptionOverrides,
   type CustomPalette,
-  customPalette,
-  isPersonal,
-  normalize,
-  paletteCss,
-  parseChoices,
-  pasteSetup,
-  resetCharacter,
-  resolve,
-  type Settings,
-  setupOf
+  customPaletteCss,
+  customPaletteSlug,
+  type EditorAppearanceChoices,
+  getUserAccountKey,
+  isPersonalOption,
+  normalizeEditorAppearanceChoices,
+  parseEditorAppearanceChoices,
+  resolveActiveAppearance,
+  type SiteAppearanceSettings
 } from '../lib/appearance.js'
 import type { Palette } from '../palettes/index.js'
 
 const ONE_YEAR_IN_SECONDS = 60 * 60 * 24 * 365
 
-const ATTRIBUTE_KEYS = ['character', 'palette', 'rail', ...Object.keys(options)]
+const HTML_DATA_ATTRIBUTE_KEYS = ['character', 'palette', 'rail', ...Object.keys(allowedOptionValues)]
 
-const inline = (value: unknown) => JSON.stringify(value).replace(/</g, '\\u003c')
+const serializeForInlineScript = (value: unknown) => JSON.stringify(value).replace(/</g, '\\u003c')
 
 const writeCookie = (name: string, value: string | undefined) => {
   document.cookie = value
@@ -45,21 +45,21 @@ const writeCookie = (name: string, value: string | undefined) => {
     : `${name}=; path=/; max-age=0; SameSite=Lax`
 }
 
-type AppearanceContextValue = ReturnType<typeof resolve> & {
-  characters: Character[]
-  editable: boolean
-  palettes: Palette[]
-  paste: (text: string) => boolean
-  rail: boolean
-  removeCustom: () => void
-  reset: () => () => void
-  setCustom: (custom: CustomPalette, persist?: boolean) => void
+type AppearanceContextValue = ReturnType<typeof resolveActiveAppearance> & {
+  allowedCharacters: Character[]
+  allowedPalettes: Palette[]
+  canEdit: boolean
+  pasteSetup: (text: string) => boolean
+  removeCustomPalette: () => void
+  resetCharacterOptions: () => () => void
+  saveFailed: boolean
   setCharacter: (character: Character) => void
-  setOption: <O extends Option>(option: O, value: OptionValue<O>) => void
+  setCustomPalette: (custom: CustomPalette, persist?: boolean) => void
+  setOption: <O extends OptionName>(option: O, value: OptionValue<O>) => void
   setPalette: (palette: string) => void
-  setup: Choices
-  toggleRail: () => void
-  failed: boolean
+  shareableSetup: EditorAppearanceChoices
+  showsRail: boolean
+  toggleNavRail: () => void
 }
 
 const AppearanceContext = createContext<AppearanceContextValue | null>(null)
@@ -67,215 +67,238 @@ const AppearanceContext = createContext<AppearanceContextValue | null>(null)
 const subscribeToNothing = () => () => {}
 
 type AppearanceProviderProps = {
-  account: string | undefined
+  accountKey: string | undefined
+  appearanceCookieName: string
+  canEdit: boolean
   children: ReactNode
   codeEditorFontSize: false | number
-  cookieName: string
-  editable: boolean
-  initialChoices: Choices
-  initialRail: boolean
+  initialChoicesUnsaved: boolean
+  initialEditorChoices: EditorAppearanceChoices
+  initialRailCollapsed: boolean
   preferenceURL: string
   railCookieName: string
-  settings: Settings
-  initialUnsaved: boolean
+  siteSettings: SiteAppearanceSettings
 }
 
 export function AppearanceProvider({
-  account,
+  accountKey,
+  appearanceCookieName,
+  canEdit,
   children,
   codeEditorFontSize,
-  cookieName,
-  editable,
-  initialChoices,
-  initialRail,
+  initialChoicesUnsaved,
+  initialEditorChoices,
+  initialRailCollapsed,
   preferenceURL,
-  initialUnsaved,
   railCookieName,
-  settings
+  siteSettings
 }: AppearanceProviderProps) {
-  const [choices, setChoices] = useState(initialChoices)
-  const [draft, setDraft] = useState<CustomPalette>()
-  const [rail, setRail] = useState(initialRail)
-  const [unsaved, setUnsaved] = useState(false)
-  const [failed, setFailed] = useState(false)
-  const latest = useRef(choices)
-  const unconfirmed = useRef(initialUnsaved ? initialChoices : undefined)
-  const backedUp = useRef(false)
-  const saving = useRef(Promise.resolve())
-  const pending = useRef<((current: Choices) => Choices)[]>([])
+  const [editorChoices, setEditorChoices] = useState(initialEditorChoices)
+  const [customPaletteDraft, setCustomPaletteDraft] = useState<CustomPalette>()
+  const [railCollapsed, setRailCollapsed] = useState(initialRailCollapsed)
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const [saveFailed, setSaveFailed] = useState(false)
+  const latestEditorChoices = useRef(editorChoices)
+  const unconfirmedCookieChoices = useRef(initialChoicesUnsaved ? initialEditorChoices : undefined)
+  const cookieHoldsUnsavedChoices = useRef(false)
+  const saveQueue = useRef(Promise.resolve())
+  const pendingChanges = useRef<((current: EditorAppearanceChoices) => EditorAppearanceChoices)[]>([])
   const { user } = useAuth()
-  const signedInAs = useRef(account)
-  const signedOut = account !== undefined && !user
+  const renderedAccountKey = useRef(accountKey)
+  const userSignedOut = accountKey !== undefined && !user
   const router = useRouter()
-  const resolved = useMemo(
-    () => resolve(settings, signedOut ? {} : draft ? { ...choices, custom: draft, palette: customPalette } : choices),
-    [settings, choices, draft, signedOut]
+  const activeAppearance = useMemo(
+    () =>
+      resolveActiveAppearance(
+        siteSettings,
+        userSignedOut
+          ? {}
+          : customPaletteDraft
+            ? { ...editorChoices, custom: customPaletteDraft, palette: customPaletteSlug }
+            : editorChoices
+      ),
+    [customPaletteDraft, editorChoices, siteSettings, userSignedOut]
   )
-  const { character, custom, palette, values } = resolved
-  const hasRail = values.nav === 'rail'
-  const collapsed = hasRail && rail
-  const attributes = useMemo(
+  const { character, customPalette, optionValues, palette } = activeAppearance
+  const navUsesRail = optionValues.nav === 'rail'
+  const showsRail = navUsesRail && railCollapsed
+  const htmlDataAttributes = useMemo(
     (): Record<string, string> => ({
       character,
-      ...values,
-      ...(collapsed ? { rail: '' } : {}),
+      ...optionValues,
+      ...(showsRail ? { rail: '' } : {}),
       palette
     }),
-    [character, collapsed, palette, values]
+    [character, optionValues, palette, showsRail]
   )
   const { navOpen, setNavOpen } = useNav()
   const { breakpoints } = useWindowInfo()
-  const keepsNavOpen = hasRail && breakpoints?.s === false
+  const keepNavOpenForRail = navUsesRail && breakpoints?.s === false
   const isServerHtml = useSyncExternalStore(
     subscribeToNothing,
     () => false,
     () => true
   )
 
-  useMonacoFontSize(values.density === 'comfortable' && codeEditorFontSize)
+  useMonacoFontSize(optionValues.density === 'comfortable' && codeEditorFontSize)
 
   useLayoutEffect(() => {
     const { dataset } = document.documentElement
-    for (const key of ATTRIBUTE_KEYS) {
-      if (key in attributes) {
-        dataset[key] = attributes[key]
+    for (const key of HTML_DATA_ATTRIBUTE_KEYS) {
+      if (key in htmlDataAttributes) {
+        dataset[key] = htmlDataAttributes[key]
       } else {
         delete dataset[key]
       }
     }
-  }, [attributes])
+  }, [htmlDataAttributes])
 
   useEffect(() => {
-    const current = accountOf(user)
-    if (!current || current === signedInAs.current) {
+    const currentAccountKey = getUserAccountKey(user)
+    if (!currentAccountKey || currentAccountKey === renderedAccountKey.current) {
       return
     }
-    signedInAs.current = current
+    renderedAccountKey.current = currentAccountKey
     router.refresh()
   }, [router, user])
 
   useEffect(() => {
-    latest.current = choices
-    if (unsaved) {
-      writeCookie(cookieName, encodeURIComponent(JSON.stringify({ ...choices, by: account })))
-      backedUp.current = true
-    } else if (backedUp.current) {
-      writeCookie(cookieName, undefined)
-      backedUp.current = false
+    latestEditorChoices.current = editorChoices
+    if (hasUnsavedChanges) {
+      writeCookie(appearanceCookieName, encodeURIComponent(JSON.stringify({ ...editorChoices, by: accountKey })))
+      cookieHoldsUnsavedChoices.current = true
+    } else if (cookieHoldsUnsavedChoices.current) {
+      writeCookie(appearanceCookieName, undefined)
+      cookieHoldsUnsavedChoices.current = false
     }
-  }, [account, choices, cookieName, unsaved])
+  }, [accountKey, appearanceCookieName, editorChoices, hasUnsavedChanges])
 
   useEffect(() => {
-    writeCookie(railCookieName, rail ? 'true' : undefined)
-  }, [rail, railCookieName])
+    writeCookie(railCookieName, railCollapsed ? 'true' : undefined)
+  }, [railCollapsed, railCookieName])
 
   useLayoutEffect(() => {
-    if (keepsNavOpen && !navOpen) {
+    if (keepNavOpenForRail && !navOpen) {
       setNavOpen(true)
     }
-  }, [keepsNavOpen, navOpen, setNavOpen])
+  }, [keepNavOpenForRail, navOpen, setNavOpen])
 
-  const update = useCallback(
-    (change: (current: Choices) => Choices) => {
-      setDraft(undefined)
-      setChoices((current) => normalize(settings, change(current)))
-      setUnsaved(true)
-      pending.current.push(change)
-      saving.current = saving.current.then(async () => {
-        const changes = pending.current.splice(0)
+  const applyChangeAndSave = useCallback(
+    (change: (current: EditorAppearanceChoices) => EditorAppearanceChoices) => {
+      setCustomPaletteDraft(undefined)
+      setEditorChoices((current) => normalizeEditorAppearanceChoices(siteSettings, change(current)))
+      setHasUnsavedChanges(true)
+      pendingChanges.current.push(change)
+      saveQueue.current = saveQueue.current.then(async () => {
+        const changes = pendingChanges.current.splice(0)
         if (!changes.length) {
           return
         }
-        const retry = () => {
-          pending.current.unshift(...changes)
-          setFailed(true)
+        const requeueFailedChanges = () => {
+          pendingChanges.current.unshift(...changes)
+          setSaveFailed(true)
         }
         try {
-          const stored = await fetch(preferenceURL, { credentials: 'include' })
-          const saved: unknown = stored.ok ? (await stored.json()).value : null
-          const base = saved == null ? latest.current : normalize(settings, saved)
-          const value = normalize(
-            settings,
-            changes.reduce((current, apply) => apply(current), base)
+          const savedPreferenceResponse = await fetch(preferenceURL, { credentials: 'include' })
+          const savedPreferenceValue: unknown = savedPreferenceResponse.ok ? (await savedPreferenceResponse.json()).value : null
+          const choicesToApplyOn =
+            savedPreferenceValue == null
+              ? latestEditorChoices.current
+              : normalizeEditorAppearanceChoices(siteSettings, savedPreferenceValue)
+          const mergedChoices = normalizeEditorAppearanceChoices(
+            siteSettings,
+            changes.reduce((current, apply) => apply(current), choicesToApplyOn)
           )
-          const response = await fetch(preferenceURL, {
-            body: JSON.stringify({ value }),
+          const saveResponse = await fetch(preferenceURL, {
+            body: JSON.stringify({ value: mergedChoices }),
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             method: 'POST'
           })
-          if (!response.ok) {
-            retry()
+          if (!saveResponse.ok) {
+            requeueFailedChanges()
             return
           }
-          setFailed(false)
-          if (!pending.current.length) {
-            setUnsaved(false)
+          setSaveFailed(false)
+          if (!pendingChanges.current.length) {
+            setHasUnsavedChanges(false)
           }
         } catch {
-          retry()
+          requeueFailedChanges()
         }
       })
     },
-    [preferenceURL, settings]
+    [preferenceURL, siteSettings]
   )
 
   useEffect(() => {
-    const setup = unconfirmed.current
-    unconfirmed.current = undefined
-    if (setup) {
-      update(() => setup)
+    const choicesToResave = unconfirmedCookieChoices.current
+    unconfirmedCookieChoices.current = undefined
+    if (choicesToResave) {
+      applyChangeAndSave(() => choicesToResave)
     }
-  }, [update])
+  }, [applyChangeAndSave])
 
   const context = useMemo(() => {
     return {
-      ...resolved,
-      characters: Object.keys(settings.options) as Character[],
-      editable,
-      palettes: settings.palettes,
-      paste: (text: string) => {
-        const valid = parseChoices(settings, text) !== undefined
-        if (valid) {
-          update((current) => pasteSetup(settings, current, text) ?? current)
+      ...activeAppearance,
+      allowedCharacters: Object.keys(siteSettings.options) as Character[],
+      allowedPalettes: siteSettings.palettes,
+      canEdit,
+      pasteSetup: (text: string) => {
+        const isValidSetup = parseEditorAppearanceChoices(siteSettings, text) !== undefined
+        if (isValidSetup) {
+          applyChangeAndSave((current) => applyPastedSetup(siteSettings, current, text) ?? current)
         }
-        return valid
+        return isValidSetup
       },
-      rail: collapsed,
-      removeCustom: () =>
-        update((current) => ({
+      removeCustomPalette: () =>
+        applyChangeAndSave((current) => ({
           ...current,
           custom: undefined,
-          palette: current.palette === customPalette ? undefined : current.palette
+          palette: current.palette === customPaletteSlug ? undefined : current.palette
         })),
-      reset: () => {
-        const { options: before, personal } = choices
-        update((current) => resetCharacter(settings, current, character))
+      resetCharacterOptions: () => {
+        const { options: optionsBeforeReset, personal: personalOptionsBeforeReset } = editorChoices
+        applyChangeAndSave((current) => clearCharacterOptionOverrides(siteSettings, current, character))
         return () =>
-          update((current) => ({
+          applyChangeAndSave((current) => ({
             ...current,
-            options: { ...current.options, [character]: { ...before?.[character], ...current.options?.[character] } },
-            personal: { ...personal, ...current.personal }
+            options: { ...current.options, [character]: { ...optionsBeforeReset?.[character], ...current.options?.[character] } },
+            personal: { ...personalOptionsBeforeReset, ...current.personal }
           }))
       },
-      setCharacter: (next: Character) => update((current) => ({ ...current, character: next })),
-      setCustom: (next: CustomPalette, persist = true) =>
-        persist ? update((current) => ({ ...current, custom: next, palette: customPalette })) : setDraft(next),
-      setOption: <O extends Option>(option: O, value: OptionValue<O>) =>
-        update((current) =>
-          isPersonal(option)
+      saveFailed,
+      setCharacter: (next: Character) => applyChangeAndSave((current) => ({ ...current, character: next })),
+      setCustomPalette: (next: CustomPalette, persist = true) =>
+        persist
+          ? applyChangeAndSave((current) => ({ ...current, custom: next, palette: customPaletteSlug }))
+          : setCustomPaletteDraft(next),
+      setOption: <O extends OptionName>(option: O, value: OptionValue<O>) =>
+        applyChangeAndSave((current) =>
+          isPersonalOption(option)
             ? { ...current, personal: { ...current.personal, [option]: value } }
             : {
                 ...current,
                 options: { ...current.options, [character]: { ...current.options?.[character], [option]: value } }
               }
         ),
-      setPalette: (next: string) => update((current) => ({ ...current, palette: next })),
-      setup: setupOf(resolved),
-      toggleRail: () => setRail(!rail),
-      failed
+      setPalette: (next: string) => applyChangeAndSave((current) => ({ ...current, palette: next })),
+      shareableSetup: buildShareableSetup(activeAppearance),
+      showsRail,
+      toggleNavRail: () => setRailCollapsed(!railCollapsed)
     }
-  }, [character, choices, collapsed, editable, failed, resolved, rail, settings, update])
+  }, [
+    activeAppearance,
+    applyChangeAndSave,
+    canEdit,
+    character,
+    editorChoices,
+    railCollapsed,
+    saveFailed,
+    showsRail,
+    siteSettings
+  ])
 
   return (
     <AppearanceContext value={context}>
@@ -283,11 +306,11 @@ export function AppearanceProvider({
       {isServerHtml && (
         <script
           dangerouslySetInnerHTML={{
-            __html: `Object.assign(document.documentElement.dataset,${inline(attributes)})`
+            __html: `Object.assign(document.documentElement.dataset,${serializeForInlineScript(htmlDataAttributes)})`
           }}
         />
       )}
-      {custom && <style>{paletteCss(customPalette, custom)}</style>}
+      {customPalette && <style>{customPaletteCss(customPaletteSlug, customPalette)}</style>}
       {children}
     </AppearanceContext>
   )

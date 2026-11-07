@@ -257,9 +257,9 @@ const copiedFromPayload = [
   { token: '--radius-large', value: '0.8125rem' }
 ]
 
-const read = (file: string) => readFileSync(file, 'utf8')
+const readUtf8 = (file: string) => readFileSync(file, 'utf8')
 const stripComments = (css: string) => css.replace(/\/\*[\s\S]*?\*\//g, '')
-const squash = (text: string) => text.replace(/\s+/g, ' ')
+const collapseWhitespace = (text: string) => text.replace(/\s+/g, ' ')
 
 const listFiles = (dir: string, extension: string) =>
   (readdirSync(dir, { recursive: true }) as string[])
@@ -267,21 +267,25 @@ const listFiles = (dir: string, extension: string) =>
     .map((file) => path.join(dir, file))
 
 const payloadCssFiles = [...listFiles(uiDist, '.css'), ...listFiles(lexicalDist, '.css'), sonnerCss]
-const payloadCss = payloadCssFiles.map(read).join('\n')
-const payloadSource = [payloadCss, ...[...listFiles(uiDist, '.js'), ...listFiles(lexicalDist, '.js')].map(read)].join('\n')
+const payloadCss = payloadCssFiles.map(readUtf8).join('\n')
+const payloadSource = [payloadCss, ...[...listFiles(uiDist, '.js'), ...listFiles(lexicalDist, '.js')].map(readUtf8)].join('\n')
 
-const themeCss = Object.fromEntries(Object.keys(scopes).map((file) => [file, stripComments(read(path.join(sourceDir, file)))]))
+const themeCss = Object.fromEntries(
+  Object.keys(scopes).map((file) => [file, stripComments(readUtf8(path.join(sourceDir, file)))])
+)
 const allThemeCss = Object.values(themeCss).join('\n')
 
-const unique = (values: string[]) => [...new Set(values)].sort()
-const matchAll = (text: string, pattern: RegExp) => unique([...text.matchAll(pattern)].map((match) => match[1]))
+const uniqueSorted = (values: string[]) => [...new Set(values)].sort()
+const uniqueFirstCaptureGroups = (text: string, pattern: RegExp) =>
+  uniqueSorted([...text.matchAll(pattern)].map((match) => match[1]))
 
-const declaredProperties = (css: string) => matchAll(css, /(?<![\w-])(--[\w-]+)\s*:/g)
-const referencedProperties = (css: string) => matchAll(css, /var\(\s*(--[\w-]+)/g)
-const optionalProperties = (css: string) => matchAll(css, /var\(\s*(--payloadpack-[\w-]+)\s*,/g)
-const documented = matchAll(read(path.join(root, '../../README.md')), /^\| `(--payloadpack-[\w-]+)`/gm)
-const tight = (css: string) => squash(css).replace(/\(\s+/g, '(').replace(/\s+\)/g, ')')
-const onRoot = (selector: string, scope: string) =>
+const declaredProperties = (css: string) => uniqueFirstCaptureGroups(css, /(?<![\w-])(--[\w-]+)\s*:/g)
+const referencedProperties = (css: string) => uniqueFirstCaptureGroups(css, /var\(\s*(--[\w-]+)/g)
+const optionalProperties = (css: string) => uniqueFirstCaptureGroups(css, /var\(\s*(--payloadpack-[\w-]+)\s*,/g)
+const documentedTokens = uniqueFirstCaptureGroups(readUtf8(path.join(root, '../../README.md')), /^\| `(--payloadpack-[\w-]+)`/gm)
+const collapseWhitespaceAndParenthesisPadding = (css: string) =>
+  collapseWhitespace(css).replace(/\(\s+/g, '(').replace(/\s+\)/g, ')')
+const isRootScopedSelector = (selector: string, scope: string) =>
   selector
     .replace('@layer payload', '')
     .replace(scope, '')
@@ -290,7 +294,7 @@ const onRoot = (selector: string, scope: string) =>
     .replace(/\([^()]*\)/g, '()')
     .split(/[\s,]+/)
     .every((part) => part === '' || part.startsWith('&'))
-const selectors = (css: string) =>
+const listSelectors = (css: string) =>
   [...css.matchAll(/([^{};]+)\{/g)]
     .map((match) => match[1].trim())
     .filter((prelude) => !prelude.startsWith('@'))
@@ -323,15 +327,15 @@ const topLevelBlocks = (css: string) => {
   return { blocks, outside: outside.trim() }
 }
 
-const rules = (css: string, parent = ''): { declarations: string; properties: string[]; selector: string }[] =>
+const flattenRules = (css: string, parent = ''): { declarations: string; properties: string[]; selector: string }[] =>
   topLevelBlocks(css).blocks.flatMap((block) => {
     const selector = `${parent} ${block.prelude}`.trim()
     const declarations = block.body.replace(/[^{};]*\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g, '')
-    const properties = matchAll(declarations, /(?:^|;)\s*([\w-]+)\s*:/g)
-    return [{ declarations, properties, selector }, ...rules(block.body, selector)]
+    const properties = uniqueFirstCaptureGroups(declarations, /(?:^|;)\s*([\w-]+)\s*:/g)
+    return [{ declarations, properties, selector }, ...flattenRules(block.body, selector)]
   })
 
-const ruleBody = (css: string, selector: string) => {
+const findRuleBody = (css: string, selector: string) => {
   const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
   const start = css.search(new RegExp(`(?:^|\\n)[ \\t]*${escaped} \\{`))
   if (start === -1) {
@@ -345,12 +349,12 @@ const ruleBody = (css: string, selector: string) => {
     if (css[index] === '}') depth--
     index++
   }
-  return squash(css.slice(open + 1, index - 1))
+  return collapseWhitespace(css.slice(open + 1, index - 1))
 }
 
 const hasClass = (selector: string, name: string) => new RegExp(`\\.${name}(?![\\w-])`).test(selector)
 
-const subject = (selector: string) =>
+const selectorSubject = (selector: string) =>
   selector
     .replace(/:(?:not|has)\([^()]*\)|\[[^\]]*\]/g, '')
     .replace(/\s+&/g, '')
@@ -366,7 +370,7 @@ const subject = (selector: string) =>
 const existsInPayload = (name: string) => {
   const runtime = builtAtRuntime[name]
   if (runtime) {
-    const source = read(path.join(uiDist, runtime.file))
+    const source = readUtf8(path.join(uiDist, runtime.file))
     return runtime.snippets.every((snippet) => source.includes(snippet))
   }
   return new RegExp(`(?<![\\w-])${name.replace(/[-]/g, '\\-')}(?![\\w-])`).test(payloadSource)
@@ -375,17 +379,17 @@ const existsInPayload = (name: string) => {
 describe('theme contract with Payload', () => {
   it('loads every stylesheet through styles/index.css', () => {
     const stylesheets = listFiles(sourceDir, '.css').map((file) => path.relative(sourceDir, file))
-    const imported = matchAll(read(path.join(stylesDir, 'index.css')), /@import '(.+?)'/g).map((file) =>
+    const imported = uniqueFirstCaptureGroups(readUtf8(path.join(stylesDir, 'index.css')), /@import '(.+?)'/g).map((file) =>
       path.relative(sourceDir, path.resolve(stylesDir, file))
     )
-    expect(unique(imported)).toEqual(unique(stylesheets.filter((file) => file !== 'styles/index.css')))
-    expect(unique(Object.keys(scopes))).toEqual(unique(imported))
+    expect(uniqueSorted(imported)).toEqual(uniqueSorted(stylesheets.filter((file) => file !== 'styles/index.css')))
+    expect(uniqueSorted(Object.keys(scopes))).toEqual(uniqueSorted(imported))
   })
 
   it('imports styles/index.css in the server provider and no CSS in client modules', () => {
-    const cssImports = (file: string) => matchAll(read(file), /^import '(.+\.css)'/gm)
+    const cssImports = (file: string) => uniqueFirstCaptureGroups(readUtf8(file), /^import '(.+\.css)'/gm)
     const clientModulesWithCss = [...listFiles(sourceDir, '.ts'), ...listFiles(sourceDir, '.tsx')]
-      .filter((file) => read(file).startsWith("'use client'") && cssImports(file).length > 0)
+      .filter((file) => readUtf8(file).startsWith("'use client'") && cssImports(file).length > 0)
       .map((file) => path.relative(sourceDir, file))
 
     expect(cssImports(path.join(sourceDir, 'components/appearance-server-provider.tsx'))).toEqual(['../styles/index.css'])
@@ -412,7 +416,7 @@ describe('theme contract with Payload', () => {
   })
 
   it('keeps Payload CSS in a layer below ours', () => {
-    expect(read(path.join(uiDist, 'layouts/Root/DocumentRoot.js'))).toContain('@layer payload-default, payload;')
+    expect(readUtf8(path.join(uiDist, 'layouts/Root/DocumentRoot.js'))).toContain('@layer payload-default, payload;')
   })
 
   it('overrides only tokens that Payload still declares or reads', () => {
@@ -422,8 +426,8 @@ describe('theme contract with Payload', () => {
   })
 
   it('remaps only tokens that are still read where the theme sets them', () => {
-    const payloadRules = payloadCssFiles.flatMap((file) => rules(stripComments(read(file))))
-    const themeRules = rules(allThemeCss)
+    const payloadRules = payloadCssFiles.flatMap((file) => flattenRules(stripComments(readUtf8(file))))
+    const themeRules = flattenRules(allThemeCss)
     const readsOn = (fragment: string, token: string) => {
       const pattern = new RegExp(`${fragment.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\w-])`)
       const readers = readByTheme.includes(token) ? [...payloadRules, ...themeRules] : payloadRules
@@ -432,8 +436,10 @@ describe('theme contract with Payload', () => {
     const readAnywhere = (token: string) =>
       [...payloadRules, ...themeRules].some((rule) => referencedProperties(rule.declarations).includes(token))
     const unread = themeRules.flatMap((rule) => {
-      const classes = matchAll(subject(rule.selector), /\.([_a-zA-Z][\w-]*)/g).filter((name) => !name.startsWith('payloadpack-'))
-      const element = unique(classes.flatMap((name) => [name, name.replace(/--.*$/, '')])).map((name) => `.${name}`)
+      const classes = uniqueFirstCaptureGroups(selectorSubject(rule.selector), /\.([_a-zA-Z][\w-]*)/g).filter(
+        (name) => !name.startsWith('payloadpack-')
+      )
+      const element = uniqueSorted(classes.flatMap((name) => [name, name.replace(/--.*$/, '')])).map((name) => `.${name}`)
       const isRead = (token: string) =>
         element.length === 0
           ? readAnywhere(token)
@@ -443,7 +449,7 @@ describe('theme contract with Payload', () => {
         .filter((token) => token.startsWith('--') && !token.startsWith('--payloadpack-') && !isRead(token))
         .map((token) => `${element[0] ?? 'root'} ${token}`)
     })
-    expect(unique(unread)).toEqual([])
+    expect(uniqueSorted(unread)).toEqual([])
   })
 
   it('reads only tokens that Payload or the plugin declares', () => {
@@ -454,7 +460,9 @@ describe('theme contract with Payload', () => {
       ...declaredProperties(allThemeCss),
       ...setByPayloadScripts
     ])
-    expect(referencedProperties(allThemeCss).filter((token) => !known.has(token) && !documented.includes(token))).toEqual([])
+    expect(referencedProperties(allThemeCss).filter((token) => !known.has(token) && !documentedTokens.includes(token))).toEqual(
+      []
+    )
   })
 
   it('documents every token a user can set, and only those', () => {
@@ -463,35 +471,35 @@ describe('theme contract with Payload', () => {
         .filter((file) => !paletteFiles.includes(file))
         .flatMap((file) => declaredProperties(themeCss[file]))
     )
-    const settable = unique([
+    const settable = uniqueSorted([
       ...optionalProperties(allThemeCss).filter((token) => !internal.has(token)),
       ...paletteFiles.flatMap((file) => declaredProperties(themeCss[file])),
       ...declaredProperties(themeCss['options/motion.css']).filter((token) => token.startsWith('--payloadpack-motion-'))
     ])
-    const onScopeRoot = unique(
+    const onScopeRoot = uniqueSorted(
       Object.entries(scopes).flatMap(([file, scope]) =>
-        rules(themeCss[file])
-          .filter((rule) => onRoot(rule.selector, scope))
+        flattenRules(themeCss[file])
+          .filter((rule) => isRootScopedSelector(rule.selector, scope))
           .flatMap((rule) => rule.properties)
       )
     )
     expect(
-      documented.filter((token) => !referencedProperties(allThemeCss).includes(token)),
+      documentedTokens.filter((token) => !referencedProperties(allThemeCss).includes(token)),
       'documented but unused'
     ).toEqual([])
     expect(
-      documented.filter((token) => !settable.includes(token) && !onScopeRoot.includes(token)),
+      documentedTokens.filter((token) => !settable.includes(token) && !onScopeRoot.includes(token)),
       'documented without a default a user can override'
     ).toEqual([])
     expect(
-      settable.filter((token) => !documented.includes(token)),
+      settable.filter((token) => !documentedTokens.includes(token)),
       'settable but undocumented'
     ).toEqual([])
-    const belowRoot = rules(themeCss['palettes/palette.css'])
-      .filter((rule) => !onRoot(rule.selector, scopes['palettes/palette.css']))
+    const belowRoot = flattenRules(themeCss['palettes/palette.css'])
+      .filter((rule) => !isRootScopedSelector(rule.selector, scopes['palettes/palette.css']))
       .flatMap((rule) => rule.properties)
     expect(
-      documented.filter((token) => belowRoot.includes(token)),
+      documentedTokens.filter((token) => belowRoot.includes(token)),
       'sheet token declared below the palette root'
     ).toEqual([])
   })
@@ -502,7 +510,7 @@ describe('theme contract with Payload', () => {
       light: ['--payloadpack-action-primary', '--payloadpack-bg-app', '--payloadpack-bg-surface', '--payloadpack-text-primary']
     }
     const missing = paletteFiles.flatMap((file) => {
-      const [light, dark] = rules(themeCss[file]).filter((rule) => rule.selector.includes('[data-palette='))
+      const [light, dark] = flattenRules(themeCss[file]).filter((rule) => rule.selector.includes('[data-palette='))
       return [
         ...required.light.filter((token) => !light.properties.includes(token)).map((token) => `${file} light ${token}`),
         ...required.dark.filter((token) => !dark.properties.includes(token)).map((token) => `${file} dark ${token}`)
@@ -514,11 +522,11 @@ describe('theme contract with Payload', () => {
   it('sets each Payload token on the palette root from one stylesheet only', () => {
     const owners = new Map<string, string[]>()
     for (const file of Object.keys(themeCss).filter((name) => name.startsWith('palettes/'))) {
-      const tokens = rules(themeCss[file])
-        .filter((rule) => onRoot(rule.selector, scopes[file]))
+      const tokens = flattenRules(themeCss[file])
+        .filter((rule) => isRootScopedSelector(rule.selector, scopes[file]))
         .flatMap((rule) => rule.properties)
         .filter((name) => name.startsWith('--') && !name.startsWith('--payloadpack-'))
-      for (const token of unique(tokens)) {
+      for (const token of uniqueSorted(tokens)) {
         owners.set(token, [...(owners.get(token) ?? []), file])
       }
     }
@@ -537,7 +545,7 @@ describe('theme contract with Payload', () => {
     const declarations = (text: string) =>
       Object.fromEntries([...text.matchAll(/(?:^|;)\s*(--[\w-]+)\s*:([^;]*)/g)].map(([, token, value]) => [token, value.trim()]))
     const leaks = paletteFiles.flatMap((file) => {
-      const [light, dark] = rules(themeCss[file])
+      const [light, dark] = flattenRules(themeCss[file])
         .filter((rule) => rule.selector.includes('[data-palette='))
         .map((rule) => declarations(rule.declarations))
       return Object.entries(light)
@@ -556,20 +564,20 @@ describe('theme contract with Payload', () => {
     const timing =
       /(?<![\w.-])(?:\d*\.)?\d+m?s(?![\w-])|(?<![\w-])(?:ease(?:-in|-out|-in-out)?|linear|step-start|step-end)(?![\w-])|(?:cubic-bezier|steps|linear)\(/
     const loose = Object.entries(themeCss).flatMap(([file, css]) =>
-      rules(css).flatMap(({ declarations }) =>
+      flattenRules(css).flatMap(({ declarations }) =>
         [...declarations.matchAll(/(?:^|;)\s*([\w-]+)\s*:([^;]*)/g)]
           .filter(([, property, value]) => timing.test(value.replace(/(?<![\w.])0s/g, '')))
           .filter(([, property]) => !(file === 'options/motion.css' && /^--payloadpack-(?:duration|ease|motion)-/.test(property)))
           .map(([, property, value]) => `${file}: ${property}: ${value.trim()}`)
       )
     )
-    expect(unique(loose)).toEqual([])
+    expect(uniqueSorted(loose)).toEqual([])
   })
 
   it('gives every relative color a fallback for browsers without relative colors', () => {
     const missing = Object.entries(themeCss).flatMap(([file, css]) => {
       const [enhanced, fallback = ''] = stripComments(css).split('@supports not (color: oklch(from red l c h))')
-      return matchAll(enhanced, /(--[\w-]+):[^;]*\b(?:oklch|rgb)\(from /g)
+      return uniqueFirstCaptureGroups(enhanced, /(--[\w-]+):[^;]*\b(?:oklch|rgb)\(from /g)
         .filter((property) => !fallback.includes(`${property}:`))
         .map((property) => `${file}: ${property}`)
     })
@@ -581,14 +589,14 @@ describe('theme contract with Payload', () => {
   })
 
   it('falls back to the step Payload maps each color to in each mode', () => {
-    const colors = read(path.join(uiDist, 'css/colors.css'))
+    const colors = readUtf8(path.join(uiDist, 'css/colors.css'))
     const palette = themeCss['palettes/palette.css']
     const blocks = [
       { payload: ':root', theme: "&:not([data-theme='dark'])" },
       { payload: "[data-theme='dark']", theme: "&[data-theme='dark']" }
     ]
     const mappings = blocks.flatMap(({ payload, theme }) => {
-      const block = tight(ruleBody(palette, theme) ?? '')
+      const block = collapseWhitespaceAndParenthesisPadding(findRuleBody(palette, theme) ?? '')
       return [
         ...[...block.matchAll(/(--color-[\w-]+): var\(--payloadpack-[\w-]+, (var\(--ramp-[\w-]+\))\);/g)].map(
           ([, token, ramp]) => ({ mapping: `${token}: ${ramp};`, payload })
@@ -600,15 +608,19 @@ describe('theme contract with Payload', () => {
       ]
     })
     expect(mappings).toHaveLength(10)
-    expect(mappings.filter(({ mapping, payload }) => !tight(ruleBody(colors, payload) ?? '').includes(mapping))).toEqual([])
+    expect(
+      mappings.filter(
+        ({ mapping, payload }) => !collapseWhitespaceAndParenthesisPadding(findRuleBody(colors, payload) ?? '').includes(mapping)
+      )
+    ).toEqual([])
   })
 
   it("keeps Payload's enhanced-contrast value for every color the mode blocks remap", () => {
     const declarations = (body: string) =>
       Object.fromEntries(
-        [...body.matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)].map(([, token, value]) => [token, squash(value.trim())])
+        [...body.matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)].map(([, token, value]) => [token, collapseWhitespace(value.trim())])
       )
-    const contrast = rules(stripComments(read(path.join(uiDist, 'css/colors.css')))).filter((rule) =>
+    const contrast = flattenRules(stripComments(readUtf8(path.join(uiDist, 'css/colors.css')))).filter((rule) =>
       rule.selector.includes('html[data-enhanced-contrast]')
     )
     const palette = themeCss['palettes/palette.css']
@@ -626,8 +638,8 @@ describe('theme contract with Payload', () => {
           )
           .map((rule) => declarations(rule.declarations))
       )
-      const remapped = Object.keys(declarations(ruleBody(palette, blocks[mode][0]) ?? ''))
-      const theme = declarations(ruleBody(palette, blocks[mode][1]) ?? '')
+      const remapped = Object.keys(declarations(findRuleBody(palette, blocks[mode][0]) ?? ''))
+      const theme = declarations(findRuleBody(palette, blocks[mode][1]) ?? '')
       expect(remapped.length, mode).toBeGreaterThan(0)
       expect(Object.keys(theme).length, mode).toBeGreaterThan(0)
       return remapped.filter((token) => token in payload && theme[token] !== payload[token]).map((token) => `${mode} ${token}`)
@@ -636,16 +648,18 @@ describe('theme contract with Payload', () => {
   })
 
   it.each(copiedFromPayload)("falls back to Payload's own $token where the theme takes it over", ({ token, value }) => {
-    expect(tight(payloadCss), `${token} changed upstream, update the fallback`).toContain(`${token}: ${value};`)
-    expect(tight(allThemeCss)).toMatch(
+    expect(collapseWhitespaceAndParenthesisPadding(payloadCss), `${token} changed upstream, update the fallback`).toContain(
+      `${token}: ${value};`
+    )
+    expect(collapseWhitespaceAndParenthesisPadding(allThemeCss)).toMatch(
       new RegExp(`${token}: var\\(--payloadpack-[\\w-]+, ${value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\);`)
     )
   })
 
   it('lets nested themes inherit every token Payload pins on them, and maps the palette on the root only', () => {
-    const payloadRules = payloadCssFiles.flatMap((file) => rules(stripComments(read(file))))
-    const readers = [...payloadRules, ...rules(allThemeCss)]
-    const pinned = unique(
+    const payloadRules = payloadCssFiles.flatMap((file) => flattenRules(stripComments(readUtf8(file))))
+    const readers = [...payloadRules, ...flattenRules(allThemeCss)]
+    const pinned = uniqueSorted(
       payloadRules
         .filter((rule) =>
           rule.selector
@@ -658,7 +672,7 @@ describe('theme contract with Payload', () => {
         .filter((token) => readers.some((rule) => referencedProperties(rule.declarations).includes(token)))
     )
     const palette = themeCss['palettes/palette.css']
-    const nested = rules(palette).filter((rule) =>
+    const nested = flattenRules(palette).filter((rule) =>
       /(^|[\s>+~,])\[data-theme/.test(rule.selector.replace('@layer payload', '').replace(scopes['palettes/palette.css'], ''))
     )
     expect(pinned.length).toBeGreaterThan(100)
@@ -668,7 +682,7 @@ describe('theme contract with Payload', () => {
   })
 
   it("falls back to Payload's own blue steps for a palette without an accent", () => {
-    const tokens = read(path.join(uiDist, 'css/design-tokens.css'))
+    const tokens = readUtf8(path.join(uiDist, 'css/design-tokens.css'))
     const fallbacks = [...themeCss['palettes/accent.css'].matchAll(/(--ramp-[\w-]+):\s*var\(--[\w-]+,\s*(#[\da-f]+)\)/g)]
 
     expect(fallbacks).toHaveLength(12)
@@ -690,7 +704,7 @@ describe('theme contract with Payload', () => {
         .flatMap((file) => declaredProperties(themeCss[file]))
     )
     const colorTokens = new Set([
-      ...['css/colors.css', 'css/design-tokens.css'].flatMap((file) => declaredProperties(read(path.join(uiDist, file)))),
+      ...['css/colors.css', 'css/design-tokens.css'].flatMap((file) => declaredProperties(readUtf8(path.join(uiDist, file)))),
       ...paletteTokens
     ])
     const literal =
@@ -708,38 +722,40 @@ describe('theme contract with Payload', () => {
     const colored = Object.keys(themeCss)
       .filter((file) => /^(?:characters|options)\//.test(file))
       .flatMap((file) =>
-        rules(themeCss[file]).flatMap(({ declarations }) =>
+        flattenRules(themeCss[file]).flatMap(({ declarations }) =>
           [...declarations.matchAll(/(?:^|;)\s*([\w-]+)\s*:([^;]*)/g)]
             .filter(([, property, value]) => setsColor(property, value))
             .map(([, property, value]) => `${file}: ${property}: ${value.trim()}`)
         )
       )
-    expect(unique(colored)).toEqual([])
+    expect(uniqueSorted(colored)).toEqual([])
   })
 
   it('targets only classes and ids that Payload still renders', () => {
-    const selectorText = selectors(allThemeCss)
-    const classes = matchAll(selectorText, /\.(-?[_a-zA-Z][\w-]*)/g)
-    const ids = matchAll(selectorText, /#([\w-]+)/g)
+    const selectorText = listSelectors(allThemeCss)
+    const classes = uniqueFirstCaptureGroups(selectorText, /\.(-?[_a-zA-Z][\w-]*)/g)
+    const ids = uniqueFirstCaptureGroups(selectorText, /#([\w-]+)/g)
     expect([...classes, ...ids].filter((name) => !name.startsWith('payloadpack-') && !existsInPayload(name))).toEqual([])
   })
 
   it('is never outranked by unlayered Payload rules on the properties it sets', () => {
     const pseudoElement = (selector: string) => selector.match(/::[\w-]+$/)?.[0] ?? ''
-    const classes = (selector: string) => matchAll(selector, /\.(-?[_a-zA-Z][\w-]*)/g)
+    const classes = (selector: string) => uniqueFirstCaptureGroups(selector, /\.(-?[_a-zA-Z][\w-]*)/g)
     const styledClasses = (selector: string) =>
-      classes(subject(selector)).length ? classes(subject(selector)) : classes(selector.replace(/\[[^\]]*\]/g, ''))
-    const ours = rules(allThemeCss)
+      classes(selectorSubject(selector)).length
+        ? classes(selectorSubject(selector))
+        : classes(selector.replace(/\[[^\]]*\]/g, ''))
+    const ours = flattenRules(allThemeCss)
     const conflicts = payloadCssFiles.flatMap((file) =>
-      topLevelBlocks(stripComments(read(file)))
+      topLevelBlocks(stripComments(readUtf8(file)))
         .blocks.filter((block) => !/^@(layer|property|keyframes|font-face)\b/.test(block.prelude))
-        .flatMap((block) => rules(`${block.prelude}{${block.body}}`))
+        .flatMap((block) => flattenRules(`${block.prelude}{${block.body}}`))
         .flatMap((theirs) =>
           ours
             .filter((mine) => pseudoElement(mine.selector) === pseudoElement(theirs.selector))
             .flatMap((mine) =>
               styledClasses(mine.selector)
-                .filter((name) => name !== 'icon' && hasClass(subject(theirs.selector), name))
+                .filter((name) => name !== 'icon' && hasClass(selectorSubject(theirs.selector), name))
                 .flatMap((name) =>
                   mine.properties
                     .filter((property) => theirs.properties.includes(property))
@@ -748,15 +764,15 @@ describe('theme contract with Payload', () => {
             )
         )
     )
-    expect(unique(conflicts)).toEqual([])
+    expect(uniqueSorted(conflicts)).toEqual([])
   })
 
   it('maps every Payload icon to Lucide or keeps it on purpose', () => {
-    const payloadIcons = matchAll(
-      listFiles(path.join(uiDist, 'icons'), '.js').map(read).join('\n'),
+    const payloadIcons = uniqueFirstCaptureGroups(
+      listFiles(path.join(uiDist, 'icons'), '.js').map(readUtf8).join('\n'),
       /icon--([a-z]+(?:-[a-z]+)*(?:--[a-z]+)?)/g
     )
-    const mapped = matchAll(themeCss['options/icons.css'], /svg\.icon--([a-z-]+)\s*\{\s*--payloadpack-icon:/g)
+    const mapped = uniqueFirstCaptureGroups(themeCss['options/icons.css'], /svg\.icon--([a-z-]+)\s*\{\s*--payloadpack-icon:/g)
 
     expect(
       payloadIcons.filter((icon) => !mapped.includes(icon) && !keptPayloadIcons.includes(icon)),
@@ -770,7 +786,9 @@ describe('theme contract with Payload', () => {
 
   it("records Payload's rules for every element the theme styles, so any upstream change shows up", async () => {
     const styled = new Set(
-      matchAll(selectors(allThemeCss), /\.(-?[_a-zA-Z][\w-]*)/g).filter((name) => !name.startsWith('payloadpack-'))
+      uniqueFirstCaptureGroups(listSelectors(allThemeCss), /\.(-?[_a-zA-Z][\w-]*)/g).filter(
+        (name) => !name.startsWith('payloadpack-')
+      )
     )
     const label = (file: string) =>
       file.startsWith(uiDist)
@@ -781,7 +799,7 @@ describe('theme contract with Payload', () => {
     const sections = payloadCssFiles
       .filter((file) => file !== path.join(uiDist, 'styles.css') && !file.endsWith('bundled.css'))
       .flatMap((file) => {
-        const touched = rules(stripComments(read(file))).filter(
+        const touched = flattenRules(stripComments(readUtf8(file))).filter(
           (rule) =>
             rule.declarations.trim() && [...rule.selector.matchAll(/\.(-?[_a-zA-Z][\w-]*)/g)].some(([, name]) => styled.has(name))
         )
@@ -791,7 +809,7 @@ describe('theme contract with Payload', () => {
                 `== ${label(file)}`,
                 ...touched.map(
                   (rule) =>
-                    `${squash(rule.selector.replace(/@layer [\w-]+/g, '')).trim()} { ${squash(rule.declarations).trim()} }`
+                    `${collapseWhitespace(rule.selector.replace(/@layer [\w-]+/g, '')).trim()} { ${collapseWhitespace(rule.declarations).trim()} }`
                 )
               ].join('\n')
             ]
@@ -801,23 +819,25 @@ describe('theme contract with Payload', () => {
   })
 
   it.each(hardCodedByPayload)('Payload still hard-codes $selector ($declaration)', ({ declaration, file, selector }) => {
-    const css = read(path.join(uiDist, file))
-    expect(ruleBody(css, selector), `${selector} changed upstream, re-check its fix`).toContain(squash(declaration))
+    const css = readUtf8(path.join(uiDist, file))
+    expect(findRuleBody(css, selector), `${selector} changed upstream, re-check its fix`).toContain(
+      collapseWhitespace(declaration)
+    )
   })
 
   it('Payload still hard-codes the fixed-toolbar editor padding', () => {
-    const css = read(path.join(lexicalDist, 'features/toolbars/fixed/client/Toolbar/index.css'))
-    expect(ruleBody(css, '.fixed-toolbar')).toContain('> .ContentEditable__root { padding-top: var(--spacer-2); }')
+    const css = readUtf8(path.join(lexicalDist, 'features/toolbars/fixed/client/Toolbar/index.css'))
+    expect(findRuleBody(css, '.fixed-toolbar')).toContain('> .ContentEditable__root { padding-top: var(--spacer-2); }')
   })
 
   it('Payload still defaults Monaco to the font size the plugin replaces', () => {
-    const constants = read(path.join(uiDist, 'elements/CodeEditor/constants.js'))
-    const pluginDefault = read(path.join(sourceDir, 'hooks/use-monaco-font-size.ts')).match(/PAYLOAD_FONT_SIZE = (\d+)/)?.[1]
+    const constants = readUtf8(path.join(uiDist, 'elements/CodeEditor/constants.js'))
+    const pluginDefault = readUtf8(path.join(sourceDir, 'hooks/use-monaco-font-size.ts')).match(/PAYLOAD_FONT_SIZE = (\d+)/)?.[1]
     expect(constants).toContain(`fontSize: ${pluginDefault},`)
     expect(constants).toContain('lineHeight: 16,')
   })
   it('references only Lucide icons that lucide-static ships', () => {
-    const icons = matchAll(allThemeCss, /lucide-static\/icons\/([a-z0-9-]+)\.svg/g)
+    const icons = uniqueFirstCaptureGroups(allThemeCss, /lucide-static\/icons\/([a-z0-9-]+)\.svg/g)
     expect(icons.length).toBeGreaterThan(0)
     expect(icons.filter((icon) => !existsSync(path.join(lucideIcons, `${icon}.svg`)))).toEqual([])
   })

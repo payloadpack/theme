@@ -1,10 +1,10 @@
 import type { ServerProps } from 'payload'
 
-import { isEditable, type Panel } from '../lib/appearance.js'
+import { type AppearancePanelAccess, canUserEditAppearance } from '../lib/appearance.js'
 import { AppearanceButton } from './appearance-panel.js'
 
-export function AppearanceServerPanel({ panel, user }: ServerProps & { panel: Panel }) {
-  if (!isEditable(panel, user)) {
+export function AppearanceServerPanel({ panel, user }: ServerProps & { panel: AppearancePanelAccess }) {
+  if (!canUserEditAppearance(panel, user)) {
     return null
   }
   return <AppearanceButton />
