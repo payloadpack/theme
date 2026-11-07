@@ -293,21 +293,21 @@ test.describe('Appearance panel', () => {
     const html = page.locator('html')
 
     await openFineTune(sheet)
-    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Density', 'Compact')))
-    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Corners', 'Small')))
+    await radioLabel(radioInGroup(sheet, 'Density', 'Compact')).click()
+    await radioLabel(radioInGroup(sheet, 'Corners', 'Small')).click()
     await expect(html).toHaveAttribute('data-density', 'compact')
     await expect(html).toHaveAttribute('data-radius', 'sm')
 
-    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Style', 'Studio')))
+    await radioLabel(radioInGroup(sheet, 'Style', 'Studio')).click()
     await expect(html).toHaveAttribute('data-density', 'compact')
     await expect(html).toHaveAttribute('data-radius', 'lg')
     await expect(radioInGroup(sheet, 'Density', 'Compact')).toBeChecked()
 
-    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Style', 'Enhanced')))
+    await radioLabel(radioInGroup(sheet, 'Style', 'Enhanced')).click()
     await expect(html).toHaveAttribute('data-radius', 'sm')
 
-    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Style', 'Payload')))
-    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Style', 'Enhanced')))
+    await radioLabel(radioInGroup(sheet, 'Style', 'Payload')).click()
+    await radioLabel(radioInGroup(sheet, 'Style', 'Enhanced')).click()
     await expect(html).toHaveAttribute('data-density', 'compact')
   })
 
@@ -326,18 +326,18 @@ test.describe('Appearance panel', () => {
     await expect(reset).toBeDisabled()
 
     await radioLabel(radioInGroup(sheet, 'Density', 'Compact')).click()
-    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Corners', 'Small')))
+    await radioLabel(radioInGroup(sheet, 'Corners', 'Small')).click()
     await expect(sheet.locator('summary')).toContainText('2 changed')
 
-    await clickAndWaitForSave(page, reset)
+    await reset.click()
     await expect(html).toHaveAttribute('data-density', 'comfortable')
     await expect(html).toHaveAttribute('data-radius', 'md')
     await expect(reset).toBeDisabled()
     await expect(status).toContainText('Enhanced is back to its defaults.')
-    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Palette', 'Warm')))
-    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Corners', 'Large')))
+    await radioLabel(radioInGroup(sheet, 'Palette', 'Warm')).click()
+    await radioLabel(radioInGroup(sheet, 'Corners', 'Large')).click()
 
-    await clickAndWaitForSave(page, status.getByRole('button', { name: 'Undo' }))
+    await status.getByRole('button', { name: 'Undo' }).click()
     await expect(html).toHaveAttribute('data-density', 'compact')
     await expect(html).toHaveAttribute('data-radius', 'lg')
     await expect(html).toHaveAttribute('data-palette', 'warm')
@@ -865,20 +865,14 @@ test.describe('Theme values', () => {
   test('lets a click on a Lucide icon reach the control under it', async ({ page }) => {
     await page.goto('/admin/collections/products')
     await waitForHydration(page)
-    const clickIconAndWaitForSave = async (name: string) => {
+    const clickIcon = async (name: string) => {
       const box = await page.locator(`.segmented-control__option:has(input[value="${name}"]) svg`).boundingBox()
-      await Promise.all([
-        page.waitForResponse(
-          (response) =>
-            response.url().endsWith('/api/payload-preferences/collection-products') && response.request().method() === 'POST'
-        ),
-        page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2)
-      ])
+      await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2)
     }
 
-    await clickIconAndWaitForSave('grid')
+    await clickIcon('grid')
     await expect(page.getByRole('radio', { name: 'Grid' })).toBeChecked()
-    await clickIconAndWaitForSave('table')
+    await clickIcon('table')
     await expect(page.getByRole('radio', { name: 'Table' })).toBeChecked()
   })
 
@@ -1800,7 +1794,7 @@ test.describe('App palettes', () => {
     await page.goto('/admin/collections/showcase')
     const sheet = await openAppearancePanel(page)
 
-    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Palette', 'Indigo')))
+    await radioLabel(radioInGroup(sheet, 'Palette', 'Indigo')).click()
     await expect(page.locator('html')).toHaveAttribute('data-palette', 'indigo')
     expect(rgbToHex(await computedColor(page, 'var(--color-bg-brand)'))).toBe('#4f46e5')
     expect(rgbToHex(await computedColor(page, 'var(--color-bg-brand)', 'dark'))).toBe('#818cf8')
@@ -1913,7 +1907,7 @@ test.describe('Custom palette', () => {
       lightPrimary: await neutral('--payloadpack-action-primary')
     }
 
-    await clickAndWaitForSave(page, sheet.getByRole('button', { name: 'Custom colors' }))
+    await sheet.getByRole('button', { name: 'Custom colors' }).click()
     await expect(html).toHaveAttribute('data-palette', 'custom')
     await expect(radioInGroup(sheet, 'Palette', 'Custom')).toBeChecked()
     await expect(field(sheet, 'Light', 'Background')).toHaveValue(expected.lightBackground)
@@ -2019,12 +2013,12 @@ test.describe('Custom palette', () => {
     const sheet = await openAppearancePanel(page)
 
     await page.evaluate(() => navigator.clipboard.writeText(JSON.stringify({ character: 'enhanced', palette: 'warm' })))
-    await clickAndWaitForSave(page, await openShareMenuItem(sheet, 'Paste setup'))
+    await (await openShareMenuItem(sheet, 'Paste setup')).click()
     await expect(page.locator('html')).toHaveAttribute('data-character', 'enhanced')
     await expect(page.locator('html')).toHaveAttribute('data-palette', 'warm')
     await expect(radioInGroup(sheet, 'Palette', 'Custom')).toBeAttached()
 
-    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Style', 'Studio')))
+    await radioLabel(radioInGroup(sheet, 'Style', 'Studio')).click()
     await expect(page.locator('html')).toHaveAttribute('data-font', 'inter')
   })
 
@@ -2055,28 +2049,28 @@ test.describe('Custom palette', () => {
   test('keeps the focus in the panel after Remove custom colors, Reset and Undo', async ({ page }) => {
     await page.goto('/admin')
     const sheet = await openAppearancePanel(page)
-    await clickAndWaitForSave(page, sheet.getByRole('button', { name: 'Custom colors' }))
-    await clickAndWaitForSave(page, sheet.getByRole('button', { name: 'Remove custom colors' }))
+    await sheet.getByRole('button', { name: 'Custom colors' }).click()
+    await sheet.getByRole('button', { name: 'Remove custom colors' }).click()
     await expect(sheet.getByRole('button', { name: 'Custom colors' })).toBeFocused()
 
     await openFineTune(sheet)
-    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Density', 'Compact')))
-    await clickAndWaitForSave(page, sheet.getByRole('button', { name: 'Reset Enhanced' }))
+    await radioLabel(radioInGroup(sheet, 'Density', 'Compact')).click()
+    await sheet.getByRole('button', { name: 'Reset Enhanced' }).click()
     const undo = sheet.getByRole('button', { name: 'Undo' })
     await expect(undo).toBeFocused()
-    await clickAndWaitForSave(page, undo)
+    await undo.click()
     await expect(sheet.locator('summary')).toBeFocused()
   })
 
   test('keeps the focus in the palettes when the arrow keys come back to Custom', async ({ page }) => {
     await page.goto('/admin')
     const sheet = await openAppearancePanel(page)
-    await clickAndWaitForSave(page, sheet.getByRole('button', { name: 'Custom colors' }))
+    await sheet.getByRole('button', { name: 'Custom colors' }).click()
     const mine = radioInGroup(sheet, 'Palette', 'Custom')
 
     await mine.focus()
-    await Promise.all([waitForAppearanceSave(page), page.keyboard.press('ArrowLeft')])
-    await Promise.all([waitForAppearanceSave(page), page.keyboard.press('ArrowRight')])
+    await page.keyboard.press('ArrowLeft')
+    await page.keyboard.press('ArrowRight')
     await expect(mine).toBeChecked()
     await expect(mine).toBeFocused()
   })
@@ -2086,10 +2080,10 @@ test.describe('Custom palette', () => {
     await page.goto('/admin')
     const sheet = await openAppearancePanel(page)
 
-    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Palette', 'Neutral')))
+    await radioLabel(radioInGroup(sheet, 'Palette', 'Neutral')).click()
     await expect(page.locator('html')).toHaveAttribute('data-palette', 'neutral')
     await expect(sheet.getByRole('button', { name: 'Custom colors' })).toHaveCount(0)
-    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Palette', 'Custom')))
+    await radioLabel(radioInGroup(sheet, 'Palette', 'Custom')).click()
     await expect(accent(sheet)).toHaveValue('#c2410c')
   })
 
