@@ -66,7 +66,7 @@ const PAYLOADPACK_TRANSLATIONS = {
   resetDone: '{{character}} is back to its defaults.',
   setupCopied: 'Setup copied. Paste it in another browser to get the same look.',
   setupPasted: 'Setup applied.',
-  setupUnsaved: 'Your setup could not be saved yet. This browser keeps it and saves it with your next change or page load.',
+  setupUnsaved: 'Your setup could not be saved yet. Your next change tries again.',
   shareSetup: 'Share setup',
   surface: 'Surface',
   text: 'Text',

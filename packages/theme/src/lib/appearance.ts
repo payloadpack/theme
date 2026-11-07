@@ -222,11 +222,7 @@ export const customPaletteCss = (name: string, { accent, dark, light }: CustomPa
 
 const EDITOR_APPEARANCE_CHOICE_KEYS = ['character', 'custom', 'options', 'palette', 'personal']
 
-const parseJsonOrUndefined = (text: string | undefined): unknown => {
-  if (!text) {
-    return undefined
-  }
-
+const parseJsonOrUndefined = (text: string): unknown => {
   try {
     return JSON.parse(text)
   } catch (error) {
@@ -237,27 +233,15 @@ const parseJsonOrUndefined = (text: string | undefined): unknown => {
   }
 }
 
-function parseRawEditorAppearanceChoices(text: string | undefined) {
+function parseRawEditorAppearanceChoices(text: string) {
   const parsed = parseJsonOrUndefined(text)
   return isNonArrayObject(parsed) && EDITOR_APPEARANCE_CHOICE_KEYS.some((key) => Object.hasOwn(parsed, key)) ? parsed : undefined
 }
 
 export function parseEditorAppearanceChoices(
   siteSettings: SiteAppearanceSettings,
-  text: string | undefined
+  text: string
 ): EditorAppearanceChoices | undefined {
   const rawChoices = parseRawEditorAppearanceChoices(text)
   return rawChoices && normalizeEditorAppearanceChoices(siteSettings, rawChoices)
-}
-
-export function pickInitialEditorAppearanceChoices(
-  siteSettings: SiteAppearanceSettings,
-  savedPreferenceValue: unknown,
-  appearanceCookieValue: string | undefined,
-  accountKey: string | undefined
-) {
-  const parsedCookie = parseJsonOrUndefined(appearanceCookieValue)
-  return isNonArrayObject(parsedCookie) && accountKey !== undefined && parsedCookie.by === accountKey
-    ? { editorChoices: normalizeEditorAppearanceChoices(siteSettings, parsedCookie), unsavedInCookie: true }
-    : { editorChoices: normalizeEditorAppearanceChoices(siteSettings, savedPreferenceValue), unsavedInCookie: false }
 }

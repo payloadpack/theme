@@ -11,7 +11,6 @@ import {
   customPaletteCss,
   normalizeEditorAppearanceChoices,
   parseEditorAppearanceChoices,
-  pickInitialEditorAppearanceChoices,
   resolveActiveAppearance,
   type SiteAppearanceSettings
 } from '../src/lib/appearance.js'
@@ -151,7 +150,7 @@ it("resets a style without dropping a personal pick that is this style's default
   })
 })
 
-it('reads a cookie that holds only personal choices', () => {
+it('reads a pasted setup that holds only personal choices', () => {
   expect(
     parseEditorAppearanceChoices(siteSettings, JSON.stringify({ personal: { density: 'comfortable', radius: 'lg' } }))
   ).toEqual({
@@ -289,7 +288,6 @@ it('sets the custom palette aside while the developer allows a single palette', 
 })
 
 it('rejects text that is not a setup', () => {
-  expect(parseEditorAppearanceChoices(siteSettings, undefined)).toBeUndefined()
   expect(parseEditorAppearanceChoices(siteSettings, '')).toBeUndefined()
   expect(parseEditorAppearanceChoices(siteSettings, '{"character":')).toBeUndefined()
   expect(parseEditorAppearanceChoices(siteSettings, '"stock"')).toBeUndefined()
@@ -332,34 +330,4 @@ it('copies a setup in the shape of the plugin config', () => {
       palette: 'custom'
     }
   )
-})
-
-it("renders this account's unsaved cookie over the stored setup, and never another account's", () => {
-  const savedPreference = { palette: 'payload' }
-  const appearanceCookieJson = (fields: object) => JSON.stringify({ character: 'payload', ...fields })
-
-  expect(
-    pickInitialEditorAppearanceChoices(siteSettings, savedPreference, appearanceCookieJson({ by: 'users:1' }), 'users:1')
-  ).toEqual({
-    editorChoices: { character: 'payload' },
-    unsavedInCookie: true
-  })
-  expect(
-    pickInitialEditorAppearanceChoices(siteSettings, savedPreference, appearanceCookieJson({ by: 'users:2' }), 'users:1')
-  ).toEqual({
-    editorChoices: savedPreference,
-    unsavedInCookie: false
-  })
-  expect(pickInitialEditorAppearanceChoices(siteSettings, savedPreference, appearanceCookieJson({}), 'users:1')).toEqual({
-    editorChoices: savedPreference,
-    unsavedInCookie: false
-  })
-  expect(pickInitialEditorAppearanceChoices(siteSettings, null, appearanceCookieJson({ by: 'users:2' }), 'users:1')).toEqual({
-    editorChoices: {},
-    unsavedInCookie: false
-  })
-  expect(pickInitialEditorAppearanceChoices(siteSettings, null, '{', 'users:1')).toEqual({
-    editorChoices: {},
-    unsavedInCookie: false
-  })
 })

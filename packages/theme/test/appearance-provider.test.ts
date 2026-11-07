@@ -23,11 +23,9 @@ const renderProviderHtml = (
       value: { Link: () => null, params: {}, pathname: '/admin', router, searchParams: new URLSearchParams() },
       children: createElement(AppearanceProvider, {
         accountKey: undefined,
-        appearanceCookieName: 'payload-appearance',
         canEdit: true,
         children: null,
         codeEditorFontSize: false,
-        initialChoicesUnsaved: false,
         initialEditorChoices,
         initialRailCollapsed,
         preferenceURL: '/api/payload-preferences/payloadpack-appearance',

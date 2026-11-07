@@ -126,18 +126,6 @@ test.describe('Logged out', () => {
     await expect(page.locator('html')).toHaveCSS('background-color', await computedColor(page, 'var(--payloadpack-bg-surface)'))
   })
 
-  test("shows the site default even with someone's setup in the cookie", async ({ page }) => {
-    await page
-      .context()
-      .addCookies([
-        demoCookie('appearance', encodeURIComponent(JSON.stringify({ by: 'users:1', character: 'studio', palette: 'warm' })))
-      ])
-    await page.goto('/admin/login')
-
-    await expect(page.locator('html')).toHaveAttribute('data-character', 'enhanced')
-    await expect(page.locator('html')).toHaveAttribute('data-palette', 'neutral')
-  })
-
   test('each editor gets their own look on a shared browser, and signing out shows the site default', async ({
     page,
     playwright
@@ -170,42 +158,6 @@ test.describe('Logged out', () => {
     } finally {
       await deleteSavedAppearance(admin)
       await admin.delete(`/api/users/${other.id}`)
-      await admin.dispose()
-    }
-  })
-
-  test('a change the server could not save survives signing out and saves after signing back in', async ({
-    page,
-    playwright
-  }) => {
-    const admin = await playwright.request.newContext({ baseURL, storageState: AUTH_FILE })
-    const html = page.locator('html')
-    const appearanceCookie = async () =>
-      (await page.context().cookies()).find(({ name }) => name === 'theme-demo-appearance')?.value
-    await deleteSavedAppearance(admin)
-
-    try {
-      await signIn(page, DEMO_USER)
-      const sheet = await openAppearancePanel(page)
-      await page.route('**/api/payload-preferences/payloadpack-appearance', (route) =>
-        route.request().method() === 'POST' ? route.fulfill({ body: '{}', status: 500 }) : route.continue()
-      )
-      await radioLabel(radioInGroup(sheet, 'Palette', 'Warm')).click()
-      await expect(sheet.getByRole('status')).toHaveAttribute('data-tone', 'error')
-
-      await signOut(page)
-      await expect(html).toHaveAttribute('data-palette', 'neutral')
-      expect(JSON.parse(decodeURIComponent((await appearanceCookie()) ?? '{}'))).toMatchObject({ palette: 'warm' })
-
-      await page.unrouteAll()
-      await Promise.all([waitForAppearanceSave(page), signIn(page, DEMO_USER)])
-      await expect(html).toHaveAttribute('data-palette', 'warm')
-      expect((await (await admin.get('/api/payload-preferences/payloadpack-appearance')).json()).value).toEqual({
-        palette: 'warm'
-      })
-      await expect.poll(appearanceCookie).toBeUndefined()
-    } finally {
-      await deleteSavedAppearance(admin)
       await admin.dispose()
     }
   })
@@ -284,24 +236,6 @@ test.describe('Theme plugin', () => {
 })
 
 test.describe('Appearance panel', () => {
-  test('keeps a change that a reload cut off before it was saved, and saves it then', async ({ page }) => {
-    const preference = '**/api/payload-preferences/payloadpack-appearance'
-    await page.goto('/admin')
-    const sheet = await openAppearancePanel(page)
-    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Palette', 'Soft')))
-
-    await page.route(preference, (route) => route.abort())
-    await radioLabel(radioInGroup(sheet, 'Palette', 'Warm')).click()
-    await expect(page.locator('html')).toHaveAttribute('data-palette', 'warm')
-    await page.unroute(preference)
-    await Promise.all([waitForAppearanceSave(page), page.reload()])
-
-    await expect(page.locator('html')).toHaveAttribute('data-palette', 'warm')
-    expect((await (await page.request.get('/api/payload-preferences/payloadpack-appearance')).json()).value).toMatchObject({
-      palette: 'warm'
-    })
-  })
-
   test('opens from the header as a full-height sheet on the right, or from the bottom on a phone, and closes', async ({
     page
   }) => {
@@ -429,7 +363,6 @@ test.describe('Appearance panel', () => {
     await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Density', 'Compact')))
 
     const elsewhere = await browser.newContext({ baseURL, storageState: AUTH_FILE })
-    expect((await elsewhere.cookies()).map(({ name }) => name)).not.toContain('theme-demo-appearance')
     const other = await elsewhere.newPage()
     await other.goto('/admin')
 
@@ -437,39 +370,26 @@ test.describe('Appearance panel', () => {
     await elsewhere.close()
   })
 
-  test('saves each change on top of what another tab saved since', async ({ page }) => {
+  test('says in the panel when the server rejects a change, and saves it with the next change', async ({ page }) => {
+    const appearancePreferenceGlob = '**/api/payload-preferences/payloadpack-appearance'
     await page.goto('/admin')
     const sheet = await openAppearancePanel(page)
-    await saveAppearancePreference(page.request, { palette: 'warm' })
-
-    await openFineTune(sheet)
-    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Density', 'Compact')))
-
-    const stored = async () => (await (await page.request.get('/api/payload-preferences/payloadpack-appearance')).json()).value
-    expect(await stored()).toEqual({ palette: 'warm', personal: { density: 'compact' } })
-
-    await saveAppearancePreference(page.request, { character: 'studio', palette: 'warm', personal: { density: 'compact' } })
-    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Palette', 'Soft')))
-    expect(await stored()).toEqual({
-      character: 'studio',
-      palette: 'soft',
-      personal: { density: 'compact' }
-    })
-  })
-
-  test('says in the panel when the server rejects a change', async ({ page }) => {
-    await page.goto('/admin')
-    const sheet = await openAppearancePanel(page)
-    await page.route('**/api/payload-preferences/payloadpack-appearance', (route) =>
+    await page.route(appearancePreferenceGlob, (route) =>
       route.request().method() === 'POST' ? route.fulfill({ body: '{}', status: 500 }) : route.continue()
     )
 
     await radioLabel(radioInGroup(sheet, 'Palette', 'Warm')).click()
 
-    await expect(sheet.getByRole('status')).toHaveText(
-      'Your setup could not be saved yet. This browser keeps it and saves it with your next change or page load.'
-    )
+    await expect(sheet.getByRole('status')).toHaveText('Your setup could not be saved yet. Your next change tries again.')
     await expect(sheet.getByRole('status')).toHaveAttribute('data-tone', 'error')
+
+    await page.unroute(appearancePreferenceGlob)
+    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Style', 'Studio')))
+    await expect(sheet.getByRole('status')).toBeEmpty()
+    expect((await (await page.request.get('/api/payload-preferences/payloadpack-appearance')).json()).value).toEqual({
+      character: 'studio',
+      palette: 'warm'
+    })
   })
 
   test('copies the setup in one browser and pastes it in another', async ({ browser, context, page }) => {
@@ -2088,10 +2008,8 @@ test.describe('Custom palette', () => {
     })
 
     await expect(page.locator('.nav__header')).toHaveCSS('background-color', 'rgb(48, 48, 48)')
-    expect(await page.evaluate(() => document.cookie)).not.toContain('%23303030')
 
     await background.evaluate((input: HTMLInputElement) => input.dispatchEvent(new Event('change', { bubbles: true })))
-    await expect.poll(() => page.evaluate(() => document.cookie)).toContain('%23303030')
     await expect.poll(() => saves.length).toBe(1)
     await page.waitForLoadState('networkidle')
     expect(saves).toHaveLength(1)

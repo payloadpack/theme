@@ -68,11 +68,9 @@ const subscribeToNothing = () => () => {}
 
 type AppearanceProviderProps = {
   accountKey: string | undefined
-  appearanceCookieName: string
   canEdit: boolean
   children: ReactNode
   codeEditorFontSize: false | number
-  initialChoicesUnsaved: boolean
   initialEditorChoices: EditorAppearanceChoices
   initialRailCollapsed: boolean
   preferenceURL: string
@@ -82,11 +80,9 @@ type AppearanceProviderProps = {
 
 export function AppearanceProvider({
   accountKey,
-  appearanceCookieName,
   canEdit,
   children,
   codeEditorFontSize,
-  initialChoicesUnsaved,
   initialEditorChoices,
   initialRailCollapsed,
   preferenceURL,
@@ -96,13 +92,9 @@ export function AppearanceProvider({
   const [editorChoices, setEditorChoices] = useState(initialEditorChoices)
   const [customPaletteDraft, setCustomPaletteDraft] = useState<CustomPalette>()
   const [railCollapsed, setRailCollapsed] = useState(initialRailCollapsed)
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [saveFailed, setSaveFailed] = useState(false)
-  const latestEditorChoices = useRef(editorChoices)
-  const unconfirmedCookieChoices = useRef(initialChoicesUnsaved ? initialEditorChoices : undefined)
-  const cookieHoldsUnsavedChoices = useRef(false)
+  const latestEditorChoices = useRef(initialEditorChoices)
   const saveQueue = useRef(Promise.resolve())
-  const pendingChanges = useRef<((current: EditorAppearanceChoices) => EditorAppearanceChoices)[]>([])
   const { user } = useAuth()
   const renderedAccountKey = useRef(accountKey)
   const userSignedOut = accountKey !== undefined && !user
@@ -163,17 +155,6 @@ export function AppearanceProvider({
   }, [router, user])
 
   useEffect(() => {
-    latestEditorChoices.current = editorChoices
-    if (hasUnsavedChanges) {
-      writeCookie(appearanceCookieName, encodeURIComponent(JSON.stringify({ ...editorChoices, by: accountKey })))
-      cookieHoldsUnsavedChoices.current = true
-    } else if (cookieHoldsUnsavedChoices.current) {
-      writeCookie(appearanceCookieName, undefined)
-      cookieHoldsUnsavedChoices.current = false
-    }
-  }, [accountKey, appearanceCookieName, editorChoices, hasUnsavedChanges])
-
-  useEffect(() => {
     writeCookie(railCookieName, railCollapsed ? 'true' : undefined)
   }, [railCollapsed, railCookieName])
 
@@ -185,59 +166,26 @@ export function AppearanceProvider({
 
   const applyChangeAndSave = useCallback(
     (change: (current: EditorAppearanceChoices) => EditorAppearanceChoices) => {
+      const nextEditorChoices = normalizeEditorAppearanceChoices(siteSettings, change(latestEditorChoices.current))
+      latestEditorChoices.current = nextEditorChoices
       setCustomPaletteDraft(undefined)
-      setEditorChoices((current) => normalizeEditorAppearanceChoices(siteSettings, change(current)))
-      setHasUnsavedChanges(true)
-      pendingChanges.current.push(change)
+      setEditorChoices(nextEditorChoices)
       saveQueue.current = saveQueue.current.then(async () => {
-        const changes = pendingChanges.current.splice(0)
-        if (!changes.length) {
-          return
-        }
-        const requeueFailedChanges = () => {
-          pendingChanges.current.unshift(...changes)
-          setSaveFailed(true)
-        }
         try {
-          const savedPreferenceResponse = await fetch(preferenceURL, { credentials: 'include' })
-          const savedPreferenceValue: unknown = savedPreferenceResponse.ok ? (await savedPreferenceResponse.json()).value : null
-          const choicesToApplyOn =
-            savedPreferenceValue == null
-              ? latestEditorChoices.current
-              : normalizeEditorAppearanceChoices(siteSettings, savedPreferenceValue)
-          const mergedChoices = normalizeEditorAppearanceChoices(
-            siteSettings,
-            changes.reduce((current, apply) => apply(current), choicesToApplyOn)
-          )
           const saveResponse = await fetch(preferenceURL, {
-            body: JSON.stringify({ value: mergedChoices }),
+            body: JSON.stringify({ value: nextEditorChoices }),
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             method: 'POST'
           })
-          if (!saveResponse.ok) {
-            requeueFailedChanges()
-            return
-          }
-          setSaveFailed(false)
-          if (!pendingChanges.current.length) {
-            setHasUnsavedChanges(false)
-          }
+          setSaveFailed(!saveResponse.ok)
         } catch {
-          requeueFailedChanges()
+          setSaveFailed(true)
         }
       })
     },
     [preferenceURL, siteSettings]
   )
-
-  useEffect(() => {
-    const choicesToResave = unconfirmedCookieChoices.current
-    unconfirmedCookieChoices.current = undefined
-    if (choicesToResave) {
-      applyChangeAndSave(() => choicesToResave)
-    }
-  }, [applyChangeAndSave])
 
   const context = useMemo(() => {
     return {
@@ -259,7 +207,7 @@ export function AppearanceProvider({
           palette: current.palette === CUSTOM_PALETTE_SLUG ? undefined : current.palette
         })),
       resetCharacterOptions: () => {
-        const { options: optionsBeforeReset, personal: personalOptionsBeforeReset } = editorChoices
+        const { options: optionsBeforeReset, personal: personalOptionsBeforeReset } = latestEditorChoices.current
         applyChangeAndSave((current) => clearCharacterOptionOverrides(siteSettings, current, character))
         return () =>
           applyChangeAndSave((current) => ({
@@ -288,17 +236,7 @@ export function AppearanceProvider({
       showsRail,
       toggleNavRail: () => setRailCollapsed(!railCollapsed)
     }
-  }, [
-    activeAppearance,
-    applyChangeAndSave,
-    canEdit,
-    character,
-    editorChoices,
-    railCollapsed,
-    saveFailed,
-    showsRail,
-    siteSettings
-  ])
+  }, [activeAppearance, applyChangeAndSave, canEdit, character, railCollapsed, saveFailed, showsRail, siteSettings])
 
   return (
     <AppearanceContext value={context}>
