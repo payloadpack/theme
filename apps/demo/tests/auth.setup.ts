@@ -6,7 +6,6 @@ import { AUTH_FILE, baseURL, getEditorForWorker } from './demo'
 
 setup('log in as the demo user and as one editor per worker', async ({ playwright, request }, { config }) => {
   await expect(await request.post('/api/users/login', { data: DEMO_USER })).toBeOK()
-  await request.delete('/api/payload-preferences/nav')
   await request.storageState({ path: AUTH_FILE })
 
   for (let parallelIndex = 0; parallelIndex < config.workers; parallelIndex++) {

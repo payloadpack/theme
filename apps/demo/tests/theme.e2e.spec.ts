@@ -293,21 +293,21 @@ test.describe('Appearance panel', () => {
     const html = page.locator('html')
 
     await openFineTune(sheet)
-    await radioLabel(radioInGroup(sheet, 'Density', 'Compact')).click()
-    await radioLabel(radioInGroup(sheet, 'Corners', 'Small')).click()
+    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Density', 'Compact')))
+    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Corners', 'Small')))
     await expect(html).toHaveAttribute('data-density', 'compact')
     await expect(html).toHaveAttribute('data-radius', 'sm')
 
-    await radioLabel(radioInGroup(sheet, 'Style', 'Studio')).click()
+    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Style', 'Studio')))
     await expect(html).toHaveAttribute('data-density', 'compact')
     await expect(html).toHaveAttribute('data-radius', 'lg')
     await expect(radioInGroup(sheet, 'Density', 'Compact')).toBeChecked()
 
-    await radioLabel(radioInGroup(sheet, 'Style', 'Enhanced')).click()
+    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Style', 'Enhanced')))
     await expect(html).toHaveAttribute('data-radius', 'sm')
 
-    await radioLabel(radioInGroup(sheet, 'Style', 'Payload')).click()
-    await radioLabel(radioInGroup(sheet, 'Style', 'Enhanced')).click()
+    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Style', 'Payload')))
+    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Style', 'Enhanced')))
     await expect(html).toHaveAttribute('data-density', 'compact')
   })
 
@@ -865,14 +865,20 @@ test.describe('Theme values', () => {
   test('lets a click on a Lucide icon reach the control under it', async ({ page }) => {
     await page.goto('/admin/collections/products')
     await waitForHydration(page)
-    const clickIcon = async (name: string) => {
+    const clickIconAndWaitForSave = async (name: string) => {
       const box = await page.locator(`.segmented-control__option:has(input[value="${name}"]) svg`).boundingBox()
-      await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2)
+      await Promise.all([
+        page.waitForResponse(
+          (response) =>
+            response.url().endsWith('/api/payload-preferences/collection-products') && response.request().method() === 'POST'
+        ),
+        page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2)
+      ])
     }
 
-    await clickIcon('grid')
+    await clickIconAndWaitForSave('grid')
     await expect(page.getByRole('radio', { name: 'Grid' })).toBeChecked()
-    await clickIcon('table')
+    await clickIconAndWaitForSave('table')
     await expect(page.getByRole('radio', { name: 'Table' })).toBeChecked()
   })
 
@@ -2800,7 +2806,6 @@ test.describe('Soft palette', () => {
 
     await page.goto('/admin/collections/pages')
     await page.locator('table tbody tr a').first().click()
-    await page.waitForURL(/\/admin\/collections\/pages\/\d+/)
     expect(await computedStyleValue(page, '.tabs__tab-button--active', 'background-color', '::after')).toBe(primary)
   })
 

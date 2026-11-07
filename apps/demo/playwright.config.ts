@@ -26,7 +26,7 @@ export default defineConfig({
   use: {
     ...devices['Desktop Chrome'],
     baseURL,
-    trace: process.env.CI ? 'retain-on-failure' : 'off',
+    trace: process.env.CI ? { mode: 'retain-on-failure', screenshots: false } : 'off',
     viewport: { height: 900, width: 1440 }
   },
   webServer: {
