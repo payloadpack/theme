@@ -1,15 +1,15 @@
 import { RADIO_CARDS, SWITCH, VERTICAL_TABS } from '@payloadpack/theme'
 import { expect, type Page, test } from '@playwright/test'
 
-import { appearance, clearSetup, cookie, findShowcase, openAppearancePanel, openFineTune } from './demo'
+import { clearSetup, cookie, findShowcase, openAppearancePanel, openFineTune, saveSetup } from './demo'
 
 test.beforeEach(async ({ page }) => {
-  await clearSetup(page)
+  await clearSetup(page.request)
 })
 
 const looks = {
-  payload: [appearance({ character: 'payload', palette: 'payload' })],
-  themed: [appearance({})]
+  payload: { character: 'payload', palette: 'payload' },
+  themed: {}
 }
 
 const fields = { 'radio-cards': RADIO_CARDS, switch: SWITCH, 'vertical-tabs': VERTICAL_TABS }
@@ -22,8 +22,9 @@ const box = async (page: Page, selector: string) => {
   return rect
 }
 
-const openShowcase = async (page: Page, cookies: ReturnType<typeof cookie>[], theme: string) => {
-  await page.context().addCookies([...cookies, cookie('theme', theme)])
+const openShowcase = async (page: Page, setup: object, theme: string) => {
+  await saveSetup(page.request, setup)
+  await page.context().addCookies([cookie('theme', theme)])
   const showcase = await findShowcase(page)
   await page.clock.setFixedTime(showcase.updatedAt.getTime() + 60 * 60 * 1000)
   await page.goto(showcase.path, { waitUntil: 'networkidle' })
@@ -45,8 +46,8 @@ const openShowcase = async (page: Page, cookies: ReturnType<typeof cookie>[], th
 
 for (const theme of ['dark', 'light']) {
   test(theme, async ({ page }) => {
-    for (const [look, cookies] of Object.entries(looks)) {
-      await openShowcase(page, cookies, theme)
+    for (const [look, setup] of Object.entries(looks)) {
+      await openShowcase(page, setup, theme)
       await expect(page).toHaveScreenshot(`compare-${look}-${theme}.png`, { clip: { height: 540, width: 720, x: 0, y: 0 } })
     }
 

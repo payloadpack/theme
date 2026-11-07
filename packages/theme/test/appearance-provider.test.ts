@@ -13,6 +13,7 @@ const render = (settings: Settings, initialChoices: Choices = {}, initialRail = 
     createElement(RouterAdapterContext, {
       value: { Link: () => null, params: {}, pathname: '/admin', router, searchParams: new URLSearchParams() },
       children: createElement(AppearanceProvider, {
+        account: undefined,
         children: null,
         codeEditorFontSize: false,
         cookieName: 'payload-appearance',

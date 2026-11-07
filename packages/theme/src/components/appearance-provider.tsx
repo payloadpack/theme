@@ -67,6 +67,7 @@ const AppearanceContext = createContext<AppearanceContextValue | null>(null)
 const subscribeToNothing = () => () => {}
 
 type AppearanceProviderProps = {
+  account: string | undefined
   children: ReactNode
   codeEditorFontSize: false | number
   cookieName: string
@@ -80,6 +81,7 @@ type AppearanceProviderProps = {
 }
 
 export function AppearanceProvider({
+  account,
   children,
   codeEditorFontSize,
   cookieName,
@@ -94,29 +96,32 @@ export function AppearanceProvider({
   const [choices, setChoices] = useState(initialChoices)
   const [draft, setDraft] = useState<CustomPalette>()
   const [rail, setRail] = useState(initialRail)
-  const [unsaved, setUnsaved] = useState(initialUnsaved)
+  const [unsaved, setUnsaved] = useState(false)
   const [failed, setFailed] = useState(false)
   const latest = useRef(choices)
+  const unconfirmed = useRef(initialUnsaved ? initialChoices : undefined)
+  const backedUp = useRef(false)
   const saving = useRef(Promise.resolve())
   const pending = useRef<((current: Choices) => Choices)[]>([])
   const { user } = useAuth()
-  const owner = useRef(accountOf(user))
-  const signedInAs = useRef(owner.current)
+  const signedInAs = useRef(account)
+  const signedOut = account !== undefined && !user
   const router = useRouter()
   const resolved = useMemo(
-    () => resolve(settings, draft ? { ...choices, custom: draft, palette: customPalette } : choices),
-    [settings, choices, draft]
+    () => resolve(settings, signedOut ? {} : draft ? { ...choices, custom: draft, palette: customPalette } : choices),
+    [settings, choices, draft, signedOut]
   )
   const { character, custom, palette, values } = resolved
   const hasRail = values.nav === 'rail'
+  const collapsed = hasRail && rail
   const attributes = useMemo(
     (): Record<string, string> => ({
       character,
       ...values,
-      ...(hasRail && rail ? { rail: '' } : {}),
+      ...(collapsed ? { rail: '' } : {}),
       palette
     }),
-    [character, hasRail, palette, rail, values]
+    [character, collapsed, palette, values]
   )
   const { navOpen, setNavOpen } = useNav()
   const { breakpoints } = useWindowInfo()
@@ -141,21 +146,24 @@ export function AppearanceProvider({
   }, [attributes])
 
   useEffect(() => {
-    const account = accountOf(user)
-    if (!account || account === signedInAs.current) {
+    const current = accountOf(user)
+    if (!current || current === signedInAs.current) {
       return
     }
-    signedInAs.current = account
+    signedInAs.current = current
     router.refresh()
   }, [router, user])
 
   useEffect(() => {
     latest.current = choices
-    if (editable) {
-      const value = { ...choices, ...(owner.current ? { by: owner.current } : {}), ...(unsaved ? { unsaved } : {}) }
-      writeCookie(cookieName, Object.keys(choices).length || unsaved ? encodeURIComponent(JSON.stringify(value)) : undefined)
+    if (unsaved) {
+      writeCookie(cookieName, encodeURIComponent(JSON.stringify({ ...choices, by: account })))
+      backedUp.current = true
+    } else if (backedUp.current) {
+      writeCookie(cookieName, undefined)
+      backedUp.current = false
     }
-  }, [choices, cookieName, editable, unsaved])
+  }, [account, choices, cookieName, unsaved])
 
   useEffect(() => {
     writeCookie(railCookieName, rail ? 'true' : undefined)
@@ -213,10 +221,12 @@ export function AppearanceProvider({
   )
 
   useEffect(() => {
-    if (initialUnsaved) {
-      update(() => initialChoices)
+    const setup = unconfirmed.current
+    unconfirmed.current = undefined
+    if (setup) {
+      update(() => setup)
     }
-  }, [initialChoices, initialUnsaved, update])
+  }, [update])
 
   const context = useMemo(() => {
     return {
@@ -231,7 +241,7 @@ export function AppearanceProvider({
         }
         return valid
       },
-      rail,
+      rail: collapsed,
       removeCustom: () =>
         update((current) => ({
           ...current,
@@ -242,7 +252,11 @@ export function AppearanceProvider({
         const { options: before, personal } = choices
         update((current) => resetCharacter(settings, current, character))
         return () =>
-          update((current) => ({ ...current, options: { ...current.options, [character]: before?.[character] }, personal }))
+          update((current) => ({
+            ...current,
+            options: { ...current.options, [character]: { ...before?.[character], ...current.options?.[character] } },
+            personal: { ...personal, ...current.personal }
+          }))
       },
       setCharacter: (next: Character) => update((current) => ({ ...current, character: next })),
       setCustom: (next: CustomPalette, persist = true) =>
@@ -261,7 +275,7 @@ export function AppearanceProvider({
       toggleRail: () => setRail(!rail),
       failed
     }
-  }, [character, choices, editable, failed, resolved, rail, settings, update])
+  }, [character, choices, collapsed, editable, failed, resolved, rail, settings, update])
 
   return (
     <AppearanceContext value={context}>

@@ -11,7 +11,6 @@ export function NavBar() {
   const { navOpen, navToggleRef, setNavOpen } = useNav()
   const { t } = useTranslation()
   const returnsFocus = useRef(false)
-  const collapsed = values.nav === 'rail' && rail
 
   useEffect(() => {
     if (!navOpen && returnsFocus.current) {
@@ -28,8 +27,8 @@ export function NavBar() {
     <div className="payloadpack-nav-bar">
       {values.nav && (
         <button
-          aria-expanded={values.nav === 'rail' ? !collapsed : navOpen}
-          aria-label={t(collapsed ? 'general:showSidebar' : 'general:hideSidebar')}
+          aria-expanded={values.nav === 'rail' ? !rail : navOpen}
+          aria-label={t(rail ? 'general:showSidebar' : 'general:hideSidebar')}
           className="payloadpack-nav-toggle"
           onClick={() => {
             if (values.nav === 'hidden') {
@@ -37,13 +36,13 @@ export function NavBar() {
               setNavOpen(false, true)
               return
             }
-            if (!collapsed) {
+            if (!rail) {
               document.querySelector<HTMLElement>('.sidebar-tabs__tab:first-child:not(.sidebar-tabs__tab--active)')?.click()
             }
             toggleRail()
           }}
           type="button">
-          <SidebarToggle isActive={!collapsed} />
+          <SidebarToggle isActive={!rail} />
         </button>
       )}
       {editable && <AppearanceButton place="nav" />}

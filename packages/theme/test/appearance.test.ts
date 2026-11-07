@@ -221,15 +221,19 @@ it('keeps only choices that differ from the defaults, per character and palette'
   })
 })
 
-it('ignores the cookie when the panel is off for the user, and never asks without a user', () => {
+it('gives the panel only to signed-in editors it allows, and never asks without a user', () => {
   const admin = { role: 'admin' } as unknown as User
   const onlyAdmins = ({ user }: { user: User }) => (user as unknown as { role: string }).role === 'admin'
+  const asked = () => {
+    throw new Error('panel was asked without a user')
+  }
 
-  expect(isEditable(true, undefined)).toBe(true)
+  expect(isEditable(true, admin)).toBe(true)
+  expect(isEditable(true, undefined)).toBe(false)
   expect(isEditable(false, admin)).toBe(false)
   expect(isEditable(onlyAdmins, admin)).toBe(true)
   expect(isEditable(onlyAdmins, { role: 'editor' } as unknown as User)).toBe(false)
-  expect(isEditable(() => false, undefined)).toBe(true)
+  expect(isEditable(asked, undefined)).toBe(false)
 })
 
 it('sets the custom palette aside while the developer allows a single palette', () => {
@@ -283,18 +287,13 @@ it('copies a setup in the shape of the plugin config', () => {
 it("renders this account's unsaved cookie over the stored setup, and never another account's", () => {
   const stored = { palette: 'payload' }
   const cookie = (fields: object) => JSON.stringify({ character: 'payload', ...fields })
-  const mine = { character: 'payload' }
 
-  expect(storedChoices(settings, stored, cookie({ by: 'users:1', unsaved: true }), 'users:1')).toEqual({
-    choices: mine,
+  expect(storedChoices(settings, stored, cookie({ by: 'users:1' }), 'users:1')).toEqual({
+    choices: { character: 'payload' },
     unsaved: true
   })
-  expect(storedChoices(settings, stored, cookie({ by: 'users:1' }), 'users:1')).toEqual({ choices: stored, unsaved: false })
-  expect(storedChoices(settings, stored, cookie({ by: 'users:2', unsaved: true }), 'users:1')).toEqual({
-    choices: stored,
-    unsaved: false
-  })
+  expect(storedChoices(settings, stored, cookie({ by: 'users:2' }), 'users:1')).toEqual({ choices: stored, unsaved: false })
+  expect(storedChoices(settings, stored, cookie({}), 'users:1')).toEqual({ choices: stored, unsaved: false })
   expect(storedChoices(settings, null, cookie({ by: 'users:2' }), 'users:1')).toEqual({ choices: {}, unsaved: false })
-  expect(storedChoices(settings, null, cookie({ by: 'users:1' }), 'users:1')).toEqual({ choices: mine, unsaved: false })
-  expect(storedChoices(settings, null, cookie({ by: 'users:2' }), undefined)).toEqual({ choices: mine, unsaved: false })
+  expect(storedChoices(settings, null, '{', 'users:1')).toEqual({ choices: {}, unsaved: false })
 })

@@ -6,19 +6,17 @@ export const baseURL = `http://localhost:${process.env.DEMO_PORT ?? 3020}`
 
 export const cookie = (name: string, value: string) => ({ name: `theme-demo-${name}`, url: baseURL, value })
 
-export const appearance = (choices: object) => cookie('appearance', encodeURIComponent(JSON.stringify(choices)))
-
 const setupPreference = '/api/payload-preferences/payloadpack-appearance'
 
-export const clearSetup = (page: Page) => page.request.delete(setupPreference)
+export const clearSetup = (request: APIRequestContext) => request.delete(setupPreference)
 
 export const saveSetup = (request: APIRequestContext, value: object) => request.post(setupPreference, { data: { value } })
 
 export const hydrated = (page: Page) => expect(page.locator('.nav')).toHaveClass(/nav--nav-hydrated/)
 
-export const reloadWith = async (page: Page, cookies: ReturnType<typeof cookie>[]) => {
+export const reloadWith = async (page: Page, setup: object) => {
   await hydrated(page)
-  await page.context().addCookies(cookies)
+  await saveSetup(page.request, setup)
   await page.reload()
 }
 

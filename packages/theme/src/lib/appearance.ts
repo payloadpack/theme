@@ -6,7 +6,7 @@ import type { Palette } from '../palettes/index.js'
 export type Panel = boolean | ((args: { user: User }) => boolean)
 
 export const isEditable = (panel: Panel, user: undefined | User) =>
-  typeof panel === 'function' ? !user || panel({ user }) : panel
+  user !== undefined && (typeof panel === 'function' ? panel({ user }) : panel)
 
 export const preferenceKey = 'payloadpack-appearance'
 
@@ -209,13 +209,7 @@ export function parseChoices(settings: Settings, text: string | undefined): Choi
 
 export function storedChoices(settings: Settings, preference: unknown, cookie: string | undefined, account: string | undefined) {
   const parsed = parseJson(cookie)
-  const fromCookie = isRecord(parsed) ? normalize(settings, parsed) : {}
-  const owner = isRecord(parsed) ? parsed.by : undefined
-  if (account !== undefined && owner === account && isRecord(parsed) && parsed.unsaved === true) {
-    return { choices: fromCookie, unsaved: true }
-  }
-  if (preference != null) {
-    return { choices: normalize(settings, preference), unsaved: false }
-  }
-  return { choices: account === undefined || owner === undefined || owner === account ? fromCookie : {}, unsaved: false }
+  return isRecord(parsed) && account !== undefined && parsed.by === account
+    ? { choices: normalize(settings, parsed), unsaved: true }
+    : { choices: normalize(settings, preference), unsaved: false }
 }
