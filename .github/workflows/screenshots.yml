@@ -52,8 +52,6 @@ jobs:
         run: bun run screenshots
         working-directory: apps/demo
         env:
-          CI: 'true'
-          DATABASE_URI: file:./demo.db
           PAYLOAD_SECRET: ci-only-secret
 
       - name: Open pull request

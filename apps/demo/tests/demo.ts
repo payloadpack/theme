@@ -1,8 +1,20 @@
-import { type APIRequestContext, expect, type Locator, type Page } from '@playwright/test'
+import { type APIRequestContext, test as base, expect, type Locator, type Page } from '@playwright/test'
 
 export const AUTH_FILE = 'tests/.auth/demo.json'
 
-export const baseURL = `http://localhost:${process.env.DEMO_PORT ?? 3020}`
+export const DEMO_PORT = process.env.DEMO_PORT ?? '3021'
+
+export const baseURL = `http://localhost:${DEMO_PORT}`
+
+export const getEditorForWorker = (parallelIndex: number) => ({
+  authFile: `tests/.auth/editor-${parallelIndex}.json`,
+  credentials: { email: `editor-${parallelIndex}@payloadpack.com`, password: 'editor' }
+})
+
+export const test = base.extend<{ editor: ReturnType<typeof getEditorForWorker> }>({
+  editor: async ({}, use, testInfo) => use(getEditorForWorker(testInfo.parallelIndex)),
+  storageState: async ({ editor }, use) => use(editor.authFile)
+})
 
 export const demoCookie = (name: string, value: string) => ({ name: `theme-demo-${name}`, url: baseURL, value })
 

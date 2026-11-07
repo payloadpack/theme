@@ -155,7 +155,7 @@ export const collections: CollectionConfig[] = [
       { name: 'alt', type: 'text', required: true },
       { name: 'caption', type: 'textarea' }
     ],
-    upload: { mimeTypes: ['image/*'] }
+    upload: { mimeTypes: ['image/*'], staticDir: process.env.MEDIA_DIR }
   },
   {
     slug: 'products',
