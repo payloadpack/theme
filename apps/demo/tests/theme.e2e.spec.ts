@@ -1410,6 +1410,23 @@ test.describe('Motion', () => {
     await expect.poll(transitions).toEqual(['tooltip opacity', 'tooltip opacity', 'tooltip visibility'])
   })
 
+  test('switching between light and dark changes field, select and button colors at once, and focus still eases the ring', async ({
+    page
+  }) => {
+    const transitions = await recordTransitions(page, ['form-input', 'rs__control', 'btn', 'card'])
+    await openShowcase(page)
+    const beforeSwitch = await transitions()
+
+    await page.evaluate(() => {
+      document.documentElement.dataset.theme = 'light'
+    })
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))))
+    expect(await transitions()).toEqual(beforeSwitch)
+
+    await page.locator('.field-type.text .form-input').first().focus()
+    await expect.poll(transitions).toContain('form-input box-shadow')
+  })
+
   test('every field eases its focus ring with motion on, and none does with it off', async ({ page }) => {
     const fields = [
       '.field-type.text .form-input',

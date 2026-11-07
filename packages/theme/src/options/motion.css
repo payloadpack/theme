@@ -12,7 +12,6 @@
       --payloadpack-duration-normal: 150ms;
       --payloadpack-duration-slow: 200ms;
       --payloadpack-duration-slower: 300ms;
-      --payloadpack-duration-slowest: 500ms;
       --payloadpack-ease-state: cubic-bezier(0, 0.2, 0.2, 1);
       --payloadpack-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
       --payloadpack-ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
@@ -49,14 +48,14 @@
       /* 3. Fields */
       .form-input,
       .form-input-group,
-      .react-select .rs__control,
       .code-editor,
       .search-input,
       .react-datepicker__input-container input {
-        transition:
-          border var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing),
-          box-shadow var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing),
-          background-color var(--payloadpack-duration-slowest) var(--payloadpack-ease-state);
+        transition: box-shadow var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing);
+      }
+
+      .react-select .rs__control {
+        transition: box-shadow var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing) !important;
       }
 
       .checkbox-input__visuals,
@@ -84,23 +83,12 @@
           box-shadow var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing);
       }
 
-      /* 4. Buttons */
-      .btn {
-        transition:
-          border var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing),
-          color var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing),
-          background var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing);
-      }
-
-      /* 5. Cards */
+      /* 4. Cards */
       .card {
-        transition:
-          border var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing),
-          box-shadow var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing),
-          background var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing);
+        transition: box-shadow var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing);
       }
 
-      /* 6. Popups and menus */
+      /* 5. Popups and menus */
       .popup__content:popover-open,
       .rs__menu {
         transform-origin: var(--caret-left, 50%) top;
@@ -149,7 +137,7 @@
         transition-behavior: allow-discrete, normal, normal;
       }
 
-      /* 7. Nav */
+      /* 6. Nav */
       .template-default {
         transition: grid-template-columns var(--payloadpack-motion-panel-duration) var(--payloadpack-motion-panel-easing);
       }
@@ -205,16 +193,13 @@
           height 0s var(--payloadpack-duration-avatar),
           padding 0s var(--payloadpack-duration-avatar),
           border-radius 0s var(--payloadpack-duration-avatar),
-          box-shadow var(--payloadpack-duration-avatar) var(--payloadpack-motion-panel-easing),
-          border var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing),
-          color var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing),
-          background var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing);
+          box-shadow var(--payloadpack-duration-avatar) var(--payloadpack-motion-panel-easing);
       }
 
       &[data-rail] .user-menu__trigger {
         transition-delay:
           var(--payloadpack-duration-avatar), var(--payloadpack-duration-avatar), var(--payloadpack-duration-avatar),
-          var(--payloadpack-duration-avatar), var(--payloadpack-duration-avatar), 0s, 0s, 0s;
+          var(--payloadpack-duration-avatar), var(--payloadpack-duration-avatar);
       }
 
       .user-menu__trigger .btn__content {
@@ -287,7 +272,7 @@
         transition-behavior: allow-discrete, normal, allow-discrete;
       }
 
-      /* 8. Appearance panel */
+      /* 7. Appearance panel */
       .payloadpack-appearance-panel__sheet {
         translate: 100% 0;
         transition:
