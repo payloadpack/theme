@@ -11,18 +11,11 @@ env:
   BUN_VERSION: '1.4.4'
 
 jobs:
-  validate:
+  contract-and-typecheck:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
-
-      - name: Check whether only docs changed
-        id: docs_check
-        if: github.event_name == 'pull_request'
-        run: echo "docs_only=$(git diff --quiet --no-renames HEAD^1 HEAD -- ':!*.md' ':!*.png' && echo true || echo false)" >> "$GITHUB_OUTPUT"
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -49,15 +42,58 @@ jobs:
         run: bun run typecheck
         working-directory: apps/demo
 
+  e2e:
+    name: e2e (${{ matrix.shard }}/${{ strategy.job-total }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check whether the change can affect e2e
+        id: e2e_impact
+        if: github.event_name == 'pull_request'
+        run: echo "affected=$(git diff --quiet --no-renames HEAD^1 HEAD -- ':!*.md' ':!*.png' && echo false || echo true)" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Install dependencies (frozen lockfile)
+        run: bun install --frozen-lockfile
+
+      - name: Build package
+        run: bun run build
+        working-directory: packages/theme
+
       - name: Install Playwright browser
-        if: steps.docs_check.outputs.docs_only != 'true'
+        if: steps.e2e_impact.outputs.affected != 'false'
         run: bunx playwright install --with-deps chromium
         working-directory: apps/demo
 
       - name: End-to-end tests
-        if: steps.docs_check.outputs.docs_only != 'true'
-        run: bun run test:e2e
+        if: steps.e2e_impact.outputs.affected != 'false'
+        run: bun run test:e2e --shard=${{ matrix.shard }}/${{ strategy.job-total }}
         working-directory: apps/demo
         env:
           CI: 'true'
           PAYLOAD_SECRET: ci-only-secret
+
+  validate:
+    if: always()
+    needs: [contract-and-typecheck, e2e]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail when a job did not pass
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: exit 1
