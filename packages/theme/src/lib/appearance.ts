@@ -11,8 +11,8 @@ import type { Palette } from '../palettes/index.js'
 
 export type AppearancePanelAccess = boolean | ((args: { user: User }) => boolean)
 
-export const canUserEditAppearance = (panel: AppearancePanelAccess, user: undefined | User) =>
-  user !== undefined && (typeof panel === 'function' ? panel({ user }) : panel)
+export const canUserEditAppearance = (panel: AppearancePanelAccess, user: null | undefined | User) =>
+  user ? (typeof panel === 'function' ? panel({ user }) : panel) : false
 
 export const APPEARANCE_PREFERENCE_KEY = 'payloadpack-appearance'
 

@@ -271,10 +271,12 @@ it('gives the panel only to signed-in editors it allows, and never asks without 
 
   expect(canUserEditAppearance(true, admin)).toBe(true)
   expect(canUserEditAppearance(true, undefined)).toBe(false)
+  expect(canUserEditAppearance(true, null)).toBe(false)
   expect(canUserEditAppearance(false, admin)).toBe(false)
   expect(canUserEditAppearance(onlyAdmins, admin)).toBe(true)
   expect(canUserEditAppearance(onlyAdmins, { role: 'editor' } as unknown as User)).toBe(false)
   expect(canUserEditAppearance(asked, undefined)).toBe(false)
+  expect(canUserEditAppearance(asked, null)).toBe(false)
 })
 
 it('sets the custom palette aside while the developer allows a single palette', () => {
