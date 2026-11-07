@@ -7,13 +7,14 @@ import Screenshot from '../../../components/Screenshot.astro'
 
 <Screenshot alt="A Notify subscribers checkbox shown as a switch that is turned on" name="switch" />
 
-```ts
+```ts ins={7}
 import { SWITCH } from '@payloadpack/theme'
 
 const field = {
   name: 'notify',
   type: 'checkbox',
-  admin: { className: SWITCH }
+  label: 'Notify subscribers',
+  admin: { className: SWITCH, description: 'Email everyone who follows this showcase' }
 }
 ```
 

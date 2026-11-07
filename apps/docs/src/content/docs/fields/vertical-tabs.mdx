@@ -7,15 +7,15 @@ import Screenshot from '../../../components/Screenshot.astro'
 
 <Screenshot alt="A tabs field with General and Advanced listed in a column beside a Meta Title field" name="vertical-tabs" />
 
-```ts
+```ts ins={5}
 import { VERTICAL_TABS } from '@payloadpack/theme'
 
 const field = {
   type: 'tabs',
   admin: { className: VERTICAL_TABS },
   tabs: [
-    { label: 'General', fields: [] },
-    { label: 'Advanced', fields: [] }
+    { label: 'General', fields: [{ name: 'metaTitle', type: 'text' }] },
+    { label: 'Advanced', fields: [{ name: 'canonicalUrl', type: 'text' }] }
   ]
 }
 ```
