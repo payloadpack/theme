@@ -1,9 +1,8 @@
 import { RADIO_CARDS, SWITCH, type ThemePluginConfig, VERTICAL_TABS } from '@payloadpack/theme'
-import { expect, type Locator, type Page, test } from '@playwright/test'
+import { expect, type Locator, type Page } from '@playwright/test'
+import { randomUUID } from 'node:crypto'
 
-import { DEMO_USER } from '../src/seed'
 import {
-  AUTH_FILE,
   baseURL,
   buildCustomPalette,
   clickAndWaitForSave,
@@ -17,6 +16,7 @@ import {
   radioLabel,
   saveAppearanceAndReload,
   saveAppearancePreference,
+  test,
   waitForAnimations,
   waitForAppearanceSave,
   waitForHydration
@@ -127,17 +127,18 @@ test.describe('Logged out', () => {
   })
 
   test('each editor gets their own look on a shared browser, and signing out shows the site default', async ({
+    editor,
     page,
     playwright
   }) => {
-    const admin = await playwright.request.newContext({ baseURL, storageState: AUTH_FILE })
-    const otherUser = { email: `other-${Date.now()}@payloadpack.com`, password: 'other' }
-    const { doc: other } = await (await admin.post('/api/users', { data: otherUser })).json()
+    const editorRequest = await playwright.request.newContext({ baseURL, storageState: editor.authFile })
+    const otherUser = { email: `other-${randomUUID()}@payloadpack.com`, password: 'other' }
+    const { doc: other } = await (await editorRequest.post('/api/users', { data: otherUser })).json()
     const html = page.locator('html')
-    await deleteSavedAppearance(admin)
+    await deleteSavedAppearance(editorRequest)
 
     try {
-      await signIn(page, DEMO_USER)
+      await signIn(page, editor.credentials)
       const sheet = await openAppearancePanel(page)
       await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Style', 'Studio')))
       await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Palette', 'Warm')))
@@ -152,26 +153,26 @@ test.describe('Logged out', () => {
       await expect(radioInGroup(await openAppearancePanel(page), 'Style', 'Enhanced')).toBeChecked()
 
       await signOut(page)
-      await signIn(page, DEMO_USER)
+      await signIn(page, editor.credentials)
       await expect(html).toHaveAttribute('data-character', 'studio')
       await expect(html).toHaveAttribute('data-palette', 'warm')
     } finally {
-      await deleteSavedAppearance(admin)
-      await admin.delete(`/api/users/${other.id}`)
-      await admin.dispose()
+      await deleteSavedAppearance(editorRequest)
+      await editorRequest.delete(`/api/users/${other.id}`)
+      await editorRequest.dispose()
     }
   })
 
-  test('signing in brings back the saved appearance and its panel without a reload', async ({ page, playwright }) => {
-    const signedIn = await playwright.request.newContext({ baseURL, storageState: AUTH_FILE })
-    await saveAppearancePreference(signedIn, { character: 'studio' })
-    await signIn(page, DEMO_USER)
+  test('signing in brings back the saved appearance and its panel without a reload', async ({ editor, page, playwright }) => {
+    const editorRequest = await playwright.request.newContext({ baseURL, storageState: editor.authFile })
+    await saveAppearancePreference(editorRequest, { character: 'studio' })
+    await signIn(page, editor.credentials)
 
     await expect(page.locator('html')).toHaveAttribute('data-character', 'studio')
     const sheet = await openAppearancePanel(page)
     await expect(radioInGroup(sheet, 'Style', 'Studio')).toBeChecked()
-    await deleteSavedAppearance(signedIn)
-    await signedIn.dispose()
+    await deleteSavedAppearance(editorRequest)
+    await editorRequest.dispose()
   })
 })
 
@@ -355,14 +356,14 @@ test.describe('Appearance panel', () => {
     await expect(html).toHaveAttribute('data-radius', 'lg')
   })
 
-  test('saves the setup in Payload preferences, so it follows the editor to a new browser', async ({ browser, page }) => {
+  test('saves the setup in Payload preferences, so it follows the editor to a new browser', async ({ browser, editor, page }) => {
     await page.goto('/admin')
     const sheet = await openAppearancePanel(page)
 
     await openFineTune(sheet)
     await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Density', 'Compact')))
 
-    const elsewhere = await browser.newContext({ baseURL, storageState: AUTH_FILE })
+    const elsewhere = await browser.newContext({ baseURL, storageState: editor.authFile })
     const other = await elsewhere.newPage()
     await other.goto('/admin')
 
@@ -392,7 +393,7 @@ test.describe('Appearance panel', () => {
     })
   })
 
-  test('copies the setup in one browser and pastes it in another', async ({ browser, context, page }) => {
+  test('copies the setup in one browser and pastes it in another', async ({ browser, context, editor, page }) => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write'])
     await saveAppearancePreference(page.request, {
       character: 'payload',
@@ -408,7 +409,7 @@ test.describe('Appearance panel', () => {
     const attributes = await page.locator('html').evaluate((html) => ({ ...html.dataset }))
     await deleteSavedAppearance(page.request)
 
-    const elsewhere = await browser.newContext({ baseURL, storageState: AUTH_FILE })
+    const elsewhere = await browser.newContext({ baseURL, storageState: editor.authFile })
     await elsewhere.grantPermissions(['clipboard-read', 'clipboard-write'])
     const other = await elsewhere.newPage()
     await other.goto('/admin')
@@ -2437,7 +2438,7 @@ test.describe('Rail', () => {
       await page.setViewportSize({ height: 900, width: 1300 })
       await expect.poll(() => computedStyleValue(page, 'html', '--vw')).toBe('13px')
       await afterNextFrame(page)
-      expect(await page.locator('.nav').evaluate((nav) => (nav as HTMLElement).inert)).toBe(closes)
+      await expect(page.locator('.nav')).toHaveJSProperty('inert', closes)
     })
   }
 
@@ -2488,7 +2489,7 @@ test.describe('Studio character', () => {
     await expect(page.locator('.nav')).toHaveCSS('border-right-width', '0px')
   })
 
-  test('collapses into a rail beside the card, keeping the toggle in its row at the top', async ({ page }) => {
+  test('collapses into a rail beside the card, keeping the toggle in its row at the top', async ({ editor, page }) => {
     await saveAppearancePreference(page.request, studio())
     await openList(page)
     const toggle = page.locator('.payloadpack-nav-toggle')
@@ -2522,7 +2523,7 @@ test.describe('Studio character', () => {
     })
     expect(Math.abs(letter.x - (circle.x + circle.width / 2))).toBeLessThanOrEqual(0.5)
     expect(Math.abs(letter.y - (circle.y + circle.height / 2))).toBeLessThanOrEqual(0.5)
-    await expect(avatar).toHaveAccessibleName(`Account: ${DEMO_USER.email}`)
+    await expect(avatar).toHaveAccessibleName(`Account: ${editor.credentials.email}`)
     await expect(avatar.locator('.btn__label')).toHaveCSS('font-size', '0px')
     await expect(avatar.locator('.btn__icon')).toBeHidden()
     expect(await avatar.locator('.btn__label').evaluate((element) => getComputedStyle(element, '::first-letter').fontSize)).toBe(

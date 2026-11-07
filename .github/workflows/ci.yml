@@ -16,6 +16,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check whether only docs changed
+        id: docs_check
+        if: github.event_name == 'pull_request'
+        run: echo "docs_only=$(git diff --quiet --no-renames HEAD^1 HEAD -- ':!*.md' ':!*.png' && echo true || echo false)" >> "$GITHUB_OUTPUT"
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -43,13 +50,14 @@ jobs:
         working-directory: apps/demo
 
       - name: Install Playwright browser
+        if: steps.docs_check.outputs.docs_only != 'true'
         run: bunx playwright install --with-deps chromium
         working-directory: apps/demo
 
       - name: End-to-end tests
+        if: steps.docs_check.outputs.docs_only != 'true'
         run: bun run test:e2e
         working-directory: apps/demo
         env:
           CI: 'true'
-          DATABASE_URI: file:./demo.db
           PAYLOAD_SECRET: ci-only-secret
