@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.3.0](https://github.com/payloadpack/theme/compare/v0.2.4...v0.3.0) (2026-11-07)
+
+
+### Features
+
+* add a switch style for checkbox fields ([#30](https://github.com/payloadpack/theme/issues/30)) ([ed17a9e](https://github.com/payloadpack/theme/commit/ed17a9eb162afd876ad32148bda21157f8e9d413))
+* add characters, palettes and the Appearance panel ([#31](https://github.com/payloadpack/theme/issues/31)) ([9190ca7](https://github.com/payloadpack/theme/commit/9190ca78b569685215e2b17cf78fe96b703bda90))
+
+
+### Bug Fixes
+
+* support Payload 4.0.0-beta.6 ([#28](https://github.com/payloadpack/theme/issues/28)) ([f27371b](https://github.com/payloadpack/theme/commit/f27371b6ffb3c7071b202aa2572154fe64a4c90e))
+
 ## [0.2.4](https://github.com/payloadpack/theme/compare/v0.2.3...v0.2.4) (2026-10-28)
 
 
