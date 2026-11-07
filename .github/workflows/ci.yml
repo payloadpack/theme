@@ -11,7 +11,7 @@ env:
   BUN_VERSION: '1.4.4'
 
 jobs:
-  contract-and-typecheck:
+  unit-tests-and-typecheck:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -34,7 +34,7 @@ jobs:
         run: bun run build
         working-directory: packages/theme
 
-      - name: Contract tests
+      - name: Unit tests
         run: bun run test
         working-directory: packages/theme
 
@@ -87,12 +87,11 @@ jobs:
         run: bun run test:e2e --shard=${{ matrix.shard }}/${{ strategy.job-total }}
         working-directory: apps/demo
         env:
-          CI: 'true'
           PAYLOAD_SECRET: ci-only-secret
 
   validate:
     if: always()
-    needs: [contract-and-typecheck, e2e]
+    needs: [unit-tests-and-typecheck, e2e]
     runs-on: ubuntu-latest
     steps:
       - name: Fail when a job did not pass
