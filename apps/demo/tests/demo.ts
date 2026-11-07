@@ -11,7 +11,16 @@ export const getEditorForWorker = (parallelIndex: number) => ({
   credentials: { email: `editor-${parallelIndex}@payloadpack.com`, password: 'editor' }
 })
 
-export const test = base.extend<{ editor: ReturnType<typeof getEditorForWorker> }>({
+export const test = base.extend<{ clearEditorPreferences: void; editor: ReturnType<typeof getEditorForWorker> }>({
+  clearEditorPreferences: [
+    async ({ editor, playwright }, use) => {
+      const editorRequest = await playwright.request.newContext({ baseURL, storageState: editor.authFile })
+      await expect(await editorRequest.delete('/api/payload-preferences?where[key][exists]=true')).toBeOK()
+      await editorRequest.dispose()
+      await use()
+    },
+    { auto: true }
+  ],
   editor: async ({}, use, testInfo) => use(getEditorForWorker(testInfo.parallelIndex)),
   storageState: async ({ editor }, use) => use(editor.authFile)
 })

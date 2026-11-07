@@ -93,6 +93,13 @@ jobs:
         env:
           PAYLOAD_SECRET: ci-only-secret
 
+      - name: Upload traces of failed tests
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-traces-${{ matrix.shard }}
+          path: apps/demo/test-results
+
   validate:
     if: always()
     needs: [unit-tests-and-typecheck, e2e]

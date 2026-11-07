@@ -22,10 +22,6 @@ import {
   waitForHydration
 } from './demo'
 
-test.beforeEach(async ({ page }) => {
-  await deleteSavedAppearance(page.request)
-})
-
 const NEXT_SCRIPTS_GLOB = '**/_next/static/**/*.js'
 
 const openShowcase = async (page: Page) => {
@@ -135,7 +131,6 @@ test.describe('Logged out', () => {
     const otherUser = { email: `other-${randomUUID()}@payloadpack.com`, password: 'other' }
     const { doc: other } = await (await editorRequest.post('/api/users', { data: otherUser })).json()
     const html = page.locator('html')
-    await deleteSavedAppearance(editorRequest)
 
     try {
       await signIn(page, editor.credentials)
@@ -157,7 +152,6 @@ test.describe('Logged out', () => {
       await expect(html).toHaveAttribute('data-character', 'studio')
       await expect(html).toHaveAttribute('data-palette', 'warm')
     } finally {
-      await deleteSavedAppearance(editorRequest)
       await editorRequest.delete(`/api/users/${other.id}`)
       await editorRequest.dispose()
     }
@@ -171,7 +165,6 @@ test.describe('Logged out', () => {
     await expect(page.locator('html')).toHaveAttribute('data-character', 'studio')
     const sheet = await openAppearancePanel(page)
     await expect(radioInGroup(sheet, 'Style', 'Studio')).toBeChecked()
-    await deleteSavedAppearance(editorRequest)
     await editorRequest.dispose()
   })
 })
@@ -877,14 +870,10 @@ test.describe('Theme values', () => {
       await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2)
     }
 
-    try {
-      await clickIcon('grid')
-      await expect(page.getByRole('radio', { name: 'Grid' })).toBeChecked()
-      await clickIcon('table')
-      await expect(page.getByRole('radio', { name: 'Table' })).toBeChecked()
-    } finally {
-      await page.request.delete('/api/payload-preferences/collection-products')
-    }
+    await clickIcon('grid')
+    await expect(page.getByRole('radio', { name: 'Grid' })).toBeChecked()
+    await clickIcon('table')
+    await expect(page.getByRole('radio', { name: 'Table' })).toBeChecked()
   })
 
   for (const character of ['enhanced', 'studio']) {
@@ -1263,7 +1252,7 @@ test.describe('Motion', () => {
     const transitions = await recordTransitions(page, ['template-default', 'template-default__wrap', 'nav'])
     await saveAppearancePreference(page.request, { character: 'studio' })
     await page.goto('/admin/collections/showcase')
-    await page.locator('.template-default--nav-open').waitFor()
+    await waitForHydration(page)
     await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))))
 
     expect(await transitions()).toEqual([])
@@ -1278,15 +1267,11 @@ test.describe('Motion', () => {
       await saveAppearancePreference(page.request, { options: { enhanced: { nav } } })
       await page.request.post('/api/payload-preferences/nav', { data: { value: { open } } })
       const transitions = await recordTransitions(page, ['template-default', 'template-default__wrap', 'nav'])
-      try {
-        await page.goto('/admin')
-        await waitForHydration(page)
-        await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))))
+      await page.goto('/admin')
+      await waitForHydration(page)
+      await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))))
 
-        expect(await transitions()).toEqual([])
-      } finally {
-        await page.request.delete('/api/payload-preferences/nav')
-      }
+      expect(await transitions()).toEqual([])
     })
   }
 
@@ -2815,7 +2800,7 @@ test.describe('Soft palette', () => {
 
     await page.goto('/admin/collections/pages')
     await page.locator('table tbody tr a').first().click()
-    await waitForHydration(page)
+    await page.waitForURL(/\/admin\/collections\/pages\/\d+/)
     expect(await computedStyleValue(page, '.tabs__tab-button--active', 'background-color', '::after')).toBe(primary)
   })
 
@@ -2882,8 +2867,6 @@ test.describe('Checkbox cells', () => {
 
   const firstColumn = (accessor: string) =>
     `/admin/collections/products?columns=${encodeURIComponent(JSON.stringify([accessor, 'title']))}`
-
-  test.afterEach(({ page }) => page.request.delete('/api/payload-preferences/collection-products'))
 
   test("show a check or a muted x, and keep Payload's text for screen readers", async ({ page }) => {
     await page.goto('/admin/collections/products')
