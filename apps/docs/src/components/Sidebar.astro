@@ -1,0 +1,32 @@
+---
+import MobileMenuFooter from '@astrojs/starlight/components/MobileMenuFooter.astro'
+
+const { sidebar } = Astro.locals.starlightRoute
+---
+
+<div class="docs-sidebar">
+  {
+    sidebar.map(
+      (group) =>
+        group.type === 'group' && (
+          <div class="docs-sidebar-group">
+            <p class="docs-sidebar-label">{group.label}</p>
+            <ul>
+              {group.entries.map(
+                (page) =>
+                  page.type === 'link' && (
+                    <li>
+                      <a aria-current={page.isCurrent ? 'page' : undefined} href={page.href}>
+                        {page.label}
+                      </a>
+                    </li>
+                  )
+              )}
+            </ul>
+          </div>
+        )
+    )
+  }
+</div>
+
+<div class="md:sl-hidden"><MobileMenuFooter /></div>

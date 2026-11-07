@@ -41,12 +41,16 @@ The one color a palette marks links and statuses with, in both versions. Fills, 
 _Avoid_: primary, brand color
 
 **Token sheet**:
-The short list of `--payloadpack-` tokens in the README's Customize section. Palettes set only these, a developer can override them in their own CSS, and the theme maps them onto Payload's own color, shadow, corner and motion tokens.
+The short list of `--payloadpack-` tokens on the docs site's Customize page. Palettes set only these, a developer can override them in their own CSS, and the theme maps them onto Payload's own color, shadow, corner and motion tokens.
 _Avoid_: design tokens, theme variables, CSS variables
 
 **Setup**:
 What one editor picked: a character, its options, a palette and, when they made one, their own palette's colors. It can be copied and pasted between editors, and, on a built-in palette, pasted into the plugin config as the site default.
 _Avoid_: preset, config, profile
+
+**Field layout**:
+A layout a developer gives one field with a `className`: vertical tabs, radio cards or a switch. It works under every character and palette.
+_Avoid_: field style, which reads like the Style the panel offers
 
 **Rail**:
 The narrow column of nav icons a collapsed nav becomes when the `nav` option is `rail`.

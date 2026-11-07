@@ -1,0 +1,40 @@
+---
+title: Introduction
+description: A warmer, roomier admin theme for Payload 4. Every editor picks their own style and palette, and nothing needs configuring.
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components'
+import Screenshot from '../../components/Screenshot.astro'
+
+<Screenshot
+  alt="A Payload edit view with the Enhanced style, the Neutral palette, Comfortable density and Lucide icons"
+  name="compare-themed"
+/>
+
+`@payloadpack/theme` is a Payload plugin. Add it, and the admin gets a roomier layout, Lucide icons and a calm neutral palette. Each editor can then change all of it from the Appearance panel.
+
+## What you get
+
+<CardGrid>
+  <Card title="Three styles">
+    Payload's own layout, Enhanced and Studio, with corners, typeface, density, icons, motion and nav to fine-tune.
+  </Card>
+  <Card title="Palettes and custom colors">
+    Payload, Neutral, Warm and Soft, each in light and dark. Editors can mix their own, and you can ship yours.
+  </Card>
+  <Card title="A setup per editor">
+    Saved in Payload's preferences, so it follows the editor to every browser. Rendered on the server, so pages never flash.
+  </Card>
+  <Card title="Field layouts">Vertical tabs, radio cards and switches, each with one `className`.</Card>
+  <Card title="Icons everywhere">Lucide icons in the nav and the document menu, matched to your collections automatically.</Card>
+  <Card title="One token sheet">Restyle the whole admin from a short list of CSS custom properties.</Card>
+</CardGrid>
+
+## Requirements
+
+| Package or browser | Version                                     |
+| ------------------ | ------------------------------------------- |
+| `payload`          | 4.0.0-beta.6 or later                       |
+| `next`             | 16.4.2 or later                             |
+| `react`            | 19                                          |
+| Browsers           | Safari 17, Chrome 114, Firefox 128 or later |

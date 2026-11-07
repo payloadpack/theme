@@ -1,0 +1,62 @@
+---
+title: Field layouts
+description: Vertical tabs, radio cards and switches, each one className away. They work with every style and palette.
+---
+
+import Screenshot from '../../components/Screenshot.astro'
+
+## Vertical tabs
+
+<Screenshot alt="A tabs field with General and Advanced listed in a column beside a Meta Title field" name="vertical-tabs" />
+
+```ts
+import { VERTICAL_TABS } from '@payloadpack/theme'
+
+const field = {
+  type: 'tabs',
+  admin: { className: VERTICAL_TABS },
+  tabs: [
+    { label: 'General', fields: [] },
+    { label: 'Advanced', fields: [] }
+  ]
+}
+```
+
+From 768px wide the tabs stack in a 270px column on the left. Narrower screens keep Payload's horizontal tabs. In both layouts the Left and Right arrow keys move between tabs.
+
+## Radio cards
+
+<Screenshot alt="A Plan radio field shown as three stacked cards with Pro selected" name="radio-cards" />
+
+```ts
+import { RADIO_CARDS } from '@payloadpack/theme'
+
+const field = {
+  name: 'plan',
+  type: 'radio',
+  admin: { className: RADIO_CARDS },
+  options: ['plus', 'pro', 'enterprise']
+}
+```
+
+A label can be JSX. Its first element is the title, and anything after it is a muted description:
+
+```tsx
+{ value: 'plus', label: <><strong>Plus</strong><span>For individuals and small teams.</span></> }
+```
+
+## Switch
+
+<Screenshot alt="A Notify subscribers checkbox shown as a switch that is turned on" name="switch" />
+
+```ts
+import { SWITCH } from '@payloadpack/theme'
+
+const field = {
+  name: 'notify',
+  type: 'checkbox',
+  admin: { className: SWITCH }
+}
+```
+
+It is still Payload's checkbox: it saves with the form, and screen readers announce it as a checkbox. Its size and thumb are [tokens](../customize/#switch).

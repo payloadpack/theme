@@ -38,6 +38,10 @@ jobs:
         run: bun run test
         working-directory: packages/theme
 
+      - name: Build docs
+        run: bun run build
+        working-directory: apps/docs
+
       - name: Type-check demo
         run: bun run typecheck
         working-directory: apps/demo

@@ -6,6 +6,8 @@
 | ---------------- | ----------------------------------------------------- |
 | `packages/theme` | The published package                                 |
 | `apps/demo`      | A Payload 4 app that uses the package, plus e2e tests |
+| `apps/docs`      | The docs site, built with Astro Starlight             |
+| `design`         | Design notes behind characters and palettes           |
 
 ## Develop
 
@@ -34,11 +36,33 @@ Run both after bumping Payload. A failing contract test names the token, class o
 
 ## Screenshots
 
-The README images in `.github/assets` come from the demo. When main changes the demo, the theme or `bun.lock`, the Screenshots workflow renders them on macOS and opens a pull request for any image that looks different. The same script runs locally and rewrites every image that renders differently on your machine, so leave committing them to the workflow:
+The README and docs images in `.github/assets` come from the demo. When main changes the demo, the theme or `bun.lock`, the Screenshots workflow renders them on macOS and opens a pull request for any image that looks different. The same script runs locally and rewrites every image that renders differently on your machine, so leave committing them to the workflow:
 
 ```sh
 cd apps/demo && bun run screenshots
 ```
+
+The README's panel tour GIFs are recorded from the demo too, but every recording is a new file, so the workflow leaves them alone. Re-record them with [ffmpeg](https://ffmpeg.org) installed after a change to the Appearance panel:
+
+```sh
+cd apps/demo && bun run panel-tour
+```
+
+The icon tiles in `.github/assets/icons` are drawn from Lucide. Change the icons in `apps/docs/scripts/render-icon-tiles.mjs`, then:
+
+```sh
+cd apps/docs && bun run icons
+```
+
+## Docs
+
+The docs site runs on http://localhost:4321/theme/:
+
+```sh
+cd apps/docs && bun run dev
+```
+
+The Release workflow deploys it to GitHub Pages after each release, so the site always matches the version on npm. To deploy it by hand, run the Docs workflow from the Actions tab.
 
 ## Release
 

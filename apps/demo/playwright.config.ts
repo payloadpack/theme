@@ -13,7 +13,8 @@ export default defineConfig({
       snapshotPathTemplate: '{testDir}/../../../.github/assets/{arg}{ext}',
       testMatch: /screenshots\.ts/,
       use: { deviceScaleFactor: 2, storageState: AUTH_FILE, viewport: { height: 800, width: 1280 } }
-    }
+    },
+    { dependencies: ['setup'], name: 'panel-tour', testMatch: /panel-tour\.ts/ }
   ],
   reporter: 'list',
   testDir: './tests',
