@@ -1,6 +1,6 @@
-# payloadpack/theme
+# Naming
 
-An admin theme for Payload: editors pick how their admin panel looks, within the limits a developer sets in the plugin config.
+The terms for an admin theme where editors pick how their admin panel looks, within the limits a developer sets in the plugin config.
 
 ## Language
 

@@ -1,6 +1,11 @@
+---
+paths:
+  - 'packages/theme/src/**'
+---
+
 # Appearance
 
-How characters, palettes and the Appearance panel work. Terms follow [GLOSSARY.md](../GLOSSARY.md).
+How characters, palettes and the Appearance panel work. Terms follow [naming.md](naming.md).
 
 An editor's look is two independent choices: a **character** (how the admin is laid out and behaves, labelled Style in the panel) and a **palette** (its colors, in a light and a dark version). Payload's own light/dark setting, labelled Theme in the panel, picks which version of the palette shows.
 

@@ -1,5 +1,7 @@
 # Contributing
 
+The conventions for code, naming and docs live in `.claude/`, next to the design notes.
+
 ## Repository
 
 | Path             | What                                                  |
@@ -7,7 +9,7 @@
 | `packages/theme` | The published package                                 |
 | `apps/demo`      | A Payload 4 app that uses the package, plus e2e tests |
 | `apps/docs`      | The docs site, built with Astro Starlight             |
-| `design`         | Design notes behind characters and palettes           |
+| `.claude`        | Conventions, naming and design notes                  |
 
 ## Develop
 
@@ -25,6 +27,12 @@ The demo imports the built package, so rebuild after changing it:
 cd packages/theme && bun run build
 ```
 
+The docs site runs on http://localhost:4321/theme/:
+
+```sh
+cd apps/docs && bun run dev
+```
+
 ## Test
 
 | Command                             | What it checks                                                                                    |
@@ -34,38 +42,16 @@ cd packages/theme && bun run build
 
 Run both after bumping Payload. A failing contract test names the token, class or hard-coded value that changed.
 
-## Screenshots
+## Images
 
-The README and docs images in `.github/assets` come from the demo. When main changes the demo, the theme or `bun.lock`, the Screenshots workflow renders them on macOS and opens a pull request for any image that looks different. The same script runs locally and rewrites every image that renders differently on your machine, so leave committing them to the workflow:
-
-```sh
-cd apps/demo && bun run screenshots
-```
-
-The README's panel tour GIFs are recorded from the demo too, but every recording is a new file, so the workflow leaves them alone. Re-record them with [ffmpeg](https://ffmpeg.org) installed after a change to the Appearance panel:
-
-```sh
-cd apps/demo && bun run panel-tour
-```
-
-The logo, the README's feature icons and the docs favicon are drawn by `apps/docs/scripts/render-brand-assets.mjs`, from the payloadpack logo, Lucide icons and the brand gradient. After changing it:
-
-```sh
-cd apps/docs && bun run brand
-```
-
-## Docs
-
-The docs site runs on http://localhost:4321/theme/:
-
-```sh
-cd apps/docs && bun run dev
-```
-
-The Release workflow deploys it to GitHub Pages after each release, so the site always matches the version on npm. To deploy it by hand, run the Docs workflow from the Actions tab.
+| Command                               | What it makes                                                                  |
+| ------------------------------------- | ------------------------------------------------------------------------------ |
+| `cd apps/demo && bun run screenshots` | The README and docs screenshots. The Screenshots workflow commits them on main |
+| `cd apps/demo && bun run panel-tour`  | The README's panel tour GIFs. Needs [ffmpeg](https://ffmpeg.org)               |
+| `cd apps/docs && bun run brand`       | The logo, the README's feature icons and the docs favicon                      |
 
 ## Release
 
-Merge pull requests with a [Conventional Commits](https://www.conventionalcommits.org) title. Release Please opens a release pull request; merging it publishes the package to npm with provenance.
+Merge pull requests with a [Conventional Commits](https://www.conventionalcommits.org) title. Release Please opens a release pull request; merging it publishes the package to npm with provenance, and the docs site deploys to GitHub Pages. To deploy the docs by hand, run the Docs workflow from the Actions tab.
 
 The release and screenshots workflows need the repository secret `PAYLOADPACK_RELEASE_BOT_TOKEN`. The release workflow publishes to npm through Trusted Publishing, so no npm token is stored.
