@@ -1,4 +1,4 @@
-import { type APIRequestContext, test as base, expect, type Locator, type Page } from '@playwright/test'
+import { type APIRequestContext, test as base, expect, type Locator, type Page, type Request } from '@playwright/test'
 
 export const AUTH_FILE = 'tests/.auth/demo.json'
 
@@ -17,14 +17,19 @@ export const test = base.extend<{ editor: ReturnType<typeof getEditorForWorker>;
       const editorRequest = await playwright.request.newContext({ baseURL, storageState: editor.authFile })
       await expect(await editorRequest.delete('/api/payload-preferences?where[key][exists]=true')).toBeOK()
       await editorRequest.dispose()
-      const preferenceSaveResponses: Promise<unknown>[] = []
+      const isPreferenceSave = (request: Request) =>
+        request.url().includes('/api/payload-preferences/') && request.method() === 'POST'
+      let preferenceSavesInFlight = 0
       context.on('request', (request) => {
-        if (request.url().includes('/api/payload-preferences/') && request.method() === 'POST') {
-          preferenceSaveResponses.push(request.response())
-        }
+        preferenceSavesInFlight += Number(isPreferenceSave(request))
       })
+      const countSettledPreferenceSave = (request: Request) => {
+        preferenceSavesInFlight -= Number(isPreferenceSave(request))
+      }
+      context.on('requestfinished', countSettledPreferenceSave)
+      context.on('requestfailed', countSettledPreferenceSave)
       await use()
-      await Promise.all(preferenceSaveResponses)
+      await expect.poll(() => preferenceSavesInFlight).toBe(0)
     },
     { auto: true }
   ],
