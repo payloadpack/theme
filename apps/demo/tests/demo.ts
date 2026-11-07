@@ -29,6 +29,9 @@ export const test = base.extend<{ editor: ReturnType<typeof getEditorForWorker>;
       context.on('requestfinished', countSettledPreferenceSave)
       context.on('requestfailed', countSettledPreferenceSave)
       await use()
+      await context.route('**/api/payload-preferences/**', (route) =>
+        isPreferenceSave(route.request()) ? route.abort() : route.fallback()
+      )
       await expect.poll(() => preferenceSavesInFlight).toBe(0)
     },
     { auto: true }

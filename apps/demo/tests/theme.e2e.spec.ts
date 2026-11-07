@@ -326,24 +326,23 @@ test.describe('Appearance panel', () => {
     await expect(reset).toBeDisabled()
 
     await radioLabel(radioInGroup(sheet, 'Density', 'Compact')).click()
-    await radioLabel(radioInGroup(sheet, 'Corners', 'Small')).click()
+    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Corners', 'Small')))
     await expect(sheet.locator('summary')).toContainText('2 changed')
 
-    await reset.click()
+    await clickAndWaitForSave(page, reset)
     await expect(html).toHaveAttribute('data-density', 'comfortable')
     await expect(html).toHaveAttribute('data-radius', 'md')
     await expect(reset).toBeDisabled()
     await expect(status).toContainText('Enhanced is back to its defaults.')
-    await radioLabel(radioInGroup(sheet, 'Palette', 'Warm')).click()
-    await radioLabel(radioInGroup(sheet, 'Corners', 'Large')).click()
+    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Palette', 'Warm')))
+    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Corners', 'Large')))
 
-    await status.getByRole('button', { name: 'Undo' }).click()
+    await clickAndWaitForSave(page, status.getByRole('button', { name: 'Undo' }))
     await expect(html).toHaveAttribute('data-density', 'compact')
     await expect(html).toHaveAttribute('data-radius', 'lg')
     await expect(html).toHaveAttribute('data-palette', 'warm')
     await expect(status).toBeEmpty()
 
-    await page.waitForLoadState('networkidle')
     await page.reload()
     await expect(html).toHaveAttribute('data-density', 'compact')
     await expect(html).toHaveAttribute('data-radius', 'lg')
@@ -1794,7 +1793,7 @@ test.describe('App palettes', () => {
     await page.goto('/admin/collections/showcase')
     const sheet = await openAppearancePanel(page)
 
-    await radioLabel(radioInGroup(sheet, 'Palette', 'Indigo')).click()
+    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Palette', 'Indigo')))
     await expect(page.locator('html')).toHaveAttribute('data-palette', 'indigo')
     expect(rgbToHex(await computedColor(page, 'var(--color-bg-brand)'))).toBe('#4f46e5')
     expect(rgbToHex(await computedColor(page, 'var(--color-bg-brand)', 'dark'))).toBe('#818cf8')
@@ -1907,7 +1906,7 @@ test.describe('Custom palette', () => {
       lightPrimary: await neutral('--payloadpack-action-primary')
     }
 
-    await sheet.getByRole('button', { name: 'Custom colors' }).click()
+    await clickAndWaitForSave(page, sheet.getByRole('button', { name: 'Custom colors' }))
     await expect(html).toHaveAttribute('data-palette', 'custom')
     await expect(radioInGroup(sheet, 'Palette', 'Custom')).toBeChecked()
     await expect(field(sheet, 'Light', 'Background')).toHaveValue(expected.lightBackground)
@@ -2417,7 +2416,11 @@ test.describe('Rail', () => {
     test(`nav: '${nav}' ${name} when the window shrinks past 1440px`, async ({ page }) => {
       await saveAppearancePreference(page.request, { options: { enhanced: { nav } } })
       // Payload's load-time nav preference read can land after the resize and reopen the nav, so it never answers here
-      await page.route('**/api/payload-preferences/nav', () => {})
+      await page.route('**/api/payload-preferences/nav', async (route) => {
+        if (route.request().method() !== 'GET') {
+          await route.fallback()
+        }
+      })
       await page.setViewportSize({ height: 900, width: 1500 })
       await page.goto('/admin')
       await waitForHydration(page)
