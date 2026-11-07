@@ -22,10 +22,6 @@ import {
   waitForHydration
 } from './demo'
 
-test.beforeEach(async ({ page }) => {
-  await deleteSavedAppearance(page.request)
-})
-
 const NEXT_SCRIPTS_GLOB = '**/_next/static/**/*.js'
 
 const openShowcase = async (page: Page) => {
@@ -135,7 +131,6 @@ test.describe('Logged out', () => {
     const otherUser = { email: `other-${randomUUID()}@payloadpack.com`, password: 'other' }
     const { doc: other } = await (await editorRequest.post('/api/users', { data: otherUser })).json()
     const html = page.locator('html')
-    await deleteSavedAppearance(editorRequest)
 
     try {
       await signIn(page, editor.credentials)
@@ -157,7 +152,6 @@ test.describe('Logged out', () => {
       await expect(html).toHaveAttribute('data-character', 'studio')
       await expect(html).toHaveAttribute('data-palette', 'warm')
     } finally {
-      await deleteSavedAppearance(editorRequest)
       await editorRequest.delete(`/api/users/${other.id}`)
       await editorRequest.dispose()
     }
@@ -171,7 +165,6 @@ test.describe('Logged out', () => {
     await expect(page.locator('html')).toHaveAttribute('data-character', 'studio')
     const sheet = await openAppearancePanel(page)
     await expect(radioInGroup(sheet, 'Style', 'Studio')).toBeChecked()
-    await deleteSavedAppearance(editorRequest)
     await editorRequest.dispose()
   })
 })
@@ -350,7 +343,6 @@ test.describe('Appearance panel', () => {
     await expect(html).toHaveAttribute('data-palette', 'warm')
     await expect(status).toBeEmpty()
 
-    await page.waitForLoadState('networkidle')
     await page.reload()
     await expect(html).toHaveAttribute('data-density', 'compact')
     await expect(html).toHaveAttribute('data-radius', 'lg')
@@ -877,14 +869,10 @@ test.describe('Theme values', () => {
       await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2)
     }
 
-    try {
-      await clickIcon('grid')
-      await expect(page.getByRole('radio', { name: 'Grid' })).toBeChecked()
-      await clickIcon('table')
-      await expect(page.getByRole('radio', { name: 'Table' })).toBeChecked()
-    } finally {
-      await page.request.delete('/api/payload-preferences/collection-products')
-    }
+    await clickIcon('grid')
+    await expect(page.getByRole('radio', { name: 'Grid' })).toBeChecked()
+    await clickIcon('table')
+    await expect(page.getByRole('radio', { name: 'Table' })).toBeChecked()
   })
 
   for (const character of ['enhanced', 'studio']) {
@@ -1263,7 +1251,7 @@ test.describe('Motion', () => {
     const transitions = await recordTransitions(page, ['template-default', 'template-default__wrap', 'nav'])
     await saveAppearancePreference(page.request, { character: 'studio' })
     await page.goto('/admin/collections/showcase')
-    await page.locator('.template-default--nav-open').waitFor()
+    await waitForHydration(page)
     await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))))
 
     expect(await transitions()).toEqual([])
@@ -1278,15 +1266,11 @@ test.describe('Motion', () => {
       await saveAppearancePreference(page.request, { options: { enhanced: { nav } } })
       await page.request.post('/api/payload-preferences/nav', { data: { value: { open } } })
       const transitions = await recordTransitions(page, ['template-default', 'template-default__wrap', 'nav'])
-      try {
-        await page.goto('/admin')
-        await waitForHydration(page)
-        await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))))
+      await page.goto('/admin')
+      await waitForHydration(page)
+      await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))))
 
-        expect(await transitions()).toEqual([])
-      } finally {
-        await page.request.delete('/api/payload-preferences/nav')
-      }
+      expect(await transitions()).toEqual([])
     })
   }
 
@@ -2028,12 +2012,12 @@ test.describe('Custom palette', () => {
     const sheet = await openAppearancePanel(page)
 
     await page.evaluate(() => navigator.clipboard.writeText(JSON.stringify({ character: 'enhanced', palette: 'warm' })))
-    await clickAndWaitForSave(page, await openShareMenuItem(sheet, 'Paste setup'))
+    await (await openShareMenuItem(sheet, 'Paste setup')).click()
     await expect(page.locator('html')).toHaveAttribute('data-character', 'enhanced')
     await expect(page.locator('html')).toHaveAttribute('data-palette', 'warm')
     await expect(radioInGroup(sheet, 'Palette', 'Custom')).toBeAttached()
 
-    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Style', 'Studio')))
+    await radioLabel(radioInGroup(sheet, 'Style', 'Studio')).click()
     await expect(page.locator('html')).toHaveAttribute('data-font', 'inter')
   })
 
@@ -2064,28 +2048,28 @@ test.describe('Custom palette', () => {
   test('keeps the focus in the panel after Remove custom colors, Reset and Undo', async ({ page }) => {
     await page.goto('/admin')
     const sheet = await openAppearancePanel(page)
-    await clickAndWaitForSave(page, sheet.getByRole('button', { name: 'Custom colors' }))
-    await clickAndWaitForSave(page, sheet.getByRole('button', { name: 'Remove custom colors' }))
+    await sheet.getByRole('button', { name: 'Custom colors' }).click()
+    await sheet.getByRole('button', { name: 'Remove custom colors' }).click()
     await expect(sheet.getByRole('button', { name: 'Custom colors' })).toBeFocused()
 
     await openFineTune(sheet)
-    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Density', 'Compact')))
-    await clickAndWaitForSave(page, sheet.getByRole('button', { name: 'Reset Enhanced' }))
+    await radioLabel(radioInGroup(sheet, 'Density', 'Compact')).click()
+    await sheet.getByRole('button', { name: 'Reset Enhanced' }).click()
     const undo = sheet.getByRole('button', { name: 'Undo' })
     await expect(undo).toBeFocused()
-    await clickAndWaitForSave(page, undo)
+    await undo.click()
     await expect(sheet.locator('summary')).toBeFocused()
   })
 
   test('keeps the focus in the palettes when the arrow keys come back to Custom', async ({ page }) => {
     await page.goto('/admin')
     const sheet = await openAppearancePanel(page)
-    await clickAndWaitForSave(page, sheet.getByRole('button', { name: 'Custom colors' }))
+    await sheet.getByRole('button', { name: 'Custom colors' }).click()
     const mine = radioInGroup(sheet, 'Palette', 'Custom')
 
     await mine.focus()
-    await Promise.all([waitForAppearanceSave(page), page.keyboard.press('ArrowLeft')])
-    await Promise.all([waitForAppearanceSave(page), page.keyboard.press('ArrowRight')])
+    await page.keyboard.press('ArrowLeft')
+    await page.keyboard.press('ArrowRight')
     await expect(mine).toBeChecked()
     await expect(mine).toBeFocused()
   })
@@ -2095,10 +2079,10 @@ test.describe('Custom palette', () => {
     await page.goto('/admin')
     const sheet = await openAppearancePanel(page)
 
-    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Palette', 'Neutral')))
+    await radioLabel(radioInGroup(sheet, 'Palette', 'Neutral')).click()
     await expect(page.locator('html')).toHaveAttribute('data-palette', 'neutral')
     await expect(sheet.getByRole('button', { name: 'Custom colors' })).toHaveCount(0)
-    await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Palette', 'Custom')))
+    await radioLabel(radioInGroup(sheet, 'Palette', 'Custom')).click()
     await expect(accent(sheet)).toHaveValue('#c2410c')
   })
 
@@ -2432,7 +2416,11 @@ test.describe('Rail', () => {
     test(`nav: '${nav}' ${name} when the window shrinks past 1440px`, async ({ page }) => {
       await saveAppearancePreference(page.request, { options: { enhanced: { nav } } })
       // Payload's load-time nav preference read can land after the resize and reopen the nav, so it never answers here
-      await page.route('**/api/payload-preferences/nav', () => {})
+      await page.route('**/api/payload-preferences/nav', async (route) => {
+        if (route.request().method() !== 'GET') {
+          await route.fallback()
+        }
+      })
       await page.setViewportSize({ height: 900, width: 1500 })
       await page.goto('/admin')
       await waitForHydration(page)
@@ -2815,7 +2803,6 @@ test.describe('Soft palette', () => {
 
     await page.goto('/admin/collections/pages')
     await page.locator('table tbody tr a').first().click()
-    await waitForHydration(page)
     expect(await computedStyleValue(page, '.tabs__tab-button--active', 'background-color', '::after')).toBe(primary)
   })
 
@@ -2882,8 +2869,6 @@ test.describe('Checkbox cells', () => {
 
   const firstColumn = (accessor: string) =>
     `/admin/collections/products?columns=${encodeURIComponent(JSON.stringify([accessor, 'title']))}`
-
-  test.afterEach(({ page }) => page.request.delete('/api/payload-preferences/collection-products'))
 
   test("show a check or a muted x, and keep Payload's text for screen readers", async ({ page }) => {
     await page.goto('/admin/collections/products')

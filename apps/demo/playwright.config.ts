@@ -3,8 +3,8 @@ import { defineConfig, devices } from '@playwright/test'
 import { AUTH_FILE, baseURL, DEMO_PORT } from './tests/demo'
 
 const E2E_DATABASE_FILE = 'e2e.db'
-const TEST_TIMEOUT_MS = 60_000
 const E2E_MEDIA_DIR = 'e2e-media'
+const TEST_TIMEOUT_MS = 60_000
 
 export default defineConfig({
   projects: [
@@ -26,6 +26,7 @@ export default defineConfig({
   use: {
     ...devices['Desktop Chrome'],
     baseURL,
+    trace: process.env.CI ? { mode: 'retain-on-failure', screenshots: false } : 'off',
     viewport: { height: 900, width: 1440 }
   },
   webServer: {

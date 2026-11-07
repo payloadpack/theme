@@ -1,4 +1,4 @@
-import { type APIRequestContext, test as base, expect, type Locator, type Page } from '@playwright/test'
+import { type APIRequestContext, test as base, expect, type Locator, type Page, type Request } from '@playwright/test'
 
 export const AUTH_FILE = 'tests/.auth/demo.json'
 
@@ -11,7 +11,31 @@ export const getEditorForWorker = (parallelIndex: number) => ({
   credentials: { email: `editor-${parallelIndex}@payloadpack.com`, password: 'editor' }
 })
 
-export const test = base.extend<{ editor: ReturnType<typeof getEditorForWorker> }>({
+export const test = base.extend<{ editor: ReturnType<typeof getEditorForWorker>; isolateEditorPreferences: void }>({
+  isolateEditorPreferences: [
+    async ({ context, editor, playwright }, use) => {
+      const editorRequest = await playwright.request.newContext({ baseURL, storageState: editor.authFile })
+      await expect(await editorRequest.delete('/api/payload-preferences?where[key][exists]=true')).toBeOK()
+      await editorRequest.dispose()
+      const isPreferenceSave = (request: Request) =>
+        request.url().includes('/api/payload-preferences/') && request.method() === 'POST'
+      let preferenceSavesInFlight = 0
+      context.on('request', (request) => {
+        preferenceSavesInFlight += Number(isPreferenceSave(request))
+      })
+      const countSettledPreferenceSave = (request: Request) => {
+        preferenceSavesInFlight -= Number(isPreferenceSave(request))
+      }
+      context.on('requestfinished', countSettledPreferenceSave)
+      context.on('requestfailed', countSettledPreferenceSave)
+      await use()
+      await context.route('**/api/payload-preferences/**', (route) =>
+        isPreferenceSave(route.request()) ? route.abort() : route.fallback()
+      )
+      await expect.poll(() => preferenceSavesInFlight).toBe(0)
+    },
+    { auto: true }
+  ],
   editor: async ({}, use, testInfo) => use(getEditorForWorker(testInfo.parallelIndex)),
   storageState: async ({ editor }, use) => use(editor.authFile)
 })

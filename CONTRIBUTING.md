@@ -35,10 +35,10 @@ cd apps/docs && bun run dev
 
 ## Test
 
-| Command                             | What it checks                                                                                                                                                                |
-| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `cd packages/theme && bun run test` | The plugin config, setup parsing and the provider's server render, and that every Payload token, class, icon and hard-coded size the theme depends on still exists in Payload |
-| `cd apps/demo && bun run test:e2e`  | The rendered sizes, colors and icons in a real browser, on a fresh production build of the demo                                                                               |
+| Command                             | What it checks                                                                                                                                                                                         |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `cd packages/theme && bun run test` | The plugin config, how an editor's setup resolves against it, the provider's server render, and that every Payload token, class, icon and hard-coded size the theme depends on still exists in Payload |
+| `cd apps/demo && bun run test:e2e`  | The rendered sizes, colors and icons in a real browser, on a fresh production build of the demo                                                                                                        |
 
 Run both after bumping Payload. A failing contract test names the token, class or hard-coded value that changed.
 
