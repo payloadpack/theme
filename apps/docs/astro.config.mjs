@@ -2,8 +2,7 @@ import starlight from '@astrojs/starlight'
 import { defineConfig } from 'astro/config'
 
 export default defineConfig({
-  base: '/theme',
-  site: 'https://payloadpack.github.io',
+  site: 'https://theme.payloadpack.com',
   integrations: [
     starlight({
       title: '@payloadpack/theme',

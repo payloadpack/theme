@@ -17,8 +17,8 @@
 </p>
 
 <p align="center">
-  <a href="https://payloadpack.github.io/theme/"><b>Documentation</b></a> ·
-  <a href="https://payloadpack.github.io/theme/installation/">Installation</a> ·
+  <a href="https://theme.payloadpack.com/"><b>Documentation</b></a> ·
+  <a href="https://theme.payloadpack.com/installation/">Installation</a> ·
   <a href="https://github.com/payloadpack/theme/blob/main/packages/theme/CHANGELOG.md">Changelog</a>
 </p>
 
@@ -168,7 +168,7 @@ themePlugin({
 | `panel`              | Who gets the Appearance panel                |
 | `codeEditorFontSize` | Code editor font size in Comfortable density |
 
-Defaults and details are in the [configuration docs](https://payloadpack.github.io/theme/configuration/).
+Defaults and details are in the [configuration docs](https://theme.payloadpack.com/configuration/).
 
 ## Customize
 
@@ -181,14 +181,14 @@ html {
 }
 ```
 
-Every token, and how to ship your own palette, is in the [customize docs](https://payloadpack.github.io/theme/customize/).
+Every token, and how to ship your own palette, is in the [customize docs](https://theme.payloadpack.com/customize/).
 
 ## Requirements
 
 Payload 4.0.0-beta.6+, Next.js 16.4.2+ and React 19, in Safari 17, Chrome 114 or Firefox 128 and later.
 
 <p align="center">
-  <a href="https://payloadpack.github.io/theme/">Documentation</a> ·
+  <a href="https://theme.payloadpack.com/">Documentation</a> ·
   <a href="https://github.com/payloadpack/theme/blob/main/CONTRIBUTING.md">Contributing</a> ·
   <a href="https://github.com/payloadpack/theme/blob/main/packages/theme/LICENSE">MIT License</a>
 </p>
