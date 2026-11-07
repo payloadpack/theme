@@ -4,7 +4,9 @@ import { Image } from 'astro:assets'
 
 interface Props {
   alt: string
+  caption?: string
   name: string
+  title?: string
 }
 
 const screenshotByPath = import.meta.glob<{ default: ImageMetadata }>('../../../../.github/assets/*.png', { eager: true })
@@ -14,7 +16,7 @@ const readScreenshot = (fileName: string) => {
   return screenshot.default
 }
 
-const { alt, name } = Astro.props
+const { alt, caption, name, title } = Astro.props
 const screenshotByColorScheme = { dark: readScreenshot(`${name}-dark`), light: readScreenshot(`${name}-light`) }
 ---
 
@@ -29,5 +31,13 @@ const screenshotByColorScheme = { dark: readScreenshot(`${name}-dark`), light: r
         width={screenshot.width / 2}
       />
     ))
+  }
+  {
+    (title || caption) && (
+      <figcaption>
+        {title && <strong>{title}</strong>}
+        {caption}
+      </figcaption>
+    )
   }
 </figure>

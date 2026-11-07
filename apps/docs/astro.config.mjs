@@ -42,7 +42,7 @@ export default defineConfig({
         { slug: 'configuration', attrs: { 'data-icon': 'settings-2' } },
         {
           label: 'Guides',
-          items: ['appearance-panel', 'styles', 'palettes', 'nav-icons', 'customize', 'translations']
+          items: ['styles-and-palettes', 'add-a-palette', 'customize', 'nav-icons', 'translations']
         },
         { label: 'Fields', items: ['fields/vertical-tabs', 'fields/radio-cards', 'fields/switch'] }
       ]

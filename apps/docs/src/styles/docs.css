@@ -375,3 +375,26 @@ starlight-toc a[aria-current='true'] {
   border: 1px solid var(--docs-border);
   border-radius: 0.75rem;
 }
+
+.docs-screenshot figcaption {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--docs-muted-foreground);
+}
+
+.docs-screenshot figcaption strong {
+  display: block;
+  color: var(--docs-foreground);
+  font-weight: 500;
+}
+
+.docs-screenshot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: 1.5rem;
+}
+
+.docs-screenshot-grid .docs-screenshot {
+  margin: 0;
+}

@@ -1,45 +1,83 @@
 ---
 title: Configuration
-description: Every key is optional. Without any, editors get Enhanced on Neutral and can pick anything.
+description: Every key is optional. Without any, editors start on Enhanced and Neutral and can pick anything.
 ---
 
-```ts title="payload.config.ts"
-themePlugin({
-  character: 'enhanced',
-  characters: ['payload', 'enhanced', 'studio'],
-  options: { enhanced: { density: 'compact' }, studio: { frame: 'flat' } },
-  palette: 'neutral',
-  palettes: [{ slug: 'payload' }, { slug: 'neutral' }, { label: 'Brand', slug: 'brand' }],
-  panel: ({ user }) => user?.role === 'admin',
-  codeEditorFontSize: 13
-})
-```
-
-| Key                  | Default               | What it does                                                                  |
-| -------------------- | --------------------- | ----------------------------------------------------------------------------- |
-| `character`          | `'enhanced'`          | The style everyone starts with. It must be one of `characters`.               |
-| `characters`         | All three styles      | The styles editors may pick.                                                  |
-| `options`            | Each style's defaults | Starting values per style, which Reset returns to. A typo is a type error.    |
-| `palette`            | `'neutral'`           | The palette everyone starts with. It must be the `slug` of one of `palettes`. |
-| `palettes`           | Every built-in one    | The palettes editors may pick, in order. Your own also needs a `label`.       |
-| `panel`              | `true`                | Who gets the Appearance panel: `true`, `false` or `({ user }) => boolean`.    |
-| `codeEditorFontSize` | `13`                  | Code editor font size in Comfortable density. `false` keeps Payload's 11.     |
-
-An editor whose saved style or palette is no longer allowed gets the default. An editor's own palette applies only while more than one palette is allowed. A `label` on a built-in palette renames it.
-
-When `panel` resolves to `false`, the editor gets no Appearance button and their saved setup is ignored. Signed-out views have no user, so they show the site default and `panel` is not asked.
-
-Fields that set `admin.editorOptions.fontSize` keep their own size whatever `codeEditorFontSize` says.
-
-## Make a shared setup the default
-
-A setup copied with Share setup has the same shape as the config, so pasting it into `themePlugin()` makes it everyone's default:
+## Set the default look
 
 ```ts
 themePlugin({
-  character: 'payload',
-  palette: 'payload'
+  character: 'studio',
+  palette: 'warm',
+  options: { studio: { radius: 'md', density: 'compact' } }
 })
 ```
 
-A setup on an editor's own palette also carries its colors, which the config does not take. Ship those as [your own palette](../palettes/#your-own-palette).
+Editors start here, and Reset in the panel brings them back.
+
+## Limit what editors can pick
+
+```ts
+themePlugin({
+  characters: ['enhanced', 'studio'],
+  palettes: [{ slug: 'neutral' }, { slug: 'warm' }]
+})
+```
+
+A section with only one choice disappears from the panel. An editor whose saved pick is no longer allowed gets the default.
+
+## Give everyone the same look
+
+```ts
+themePlugin({
+  character: 'studio',
+  palette: 'warm',
+  panel: false
+})
+```
+
+Nobody gets the Appearance button, and saved picks are ignored.
+
+## Show the panel to some users only
+
+```ts
+themePlugin({
+  panel: ({ user }) => user.role === 'admin'
+})
+```
+
+Everyone else sees the default. Signed-out pages, such as the login page, always show the default.
+
+## Copy an editor's setup
+
+Share setup in the panel copies JSON in the same shape as this config. Paste it into `themePlugin()` to make it the default. When it uses an editor's own colors, [add them as a palette](../add-a-palette/).
+
+## Reference
+
+| Key                  | Default               | Values                                                                                 |
+| -------------------- | --------------------- | -------------------------------------------------------------------------------------- |
+| `character`          | `'enhanced'`          | `'payload'`, `'enhanced'` or `'studio'`, one of `characters`                           |
+| `characters`         | All three             | The styles editors may pick                                                            |
+| `palette`            | `'neutral'`           | The `slug` of one of `palettes`                                                        |
+| `palettes`           | Every built-in one    | `{ slug }` for `payload`, `neutral`, `warm` and `soft`, `{ slug, label }` for your own |
+| `options`            | Each style's defaults | Per style, see [Options](#options)                                                     |
+| `panel`              | `true`                | `true`, `false` or `({ user }) => boolean`                                             |
+| `codeEditorFontSize` | `13`                  | Code editor font size in Comfortable density, or `false` for Payload's 11              |
+
+A `label` on a built-in palette renames it.
+
+### Options
+
+Enhanced and Studio take these. The Payload style has none.
+
+| Option    | Values                                     | Enhanced        | Studio          |
+| --------- | ------------------------------------------ | --------------- | --------------- |
+| `radius`  | `'none'`, `'sm'`, `'md'`, `'lg'`, `'full'` | `'md'`          | `'lg'`          |
+| `font`    | `'inter'`, `'geist'`, `'system'`           | `'inter'`       | `'geist'`       |
+| `frame`   | `'boxed'`, `'flat'`                        | `'flat'`        | `'boxed'`       |
+| `density` | `'compact'`, `'comfortable'`               | `'comfortable'` | `'comfortable'` |
+| `icons`   | `'payload'`, `'lucide'`                    | `'lucide'`      | `'lucide'`      |
+| `motion`  | `'off'`, `'auto'`                          | `'auto'`        | `'auto'`        |
+| `nav`     | `'rail'`, `'hidden'`                       | `'rail'`        | `'rail'`        |
+
+`density`, `motion` and `nav` stay the same for an editor when they switch style.
