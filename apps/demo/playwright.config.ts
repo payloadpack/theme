@@ -3,6 +3,7 @@ import { defineConfig, devices } from '@playwright/test'
 import { AUTH_FILE, baseURL, DEMO_PORT } from './tests/demo'
 
 const E2E_DATABASE_FILE = 'e2e.db'
+const TEST_TIMEOUT_MS = 60_000
 const E2E_MEDIA_DIR = 'e2e-media'
 
 export default defineConfig({
@@ -20,14 +21,14 @@ export default defineConfig({
   ],
   reporter: 'list',
   testDir: './tests',
-  timeout: 60_000,
+  timeout: TEST_TIMEOUT_MS,
   use: {
     ...devices['Desktop Chrome'],
     baseURL,
     viewport: { height: 900, width: 1440 }
   },
   webServer: {
-    command: `rm -rf ${E2E_DATABASE_FILE} ${E2E_MEDIA_DIR} && bunx payload run src/prepare-database.ts && bun run build && bun run start`,
+    command: `rm -rf ${E2E_DATABASE_FILE} ${E2E_MEDIA_DIR} && bunx payload run src/prepare-database.ts && bun run build && bun run start --keepAliveTimeout ${TEST_TIMEOUT_MS}`,
     env: { DATABASE_URI: `file:./${E2E_DATABASE_FILE}`, DEMO_PORT, MEDIA_DIR: E2E_MEDIA_DIR },
     reuseExistingServer: false,
     timeout: 300_000,

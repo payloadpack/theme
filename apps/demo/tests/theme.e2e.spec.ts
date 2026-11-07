@@ -689,7 +689,7 @@ test.describe('Theme values', () => {
   test("comfortable density sizes an upload's file actions and centers their icons", async ({ page }) => {
     await page.goto('/admin/collections/media')
     await page.locator('table tbody tr a').first().click()
-    await waitForHydration(page)
+    await page.waitForURL(/\/admin\/collections\/media\/\d+/)
     const actions = page.locator('.file-toolbar__right > *')
 
     await expect(actions).toHaveCount(3)
@@ -2314,6 +2314,7 @@ test.describe('Rail', () => {
         await saveAppearancePreference(page.request, { palette })
         await page.context().addCookies([demoCookie('theme', theme), collapsed])
         await page.goto('/admin')
+        await waitForHydration(page)
         const contrast = await page
           .locator('.nav__link:not(.nav__link--selected)')
           .first()
@@ -2430,6 +2431,8 @@ test.describe('Rail', () => {
   ] as const) {
     test(`nav: '${nav}' ${name} when the window shrinks past 1440px`, async ({ page }) => {
       await saveAppearancePreference(page.request, { options: { enhanced: { nav } } })
+      // Payload's load-time nav preference read can land after the resize and reopen the nav, so it never answers here
+      await page.route('**/api/payload-preferences/nav', () => {})
       await page.setViewportSize({ height: 900, width: 1500 })
       await page.goto('/admin')
       await waitForHydration(page)
