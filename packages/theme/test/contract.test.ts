@@ -282,7 +282,10 @@ const uniqueFirstCaptureGroups = (text: string, pattern: RegExp) =>
 const declaredProperties = (css: string) => uniqueFirstCaptureGroups(css, /(?<![\w-])(--[\w-]+)\s*:/g)
 const referencedProperties = (css: string) => uniqueFirstCaptureGroups(css, /var\(\s*(--[\w-]+)/g)
 const optionalProperties = (css: string) => uniqueFirstCaptureGroups(css, /var\(\s*(--payloadpack-[\w-]+)\s*,/g)
-const documentedTokens = uniqueFirstCaptureGroups(readUtf8(path.join(root, '../../README.md')), /^\| `(--payloadpack-[\w-]+)`/gm)
+const documentedTokens = uniqueFirstCaptureGroups(
+  readUtf8(path.join(root, '../../apps/docs/src/content/docs/customize.md')),
+  /^\| `(--payloadpack-[\w-]+)`/gm
+)
 const collapseWhitespaceAndParenthesisPadding = (css: string) =>
   collapseWhitespace(css).replace(/\(\s+/g, '(').replace(/\s+\)/g, ')')
 const isRootScopedSelector = (selector: string, scope: string) =>

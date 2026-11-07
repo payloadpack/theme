@@ -1,0 +1,43 @@
+---
+import type { ImageMetadata } from 'astro'
+import { Image } from 'astro:assets'
+
+interface Props {
+  alt: string
+  caption?: string
+  name: string
+  title?: string
+}
+
+const screenshotByPath = import.meta.glob<{ default: ImageMetadata }>('../../../../.github/assets/*.png', { eager: true })
+const readScreenshot = (fileName: string) => {
+  const screenshot = screenshotByPath[`../../../../.github/assets/${fileName}.png`]
+  if (!screenshot) throw new Error(`No screenshot named ${fileName}.png in .github/assets`)
+  return screenshot.default
+}
+
+const { alt, caption, name, title } = Astro.props
+const screenshotByColorScheme = { dark: readScreenshot(`${name}-dark`), light: readScreenshot(`${name}-light`) }
+---
+
+<figure class="docs-screenshot">
+  {
+    Object.entries(screenshotByColorScheme).map(([colorScheme, screenshot]) => (
+      <Image
+        alt={alt}
+        class={colorScheme === 'dark' ? 'light:sl-hidden' : 'dark:sl-hidden'}
+        densities={[2]}
+        src={screenshot}
+        width={screenshot.width / 2}
+      />
+    ))
+  }
+  {
+    (title || caption) && (
+      <figcaption>
+        {title && <strong>{title}</strong>}
+        {caption}
+      </figcaption>
+    )
+  }
+</figure>

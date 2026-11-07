@@ -1,0 +1,21 @@
+---
+title: Switch
+description: Show a checkbox field as a switch. Works with every style and palette.
+---
+
+import Screenshot from '../../../components/Screenshot.astro'
+
+<Screenshot alt="A Notify subscribers checkbox shown as a switch that is turned on" name="switch" />
+
+```ts ins={7}
+import { SWITCH } from '@payloadpack/theme'
+
+const field = {
+  name: 'notify',
+  type: 'checkbox',
+  label: 'Notify subscribers',
+  admin: { className: SWITCH, description: 'Email everyone who follows this showcase' }
+}
+```
+
+It is still Payload's checkbox: it saves with the form, and screen readers announce it as a checkbox. Its size and thumb are [tokens](../../customize/#switch).

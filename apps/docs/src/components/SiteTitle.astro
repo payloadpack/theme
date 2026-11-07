@@ -1,0 +1,13 @@
+---
+import DarkLogo from '../../../../.github/assets/icons/logo-dark.svg'
+import LightLogo from '../../../../.github/assets/icons/logo-light.svg'
+
+const { siteTitle, siteTitleHref } = Astro.locals.starlightRoute
+const [packageScope, packageName] = siteTitle.split('/')
+---
+
+<a class="site-title sl-flex" href={siteTitleHref} translate="no">
+  <DarkLogo aria-hidden="true" class="light:sl-hidden" />
+  <LightLogo aria-hidden="true" class="dark:sl-hidden" />
+  <span>{packageScope}/<span class="docs-brand-gradient-text">{packageName}</span></span>
+</a>

@@ -19,6 +19,16 @@ const APPEARANCE_VARIANTS = {
   themed: {}
 }
 
+const GALLERY_SETUPS = {
+  'payload-neutral': { character: 'payload', palette: 'neutral' },
+  'studio-neutral': { character: 'studio', palette: 'neutral' },
+  'enhanced-payload': { palette: 'payload' },
+  'enhanced-warm': { palette: 'warm' },
+  'enhanced-soft': { palette: 'soft' }
+}
+
+const COMPARE_CLIP = { height: 540, width: 720, x: 0, y: 0 }
+
 const CUSTOM_FIELD_CLASS_NAMES = { 'radio-cards': RADIO_CARDS, switch: SWITCH, 'vertical-tabs': VERTICAL_TABS }
 
 const visibleBoundingBox = async (page: Page, selector: string) => {
@@ -55,7 +65,12 @@ for (const theme of ['dark', 'light']) {
   test(theme, async ({ page }) => {
     for (const [look, setup] of Object.entries(APPEARANCE_VARIANTS)) {
       await openShowcase(page, setup, theme)
-      await expect(page).toHaveScreenshot(`compare-${look}-${theme}.png`, { clip: { height: 540, width: 720, x: 0, y: 0 } })
+      await expect(page).toHaveScreenshot(`compare-${look}-${theme}.png`, { clip: COMPARE_CLIP })
+    }
+
+    for (const [galleryName, setup] of Object.entries(GALLERY_SETUPS)) {
+      await openShowcase(page, setup, theme)
+      await expect(page).toHaveScreenshot(`gallery-${galleryName}-${theme}.png`, { clip: COMPARE_CLIP })
     }
 
     for (const [name, className] of Object.entries(CUSTOM_FIELD_CLASS_NAMES)) {

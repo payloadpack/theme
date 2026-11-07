@@ -21,6 +21,8 @@ env:
 jobs:
   release:
     runs-on: ubuntu-latest
+    outputs:
+      theme_release_created: ${{ steps.rp.outputs['packages/theme--release_created'] }}
 
     steps:
       - name: Run Release Please (manifest)
@@ -56,3 +58,12 @@ jobs:
         if: ${{ steps.rp.outputs['packages/theme--release_created'] == 'true' }}
         run: npm publish
         working-directory: packages/theme
+
+  docs:
+    needs: release
+    if: ${{ needs.release.outputs.theme_release_created == 'true' }}
+    permissions:
+      contents: read
+      id-token: write
+      pages: write
+    uses: ./.github/workflows/docs.yml

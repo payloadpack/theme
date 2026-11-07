@@ -61,6 +61,6 @@ jobs:
           add-paths: .github/assets
           branch: chore/screenshots
           delete-branch: true
-          commit-message: 'docs: refresh README screenshots'
-          title: 'docs: refresh README screenshots'
-          body: The Screenshots workflow found visual changes in the README screenshots.
+          commit-message: 'docs: refresh screenshots'
+          title: 'docs: refresh screenshots'
+          body: The Screenshots workflow found visual changes in the screenshots.
