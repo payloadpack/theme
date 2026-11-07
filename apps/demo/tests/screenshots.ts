@@ -14,12 +14,12 @@ test.beforeEach(async ({ page }) => {
   await deleteSavedAppearance(page.request)
 })
 
-const appearanceVariants = {
+const APPEARANCE_VARIANTS = {
   payload: { character: 'payload', palette: 'payload' },
   themed: {}
 }
 
-const customFieldClassNames = { 'radio-cards': RADIO_CARDS, switch: SWITCH, 'vertical-tabs': VERTICAL_TABS }
+const CUSTOM_FIELD_CLASS_NAMES = { 'radio-cards': RADIO_CARDS, switch: SWITCH, 'vertical-tabs': VERTICAL_TABS }
 
 const visibleBoundingBox = async (page: Page, selector: string) => {
   const rect = await page.locator(selector).first().boundingBox()
@@ -53,12 +53,12 @@ const openShowcase = async (page: Page, setup: object, theme: string) => {
 
 for (const theme of ['dark', 'light']) {
   test(theme, async ({ page }) => {
-    for (const [look, setup] of Object.entries(appearanceVariants)) {
+    for (const [look, setup] of Object.entries(APPEARANCE_VARIANTS)) {
       await openShowcase(page, setup, theme)
       await expect(page).toHaveScreenshot(`compare-${look}-${theme}.png`, { clip: { height: 540, width: 720, x: 0, y: 0 } })
     }
 
-    for (const [name, className] of Object.entries(customFieldClassNames)) {
+    for (const [name, className] of Object.entries(CUSTOM_FIELD_CLASS_NAMES)) {
       await page.locator(`.${className}`).scrollIntoViewIfNeeded()
       const column = await visibleBoundingBox(page, '.document-fields__fields')
       const field = await visibleBoundingBox(page, `.${className}`)
@@ -67,7 +67,7 @@ for (const theme of ['dark', 'light']) {
       })
     }
 
-    await openShowcase(page, appearanceVariants.themed, theme)
+    await openShowcase(page, APPEARANCE_VARIANTS.themed, theme)
     const sheet = await openAppearancePanel(page)
     await openFineTune(sheet)
     const height = await sheet.evaluate((element) =>

@@ -4,22 +4,22 @@ import { PayloadIcon, useConfig, useTheme, useTranslation, XIcon } from '@payloa
 import type { StaticLabel } from 'payload'
 import { Fragment, type ReactNode, useCallback, useEffect, useId, useRef, useState } from 'react'
 
-import { allowedOptionValues, characters as registry, type OptionName } from '../characters/index.js'
+import { ALLOWED_OPTION_VALUES, CHARACTERS, type OptionName } from '../characters/index.js'
 import {
-  baseColorTokenNames,
+  BASE_COLOR_TOKEN_NAMES,
   type CustomPalette,
-  customPaletteBaseColorNames,
+  CUSTOM_PALETTE_BASE_COLOR_NAMES,
   type CustomPaletteBaseColors,
   customPaletteCss,
-  customPaletteSlug,
+  CUSTOM_PALETTE_SLUG,
   parseHexColor
 } from '../lib/appearance.js'
 import type { TranslationKey } from '../translations.js'
 import { useAppearance } from './appearance-provider.js'
 
-const themeModes = ['light', 'dark', 'auto'] as const
+const THEME_MODES = ['light', 'dark', 'auto'] as const
 
-const paletteModes = ['light', 'dark'] as const
+const PALETTE_MODES = ['light', 'dark'] as const
 
 const SHEET_ID = 'payloadpack-appearance'
 
@@ -46,12 +46,12 @@ const readRenderedPaletteColors = (paletteCardsElement: Element, paletteSlug: st
     probe.style.color = value
     return cssColorToHex(getComputedStyle(probe).color)
   }
-  const readPaletteMode = (mode: (typeof paletteModes)[number]) => {
+  const readPaletteMode = (mode: (typeof PALETTE_MODES)[number]) => {
     const probe = document.createElement('span')
     Object.assign(probe.dataset, { palette: paletteSlug, theme: mode })
     paletteCardsElement.append(probe)
     const baseColors = Object.fromEntries(
-      customPaletteBaseColorNames.map((key) => [key, resolveColorToHex(probe, `var(${baseColorTokenNames[key]})`)])
+      CUSTOM_PALETTE_BASE_COLOR_NAMES.map((key) => [key, resolveColorToHex(probe, `var(${BASE_COLOR_TOKEN_NAMES[key]})`)])
     ) as CustomPaletteBaseColors
     const accent = resolveColorToHex(probe, 'var(--payloadpack-accent, var(--ramp-blue-500))')
     probe.remove()
@@ -197,7 +197,7 @@ function PaletteSection({ copyToClipboard }: { copyToClipboard: (text: string, m
   const { i18n, t } = useTranslation<object, TranslationKey>()
   const [focusFirstColorField, setFocusFirstColorField] = useState(false)
   const focusCustomButtonNext = useRef(false)
-  const customCss = customPalette && customPaletteCss(customPaletteSlug, customPalette)
+  const customCss = customPalette && customPaletteCss(CUSTOM_PALETTE_SLUG, customPalette)
   const paletteLabel = ({ label, slug }: { label?: StaticLabel; slug: string }) => {
     if (!label) {
       return t(`payloadpack:palette${capitalize(slug)}` as TranslationKey)
@@ -211,11 +211,11 @@ function PaletteSection({ copyToClipboard }: { copyToClipboard: (text: string, m
         <>
           <div className="payloadpack-appearance-panel__cards">
             <RadioGroup
-              choices={[...allowedPalettes, ...(customPalette ? [{ slug: customPaletteSlug }] : [])].map((choice) => ({
+              choices={[...allowedPalettes, ...(customPalette ? [{ slug: CUSTOM_PALETTE_SLUG }] : [])].map((choice) => ({
                 label: (
                   <>
                     <span aria-hidden="true" className="payloadpack-appearance-panel__halves">
-                      {paletteModes.map((mode) => (
+                      {PALETTE_MODES.map((mode) => (
                         <span data-palette={choice.slug} data-theme={mode} key={mode}>
                           <span />
                           <span />
@@ -260,16 +260,16 @@ function PaletteSection({ copyToClipboard }: { copyToClipboard: (text: string, m
               </button>
             )}
           </div>
-          {palette === customPaletteSlug && customPalette && customCss && (
+          {palette === CUSTOM_PALETTE_SLUG && customPalette && customCss && (
             <div className="payloadpack-appearance-panel__editor">
               <span />
-              {paletteModes.map((mode) => (
+              {PALETTE_MODES.map((mode) => (
                 <span key={mode}>{t(`payloadpack:${mode}`)}</span>
               ))}
-              {customPaletteBaseColorNames.map((baseColorName, row) => (
+              {CUSTOM_PALETTE_BASE_COLOR_NAMES.map((baseColorName, row) => (
                 <Fragment key={baseColorName}>
                   <span>{t(`payloadpack:${baseColorName}`)}</span>
-                  {paletteModes.map((mode, column) => (
+                  {PALETTE_MODES.map((mode, column) => (
                     <ColorField
                       autoFocus={focusFirstColorField && row === 0 && column === 0}
                       key={mode}
@@ -346,7 +346,7 @@ export function AppearanceSheet() {
   const visibleStatusMessage: StatusMessage | undefined =
     statusMessage ?? (saveFailed ? { message: t('payloadpack:setupUnsaved'), tone: 'error' } : undefined)
   const characterName = t(`payloadpack:character${capitalize(character)}` as TranslationKey)
-  const characterOptions = Object.keys(registry[character].defaults) as OptionName[]
+  const characterOptions = Object.keys(CHARACTERS[character].defaults) as OptionName[]
 
   const reportClipboardBlocked = () => setStatusMessage({ message: t('payloadpack:clipboardBlocked'), tone: 'error' })
 
@@ -395,7 +395,7 @@ export function AppearanceSheet() {
             <PanelSection label={t('payloadpack:colorMode')}>
               {(labelId) => (
                 <RadioGroup
-                  choices={themeModes.map((mode) => ({ label: t(`payloadpack:${mode}`), value: mode }))}
+                  choices={THEME_MODES.map((mode) => ({ label: t(`payloadpack:${mode}`), value: mode }))}
                   className="payloadpack-appearance-panel__segments"
                   labelledBy={labelId}
                   onChange={setTheme}
@@ -531,9 +531,9 @@ function FineTuneRow<O extends OptionName>({
   selected
 }: {
   label: string
-  onChange: (value: (typeof allowedOptionValues)[O][number]) => void
+  onChange: (value: (typeof ALLOWED_OPTION_VALUES)[O][number]) => void
   option: O
-  selected: (typeof allowedOptionValues)[O][number] | undefined
+  selected: (typeof ALLOWED_OPTION_VALUES)[O][number] | undefined
 }) {
   const id = useId()
   const { t } = useTranslation<object, TranslationKey>()
@@ -542,7 +542,7 @@ function FineTuneRow<O extends OptionName>({
     <div className="payloadpack-appearance-panel__row" data-option={option}>
       <span id={id}>{label}</span>
       <RadioGroup
-        choices={allowedOptionValues[option].map((value) => ({
+        choices={ALLOWED_OPTION_VALUES[option].map((value) => ({
           label:
             option === 'radius' ? (
               <span aria-hidden="true" className="payloadpack-appearance-panel__corner" data-value={value} />

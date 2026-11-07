@@ -1,9 +1,9 @@
 import { RADIO_CARDS, SWITCH, type ThemePluginConfig, VERTICAL_TABS } from '@payloadpack/theme'
 import { expect, type Locator, type Page, test } from '@playwright/test'
 
-import { demoUser } from '../src/seed'
+import { DEMO_USER } from '../src/seed'
 import {
-  authFile,
+  AUTH_FILE,
   baseURL,
   buildCustomPalette,
   clickAndWaitForSave,
@@ -26,7 +26,7 @@ test.beforeEach(async ({ page }) => {
   await deleteSavedAppearance(page.request)
 })
 
-const nextScriptsGlob = '**/_next/static/**/*.js'
+const NEXT_SCRIPTS_GLOB = '**/_next/static/**/*.js'
 
 const openShowcase = async (page: Page) => {
   await page.context().addCookies([demoCookie('theme', 'dark')])
@@ -142,14 +142,14 @@ test.describe('Logged out', () => {
     page,
     playwright
   }) => {
-    const admin = await playwright.request.newContext({ baseURL, storageState: authFile })
+    const admin = await playwright.request.newContext({ baseURL, storageState: AUTH_FILE })
     const otherUser = { email: `other-${Date.now()}@payloadpack.com`, password: 'other' }
     const { doc: other } = await (await admin.post('/api/users', { data: otherUser })).json()
     const html = page.locator('html')
     await deleteSavedAppearance(admin)
 
     try {
-      await signIn(page, demoUser)
+      await signIn(page, DEMO_USER)
       const sheet = await openAppearancePanel(page)
       await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Style', 'Studio')))
       await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Palette', 'Warm')))
@@ -164,7 +164,7 @@ test.describe('Logged out', () => {
       await expect(radioInGroup(await openAppearancePanel(page), 'Style', 'Enhanced')).toBeChecked()
 
       await signOut(page)
-      await signIn(page, demoUser)
+      await signIn(page, DEMO_USER)
       await expect(html).toHaveAttribute('data-character', 'studio')
       await expect(html).toHaveAttribute('data-palette', 'warm')
     } finally {
@@ -178,14 +178,14 @@ test.describe('Logged out', () => {
     page,
     playwright
   }) => {
-    const admin = await playwright.request.newContext({ baseURL, storageState: authFile })
+    const admin = await playwright.request.newContext({ baseURL, storageState: AUTH_FILE })
     const html = page.locator('html')
     const appearanceCookie = async () =>
       (await page.context().cookies()).find(({ name }) => name === 'theme-demo-appearance')?.value
     await deleteSavedAppearance(admin)
 
     try {
-      await signIn(page, demoUser)
+      await signIn(page, DEMO_USER)
       const sheet = await openAppearancePanel(page)
       await page.route('**/api/payload-preferences/payloadpack-appearance', (route) =>
         route.request().method() === 'POST' ? route.fulfill({ body: '{}', status: 500 }) : route.continue()
@@ -198,7 +198,7 @@ test.describe('Logged out', () => {
       expect(JSON.parse(decodeURIComponent((await appearanceCookie()) ?? '{}'))).toMatchObject({ palette: 'warm' })
 
       await page.unrouteAll()
-      await Promise.all([waitForAppearanceSave(page), signIn(page, demoUser)])
+      await Promise.all([waitForAppearanceSave(page), signIn(page, DEMO_USER)])
       await expect(html).toHaveAttribute('data-palette', 'warm')
       expect((await (await admin.get('/api/payload-preferences/payloadpack-appearance')).json()).value).toEqual({
         palette: 'warm'
@@ -211,9 +211,9 @@ test.describe('Logged out', () => {
   })
 
   test('signing in brings back the saved appearance and its panel without a reload', async ({ page, playwright }) => {
-    const signedIn = await playwright.request.newContext({ baseURL, storageState: authFile })
+    const signedIn = await playwright.request.newContext({ baseURL, storageState: AUTH_FILE })
     await saveAppearancePreference(signedIn, { character: 'studio' })
-    await signIn(page, demoUser)
+    await signIn(page, DEMO_USER)
 
     await expect(page.locator('html')).toHaveAttribute('data-character', 'studio')
     const sheet = await openAppearancePanel(page)
@@ -272,11 +272,11 @@ test.describe('Theme plugin', () => {
   test('paints the dashboard in the theme before hydration', async ({ page }) => {
     await page.context().addCookies([demoCookie('theme', 'dark')])
 
-    await page.route(nextScriptsGlob, (route) => route.abort())
+    await page.route(NEXT_SCRIPTS_GLOB, (route) => route.abort())
     await page.goto('/admin')
     const beforeHydration = await htmlAndBodyBackgrounds(page)
 
-    await page.unroute(nextScriptsGlob)
+    await page.unroute(NEXT_SCRIPTS_GLOB)
     await page.goto('/admin', { waitUntil: 'networkidle' })
 
     expect(beforeHydration).toEqual(await htmlAndBodyBackgrounds(page))
@@ -428,7 +428,7 @@ test.describe('Appearance panel', () => {
     await openFineTune(sheet)
     await clickAndWaitForSave(page, radioLabel(radioInGroup(sheet, 'Density', 'Compact')))
 
-    const elsewhere = await browser.newContext({ baseURL, storageState: authFile })
+    const elsewhere = await browser.newContext({ baseURL, storageState: AUTH_FILE })
     expect((await elsewhere.cookies()).map(({ name }) => name)).not.toContain('theme-demo-appearance')
     const other = await elsewhere.newPage()
     await other.goto('/admin')
@@ -488,7 +488,7 @@ test.describe('Appearance panel', () => {
     const attributes = await page.locator('html').evaluate((html) => ({ ...html.dataset }))
     await deleteSavedAppearance(page.request)
 
-    const elsewhere = await browser.newContext({ baseURL, storageState: authFile })
+    const elsewhere = await browser.newContext({ baseURL, storageState: AUTH_FILE })
     await elsewhere.grantPermissions(['clipboard-read', 'clipboard-write'])
     const other = await elsewhere.newPage()
     await other.goto('/admin')
@@ -2379,11 +2379,11 @@ test.describe('Rail', () => {
 
     expect(await (await page.request.get('/admin')).text()).toContain('"nav":"rail","rail":""')
 
-    await page.route(nextScriptsGlob, (route) => route.abort())
+    await page.route(NEXT_SCRIPTS_GLOB, (route) => route.abort())
     await page.reload()
     expect(await navWidth(page)).toBe(64)
 
-    await page.unroute(nextScriptsGlob)
+    await page.unroute(NEXT_SCRIPTS_GLOB)
     await page.reload()
     await expect(page.getByRole('button', { name: 'Show sidebar' })).toBeVisible()
     expect(await navWidth(page)).toBe(64)
@@ -2604,7 +2604,7 @@ test.describe('Studio character', () => {
     })
     expect(Math.abs(letter.x - (circle.x + circle.width / 2))).toBeLessThanOrEqual(0.5)
     expect(Math.abs(letter.y - (circle.y + circle.height / 2))).toBeLessThanOrEqual(0.5)
-    await expect(avatar).toHaveAccessibleName(`Account: ${demoUser.email}`)
+    await expect(avatar).toHaveAccessibleName(`Account: ${DEMO_USER.email}`)
     await expect(avatar.locator('.btn__label')).toHaveCSS('font-size', '0px')
     await expect(avatar.locator('.btn__icon')).toBeHidden()
     expect(await avatar.locator('.btn__label').evaluate((element) => getComputedStyle(element, '::first-letter').fontSize)).toBe(

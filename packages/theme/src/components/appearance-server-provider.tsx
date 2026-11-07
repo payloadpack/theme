@@ -5,7 +5,7 @@ import type { ReactNode } from 'react'
 
 import {
   type AppearancePanelAccess,
-  appearancePreferenceKey,
+  APPEARANCE_PREFERENCE_KEY,
   canUserEditAppearance,
   getUserAccountKey,
   pickInitialEditorAppearanceChoices,
@@ -27,7 +27,7 @@ async function loadInitialEditorAppearanceChoices(
   appearanceCookieValue: string | undefined,
   accountKey: string | undefined
 ) {
-  const savedPreference = user && (await getPreferences<unknown>(appearancePreferenceKey, payload, user.id, user.collection))
+  const savedPreference = user && (await getPreferences<unknown>(APPEARANCE_PREFERENCE_KEY, payload, user.id, user.collection))
   return pickInitialEditorAppearanceChoices(siteSettings, savedPreference?.value, appearanceCookieValue, accountKey)
 }
 
@@ -54,7 +54,7 @@ export async function AppearanceServerProvider(props: AppearanceServerProviderPr
       key={accountKey}
       preferenceURL={formatAdminURL({
         apiRoute: payload.config.routes.api,
-        path: `/payload-preferences/${appearancePreferenceKey}`
+        path: `/payload-preferences/${APPEARANCE_PREFERENCE_KEY}`
       })}
       railCookieName={railCookieName}
       siteSettings={siteSettings}>

@@ -6,8 +6,9 @@
 - The theme supports what Tailwind v4 supports, raised to what Payload 4 needs: Safari 17+, Chrome 114+ and Firefox 128+. Payload's popups call the Popover API without a check, so older browsers break before the theme loads. CSS newer than that sits behind `@supports` with a working fallback.
 - The theme's own custom properties use the `--payloadpack-` prefix. Never declare a token that looks like Payload's.
 - Colors, shadows, corners and timings come from the token sheet in the README's Customize section, because users restyle the whole admin from that one list. Palettes set only sheet tokens. `src/palettes/palette.css` maps them onto Payload's on the palette root only, reading each optional one with its default as a fallback (`var(--payloadpack-border-default, var(--ramp-grey-200))`). Nested `[data-theme]` elements such as Payload's popups and toaster inherit the root's tokens through its Nested themes reset, so they follow the page's mode and a user's value on `:root` reaches them. Durations and easings live only in the tokens at the top of `src/options/motion.css`.
-- When a sheet token falls back to a value copied from Payload, add it to `copiedFromPayload` in `test/contract.test.ts`.
-- When Payload hard-codes a `--spacer-*` size, fix it in `src/options/density.css` and add the stock declaration to `hardCodedByPayload` in `test/contract.test.ts`.
+- When a sheet token falls back to a value copied from Payload, add it to `COPIED_FROM_PAYLOAD` in `test/contract.test.ts`.
+- When Payload hard-codes a `--spacer-*` size, fix it in `src/options/density.css` and add the stock declaration to `HARD_CODED_BY_PAYLOAD` in `test/contract.test.ts`.
 - `test/__snapshots__/payload-rules.txt` records every Payload rule on an element the theme styles. When a Payload update changes it, the contract test fails: review the diff, adjust the theme, then update it with `bun run test -u`.
 - Run `bun run test` in `packages/theme` and `bun run test:e2e` in `apps/demo` before calling a change done.
+- Names in code, docs and UI follow `GLOSSARY.md`: use its terms and never its _Avoid_ words. When a change settles a new term, add it there.
 - Commits and PR titles follow Conventional Commits. Never add AI attribution.

@@ -14,7 +14,7 @@ import {
   useSyncExternalStore
 } from 'react'
 
-import { allowedOptionValues, type Character, type OptionName, type OptionValue } from '../characters/index.js'
+import { ALLOWED_OPTION_VALUES, type Character, type OptionName, type OptionValue } from '../characters/index.js'
 import { useMonacoFontSize } from '../hooks/use-monaco-font-size.js'
 import {
   applyPastedSetup,
@@ -22,7 +22,7 @@ import {
   clearCharacterOptionOverrides,
   type CustomPalette,
   customPaletteCss,
-  customPaletteSlug,
+  CUSTOM_PALETTE_SLUG,
   type EditorAppearanceChoices,
   getUserAccountKey,
   isPersonalOption,
@@ -35,7 +35,7 @@ import type { Palette } from '../palettes/index.js'
 
 const ONE_YEAR_IN_SECONDS = 60 * 60 * 24 * 365
 
-const HTML_DATA_ATTRIBUTE_KEYS = ['character', 'palette', 'rail', ...Object.keys(allowedOptionValues)]
+const HTML_DATA_ATTRIBUTE_KEYS = ['character', 'palette', 'rail', ...Object.keys(ALLOWED_OPTION_VALUES)]
 
 const serializeForInlineScript = (value: unknown) => JSON.stringify(value).replace(/</g, '\\u003c')
 
@@ -114,7 +114,7 @@ export function AppearanceProvider({
         userSignedOut
           ? {}
           : customPaletteDraft
-            ? { ...editorChoices, custom: customPaletteDraft, palette: customPaletteSlug }
+            ? { ...editorChoices, custom: customPaletteDraft, palette: CUSTOM_PALETTE_SLUG }
             : editorChoices
       ),
     [customPaletteDraft, editorChoices, siteSettings, userSignedOut]
@@ -256,7 +256,7 @@ export function AppearanceProvider({
         applyChangeAndSave((current) => ({
           ...current,
           custom: undefined,
-          palette: current.palette === customPaletteSlug ? undefined : current.palette
+          palette: current.palette === CUSTOM_PALETTE_SLUG ? undefined : current.palette
         })),
       resetCharacterOptions: () => {
         const { options: optionsBeforeReset, personal: personalOptionsBeforeReset } = editorChoices
@@ -272,7 +272,7 @@ export function AppearanceProvider({
       setCharacter: (next: Character) => applyChangeAndSave((current) => ({ ...current, character: next })),
       setCustomPalette: (next: CustomPalette, persist = true) =>
         persist
-          ? applyChangeAndSave((current) => ({ ...current, custom: next, palette: customPaletteSlug }))
+          ? applyChangeAndSave((current) => ({ ...current, custom: next, palette: CUSTOM_PALETTE_SLUG }))
           : setCustomPaletteDraft(next),
       setOption: <O extends OptionName>(option: O, value: OptionValue<O>) =>
         applyChangeAndSave((current) =>
@@ -310,7 +310,7 @@ export function AppearanceProvider({
           }}
         />
       )}
-      {customPalette && <style>{customPaletteCss(customPaletteSlug, customPalette)}</style>}
+      {customPalette && <style>{customPaletteCss(CUSTOM_PALETTE_SLUG, customPalette)}</style>}
       {children}
     </AppearanceContext>
   )

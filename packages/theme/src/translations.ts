@@ -2,7 +2,7 @@ import type { OptionName, OptionValue } from './characters/index.js'
 
 type OptionKey = { [O in OptionName]: O | `${O}${Capitalize<OptionValue<O>>}` }[OptionName]
 
-const payloadpack = {
+const PAYLOADPACK_TRANSLATIONS = {
   accent: 'Accent',
   appearance: 'Appearance',
   appearanceDescription: 'Changes how the admin looks for you only.',
@@ -73,6 +73,6 @@ const payloadpack = {
   undo: 'Undo'
 } satisfies Record<OptionKey, string> & Record<string, string>
 
-export const translations = { payloadpack }
+export const TRANSLATIONS = { payloadpack: PAYLOADPACK_TRANSLATIONS }
 
-export type TranslationKey = `payloadpack:${keyof typeof payloadpack}`
+export type TranslationKey = `payloadpack:${keyof typeof PAYLOADPACK_TRANSLATIONS}`

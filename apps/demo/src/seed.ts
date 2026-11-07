@@ -4,7 +4,7 @@ import type { CollectionSlug, Payload } from 'payload'
 
 import type { Post } from './payload-types'
 
-export const demoUser = { email: 'demo@payloadpack.com', password: 'demo' }
+export const DEMO_USER = { email: 'demo@payloadpack.com', password: 'demo' }
 
 const isoDateInOctober = (offset: number) => new Date(Date.UTC(2026, 9, 1 + offset, 9)).toISOString()
 
@@ -75,7 +75,7 @@ export async function seed(payload: Payload) {
     (await payload.find({ collection, depth: 0, limit: 100, overrideAccess: true, sort: 'createdAt' })).docs
 
   if (await empty('users')) {
-    const user = await payload.create({ collection: 'users', data: { ...demoUser, apiKey: randomUUID() }, overrideAccess: true })
+    const user = await payload.create({ collection: 'users', data: { ...DEMO_USER, apiKey: randomUUID() }, overrideAccess: true })
 
     await payload.create({
       collection: 'showcase',

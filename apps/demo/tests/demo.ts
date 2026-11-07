@@ -1,17 +1,17 @@
 import { type APIRequestContext, expect, type Locator, type Page } from '@playwright/test'
 
-export const authFile = 'tests/.auth/demo.json'
+export const AUTH_FILE = 'tests/.auth/demo.json'
 
 export const baseURL = `http://localhost:${process.env.DEMO_PORT ?? 3020}`
 
 export const demoCookie = (name: string, value: string) => ({ name: `theme-demo-${name}`, url: baseURL, value })
 
-const appearancePreferenceURL = '/api/payload-preferences/payloadpack-appearance'
+const APPEARANCE_PREFERENCE_URL = '/api/payload-preferences/payloadpack-appearance'
 
-export const deleteSavedAppearance = (request: APIRequestContext) => request.delete(appearancePreferenceURL)
+export const deleteSavedAppearance = (request: APIRequestContext) => request.delete(APPEARANCE_PREFERENCE_URL)
 
 export const saveAppearancePreference = (request: APIRequestContext, value: object) =>
-  request.post(appearancePreferenceURL, { data: { value } })
+  request.post(APPEARANCE_PREFERENCE_URL, { data: { value } })
 
 export const waitForHydration = (page: Page) => expect(page.locator('.nav')).toHaveClass(/nav--nav-hydrated/)
 
@@ -22,7 +22,7 @@ export const saveAppearanceAndReload = async (page: Page, setup: object) => {
 }
 
 export const waitForAppearanceSave = (page: Page) =>
-  page.waitForResponse((response) => response.url().endsWith(appearancePreferenceURL) && response.request().method() === 'POST')
+  page.waitForResponse((response) => response.url().endsWith(APPEARANCE_PREFERENCE_URL) && response.request().method() === 'POST')
 
 export const clickAndWaitForSave = (page: Page, control: Locator) => Promise.all([waitForAppearanceSave(page), control.click()])
 

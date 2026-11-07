@@ -26,7 +26,7 @@ const sonnerCss = createRequire(path.join(uiRoot, 'package.json')).resolve('sonn
 const lexicalDist = path.join(packageRoot('@payloadcms/richtext-lexical'), 'dist')
 const lucideIcons = path.join(packageRoot('lucide-static'), 'icons')
 
-const scopes: Record<string, string> = {
+const SCOPE_SELECTOR_BY_STYLESHEET: Record<string, string> = {
   'characters/enhanced/enhanced.css': "html[data-character='enhanced']",
   'characters/payload/payload.css': "html[data-character='payload']",
   'characters/shared.css': "html:is([data-character='enhanced'], [data-character='studio'])",
@@ -52,11 +52,11 @@ const scopes: Record<string, string> = {
   'styles/fields/vertical-tabs.css': `.${VERTICAL_TABS}`
 }
 
-const paletteFiles = ['palettes/neutral.css', 'palettes/soft.css', 'palettes/warm.css']
+const PALETTE_FILES = ['palettes/neutral.css', 'palettes/soft.css', 'palettes/warm.css']
 
-const keptPayloadIcons = ['dots', 'error', 'eye', 'minimize-maximize', 'sort', 'spinner', 'success']
+const KEPT_PAYLOAD_ICONS = ['dots', 'error', 'eye', 'minimize-maximize', 'sort', 'spinner', 'success']
 
-const builtAtRuntime: Record<string, { file: string; snippets: string[] }> = {
+const BUILT_AT_RUNTIME: Record<string, { file: string; snippets: string[] }> = {
   'action-duplicate-locales': {
     file: 'elements/DuplicateDocument/index.js',
     snippets: ['`action-duplicate${isDuplicateByLocaleEnabled ? `-locales`']
@@ -87,7 +87,7 @@ const builtAtRuntime: Record<string, { file: string; snippets: string[] }> = {
   }
 }
 
-const hardCodedByPayload = [
+const HARD_CODED_BY_PAYLOAD = [
   {
     file: 'elements/Collapsible/index.css',
     selector: '.collapsible__toggle-wrap',
@@ -226,7 +226,7 @@ const hardCodedByPayload = [
   }
 ]
 
-const readByDescendants: Record<string, string[]> = {
+const READ_BY_DESCENDANTS: Record<string, string[]> = {
   '--button-height': ['.btn--size-medium', '.sidebar-tabs__tab'],
   '--color-bg-hover': ['.sidebar-toggle'],
   '--color-bg-pressed': ['.sidebar-toggle'],
@@ -240,9 +240,9 @@ const readByDescendants: Record<string, string[]> = {
   '--popup-item-color-hover': ['.popup-button-list__button']
 }
 
-const readByTheme = ['--elevation-400-menu-panel']
+const READ_BY_THEME = ['--elevation-400-menu-panel']
 
-const copiedFromPayload = [
+const COPIED_FROM_PAYLOAD = [
   {
     token: '--elevation-500-modal-window',
     value: '0 0 0.5px 0 rgba(0, 0, 0, 0.08), 0 10px 24px 0 rgba(0, 0, 0, 0.18), 0 2px 5px 0 rgba(0, 0, 0, 0.15)'
@@ -271,7 +271,7 @@ const payloadCss = payloadCssFiles.map(readUtf8).join('\n')
 const payloadSource = [payloadCss, ...[...listFiles(uiDist, '.js'), ...listFiles(lexicalDist, '.js')].map(readUtf8)].join('\n')
 
 const themeCss = Object.fromEntries(
-  Object.keys(scopes).map((file) => [file, stripComments(readUtf8(path.join(sourceDir, file)))])
+  Object.keys(SCOPE_SELECTOR_BY_STYLESHEET).map((file) => [file, stripComments(readUtf8(path.join(sourceDir, file)))])
 )
 const allThemeCss = Object.values(themeCss).join('\n')
 
@@ -368,7 +368,7 @@ const selectorSubject = (selector: string) =>
     .join(',')
 
 const existsInPayload = (name: string) => {
-  const runtime = builtAtRuntime[name]
+  const runtime = BUILT_AT_RUNTIME[name]
   if (runtime) {
     const source = readUtf8(path.join(uiDist, runtime.file))
     return runtime.snippets.every((snippet) => source.includes(snippet))
@@ -383,7 +383,7 @@ describe('theme contract with Payload', () => {
       path.relative(sourceDir, path.resolve(stylesDir, file))
     )
     expect(uniqueSorted(imported)).toEqual(uniqueSorted(stylesheets.filter((file) => file !== 'styles/index.css')))
-    expect(uniqueSorted(Object.keys(scopes))).toEqual(uniqueSorted(imported))
+    expect(uniqueSorted(Object.keys(SCOPE_SELECTOR_BY_STYLESHEET))).toEqual(uniqueSorted(imported))
   })
 
   it('imports styles/index.css in the server provider and no CSS in client modules', () => {
@@ -397,7 +397,7 @@ describe('theme contract with Payload', () => {
   })
 
   it('wraps every stylesheet in @layer payload with a single scope block', () => {
-    for (const [file, scope] of Object.entries(scopes)) {
+    for (const [file, scope] of Object.entries(SCOPE_SELECTOR_BY_STYLESHEET)) {
       const layer = topLevelBlocks(themeCss[file])
       const blocks = layer.blocks.filter((block) => !/^@property --payloadpack-[\w-]+$/.test(block.prelude))
       expect(layer.outside, `${file} has CSS outside @layer payload`).toBe('')
@@ -430,7 +430,7 @@ describe('theme contract with Payload', () => {
     const themeRules = flattenRules(allThemeCss)
     const readsOn = (fragment: string, token: string) => {
       const pattern = new RegExp(`${fragment.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\w-])`)
-      const readers = readByTheme.includes(token) ? [...payloadRules, ...themeRules] : payloadRules
+      const readers = READ_BY_THEME.includes(token) ? [...payloadRules, ...themeRules] : payloadRules
       return readers.some((rule) => pattern.test(rule.selector) && referencedProperties(rule.declarations).includes(token))
     }
     const readAnywhere = (token: string) =>
@@ -444,7 +444,7 @@ describe('theme contract with Payload', () => {
         element.length === 0
           ? readAnywhere(token)
           : element.some((fragment) => readsOn(fragment, token)) ||
-            (readByDescendants[token]?.every((fragment) => readsOn(fragment, token)) ?? false)
+            (READ_BY_DESCENDANTS[token]?.every((fragment) => readsOn(fragment, token)) ?? false)
       return rule.properties
         .filter((token) => token.startsWith('--') && !token.startsWith('--payloadpack-') && !isRead(token))
         .map((token) => `${element[0] ?? 'root'} ${token}`)
@@ -468,16 +468,16 @@ describe('theme contract with Payload', () => {
   it('documents every token a user can set, and only those', () => {
     const internal = new Set(
       Object.keys(themeCss)
-        .filter((file) => !paletteFiles.includes(file))
+        .filter((file) => !PALETTE_FILES.includes(file))
         .flatMap((file) => declaredProperties(themeCss[file]))
     )
     const settable = uniqueSorted([
       ...optionalProperties(allThemeCss).filter((token) => !internal.has(token)),
-      ...paletteFiles.flatMap((file) => declaredProperties(themeCss[file])),
+      ...PALETTE_FILES.flatMap((file) => declaredProperties(themeCss[file])),
       ...declaredProperties(themeCss['options/motion.css']).filter((token) => token.startsWith('--payloadpack-motion-'))
     ])
     const onScopeRoot = uniqueSorted(
-      Object.entries(scopes).flatMap(([file, scope]) =>
+      Object.entries(SCOPE_SELECTOR_BY_STYLESHEET).flatMap(([file, scope]) =>
         flattenRules(themeCss[file])
           .filter((rule) => isRootScopedSelector(rule.selector, scope))
           .flatMap((rule) => rule.properties)
@@ -496,7 +496,7 @@ describe('theme contract with Payload', () => {
       'settable but undocumented'
     ).toEqual([])
     const belowRoot = flattenRules(themeCss['palettes/palette.css'])
-      .filter((rule) => !isRootScopedSelector(rule.selector, scopes['palettes/palette.css']))
+      .filter((rule) => !isRootScopedSelector(rule.selector, SCOPE_SELECTOR_BY_STYLESHEET['palettes/palette.css']))
       .flatMap((rule) => rule.properties)
     expect(
       documentedTokens.filter((token) => belowRoot.includes(token)),
@@ -509,7 +509,7 @@ describe('theme contract with Payload', () => {
       dark: ['--payloadpack-bg-app', '--payloadpack-bg-surface', '--payloadpack-text-primary'],
       light: ['--payloadpack-action-primary', '--payloadpack-bg-app', '--payloadpack-bg-surface', '--payloadpack-text-primary']
     }
-    const missing = paletteFiles.flatMap((file) => {
+    const missing = PALETTE_FILES.flatMap((file) => {
       const [light, dark] = flattenRules(themeCss[file]).filter((rule) => rule.selector.includes('[data-palette='))
       return [
         ...required.light.filter((token) => !light.properties.includes(token)).map((token) => `${file} light ${token}`),
@@ -523,7 +523,7 @@ describe('theme contract with Payload', () => {
     const owners = new Map<string, string[]>()
     for (const file of Object.keys(themeCss).filter((name) => name.startsWith('palettes/'))) {
       const tokens = flattenRules(themeCss[file])
-        .filter((rule) => isRootScopedSelector(rule.selector, scopes[file]))
+        .filter((rule) => isRootScopedSelector(rule.selector, SCOPE_SELECTOR_BY_STYLESHEET[file]))
         .flatMap((rule) => rule.properties)
         .filter((name) => name.startsWith('--') && !name.startsWith('--payloadpack-'))
       for (const token of uniqueSorted(tokens)) {
@@ -537,14 +537,14 @@ describe('theme contract with Payload', () => {
 
   it('lets palettes set only their own tokens', () => {
     expect(
-      paletteFiles.flatMap((file) => declaredProperties(themeCss[file])).filter((token) => !token.startsWith('--payloadpack-'))
+      PALETTE_FILES.flatMap((file) => declaredProperties(themeCss[file])).filter((token) => !token.startsWith('--payloadpack-'))
     ).toEqual([])
   })
 
   it('gives every light color a palette sets a dark value, so it never leaks into dark mode', () => {
     const declarations = (text: string) =>
       Object.fromEntries([...text.matchAll(/(?:^|;)\s*(--[\w-]+)\s*:([^;]*)/g)].map(([, token, value]) => [token, value.trim()]))
-    const leaks = paletteFiles.flatMap((file) => {
+    const leaks = PALETTE_FILES.flatMap((file) => {
       const [light, dark] = flattenRules(themeCss[file])
         .filter((rule) => rule.selector.includes('[data-palette='))
         .map((rule) => declarations(rule.declarations))
@@ -647,7 +647,7 @@ describe('theme contract with Payload', () => {
     expect(lost).toEqual([])
   })
 
-  it.each(copiedFromPayload)("falls back to Payload's own $token where the theme takes it over", ({ token, value }) => {
+  it.each(COPIED_FROM_PAYLOAD)("falls back to Payload's own $token where the theme takes it over", ({ token, value }) => {
     expect(collapseWhitespaceAndParenthesisPadding(payloadCss), `${token} changed upstream, update the fallback`).toContain(
       `${token}: ${value};`
     )
@@ -673,7 +673,9 @@ describe('theme contract with Payload', () => {
     )
     const palette = themeCss['palettes/palette.css']
     const nested = flattenRules(palette).filter((rule) =>
-      /(^|[\s>+~,])\[data-theme/.test(rule.selector.replace('@layer payload', '').replace(scopes['palettes/palette.css'], ''))
+      /(^|[\s>+~,])\[data-theme/.test(
+        rule.selector.replace('@layer payload', '').replace(SCOPE_SELECTOR_BY_STYLESHEET['palettes/palette.css'], '')
+      )
     )
     expect(pinned.length).toBeGreaterThan(100)
     expect(nested).toHaveLength(1)
@@ -775,7 +777,7 @@ describe('theme contract with Payload', () => {
     const mapped = uniqueFirstCaptureGroups(themeCss['options/icons.css'], /svg\.icon--([a-z-]+)\s*\{\s*--payloadpack-icon:/g)
 
     expect(
-      payloadIcons.filter((icon) => !mapped.includes(icon) && !keptPayloadIcons.includes(icon)),
+      payloadIcons.filter((icon) => !mapped.includes(icon) && !KEPT_PAYLOAD_ICONS.includes(icon)),
       'unmapped Payload icons'
     ).toEqual([])
     expect(
@@ -818,7 +820,7 @@ describe('theme contract with Payload', () => {
     await expect(`${sections.sort().join('\n\n')}\n`).toMatchFileSnapshot('__snapshots__/payload-rules.txt')
   })
 
-  it.each(hardCodedByPayload)('Payload still hard-codes $selector ($declaration)', ({ declaration, file, selector }) => {
+  it.each(HARD_CODED_BY_PAYLOAD)('Payload still hard-codes $selector ($declaration)', ({ declaration, file, selector }) => {
     const css = readUtf8(path.join(uiDist, file))
     expect(findRuleBody(css, selector), `${selector} changed upstream, re-check its fix`).toContain(
       collapseWhitespace(declaration)

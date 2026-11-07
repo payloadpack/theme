@@ -4,13 +4,13 @@ import { deepMergeSimple } from 'payload/shared'
 import {
   type Character,
   type CharacterOptionValues,
-  characters as registry,
-  defaultCharacter,
+  CHARACTERS,
+  DEFAULT_CHARACTER,
   type OptionValues
 } from './characters/index.js'
-import { type AppearancePanelAccess, customPaletteSlug, type SiteAppearanceSettings } from './lib/appearance.js'
-import { type BuiltInPalette, builtInPalettes, defaultPalette, type Palette } from './palettes/index.js'
-import { translations } from './translations.js'
+import { type AppearancePanelAccess, CUSTOM_PALETTE_SLUG, type SiteAppearanceSettings } from './lib/appearance.js'
+import { type BuiltInPalette, BUILT_IN_PALETTES, DEFAULT_PALETTE, type Palette } from './palettes/index.js'
+import { TRANSLATIONS } from './translations.js'
 
 const PACKAGE_NAME = '@payloadpack/theme'
 
@@ -38,7 +38,7 @@ const addCheckboxCellToFields = (fields: Field[]): Field[] =>
   })
 
 type OptionsConfig = {
-  [C in Character as keyof (typeof registry)[C]['defaults'] extends never ? never : C]?: CharacterOptionValues<C>
+  [C in Character as keyof (typeof CHARACTERS)[C]['defaults'] extends never ? never : C]?: CharacterOptionValues<C>
 }
 
 export type ThemePluginConfig = {
@@ -53,11 +53,11 @@ export type ThemePluginConfig = {
 
 export function themePlugin(pluginConfig: ThemePluginConfig = {}): Plugin {
   const {
-    character = defaultCharacter,
-    characters = Object.keys(registry) as Character[],
+    character = DEFAULT_CHARACTER,
+    characters = Object.keys(CHARACTERS) as Character[],
     codeEditorFontSize = 13,
-    palette = defaultPalette,
-    palettes = builtInPalettes.map((slug) => ({ slug })),
+    palette = DEFAULT_PALETTE,
+    palettes = BUILT_IN_PALETTES.map((slug) => ({ slug })),
     panel = true
   } = pluginConfig
   const characterOptionOverrides: Partial<Record<Character, OptionValues>> = pluginConfig.options ?? {}
@@ -72,14 +72,14 @@ export function themePlugin(pluginConfig: ThemePluginConfig = {}): Plugin {
     throw new Error(`themePlugin: palette '${palette}' is not one of palettes: ${paletteSlugs.join(', ')}`)
   }
 
-  if (paletteSlugs.includes(customPaletteSlug)) {
-    throw new Error(`themePlugin: '${customPaletteSlug}' is the editor's own palette, so no palette may use it as its slug`)
+  if (paletteSlugs.includes(CUSTOM_PALETTE_SLUG)) {
+    throw new Error(`themePlugin: '${CUSTOM_PALETTE_SLUG}' is the editor's own palette, so no palette may use it as its slug`)
   }
 
   const siteSettings: SiteAppearanceSettings = {
     character,
     options: Object.fromEntries(
-      characters.map((name) => [name, { ...registry[name].defaults, ...characterOptionOverrides[name] }])
+      characters.map((name) => [name, { ...CHARACTERS[name].defaults, ...characterOptionOverrides[name] }])
     ),
     palette,
     palettes
@@ -110,7 +110,7 @@ export function themePlugin(pluginConfig: ThemePluginConfig = {}): Plugin {
       ...config.i18n,
       translations: deepMergeSimple(
         Object.fromEntries(
-          Object.keys(config.i18n?.supportedLanguages ?? { en: true }).map((language) => [language, translations])
+          Object.keys(config.i18n?.supportedLanguages ?? { en: true }).map((language) => [language, TRANSLATIONS])
         ),
         config.i18n?.translations ?? {}
       )

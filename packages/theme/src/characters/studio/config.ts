@@ -1,4 +1,4 @@
-export const studio = {
+export const STUDIO_CHARACTER = {
   defaults: {
     radius: 'lg',
     font: 'geist',
