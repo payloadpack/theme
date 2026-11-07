@@ -28,6 +28,12 @@
       line-height: 1;
     }
 
+    @media (min-width: 769px) {
+      .sidebar-tabs__tabs {
+        margin-top: var(--spacer-1);
+      }
+    }
+
     /* 2. Rail */
     @media (min-width: 769px) {
       &[data-rail] {

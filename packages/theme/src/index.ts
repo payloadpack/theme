@@ -17,6 +17,7 @@ const PACKAGE_NAME = '@payloadpack/theme'
 export const VERTICAL_TABS = 'payloadpack-vertical-tabs'
 export const RADIO_CARDS = 'payloadpack-radio-cards'
 export const SWITCH = 'payloadpack-switch'
+export const SWITCH_END = `${SWITCH} payloadpack-switch--end`
 
 const addCheckboxCellToFields = (fields: Field[]): Field[] =>
   fields.map((field) => {

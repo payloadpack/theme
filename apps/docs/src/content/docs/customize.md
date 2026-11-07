@@ -36,7 +36,7 @@ Every palette except Payload's is drawn from these tokens. A palette sets at lea
 | `--payloadpack-elevation-dialog`      | Dialogs, the command palette and the Appearance panel                                               |
 | `--payloadpack-radius-control`        | Buttons, fields, banners and pills, on top of Corners                                               |
 | `--payloadpack-radius-card`           | Cards, dialogs, the date picker and Studio's frame, on top of Corners                               |
-| `--payloadpack-motion-hover-duration` | How long fields, buttons and cards take to change on hover and focus                                |
+| `--payloadpack-motion-hover-duration` | How long a field's focus ring and a card's shadow take to change                                    |
 | `--payloadpack-motion-hover-easing`   | The curve of that change                                                                            |
 | `--payloadpack-motion-enter-duration` | How long popups, menus and tooltips take to appear; they close in two thirds, tooltips within 200ms |
 | `--payloadpack-motion-enter-easing`   | The curve they appear and close on                                                                  |

@@ -142,7 +142,7 @@ That's it. Every editor now has an Appearance button in the nav.
   <tr>
     <td><code>className: VERTICAL_TABS</code></td>
     <td><code>className: RADIO_CARDS</code></td>
-    <td><code>className: SWITCH</code></td>
+    <td><code>className: SWITCH</code> or <code>SWITCH_END</code></td>
   </tr>
 </table>
 

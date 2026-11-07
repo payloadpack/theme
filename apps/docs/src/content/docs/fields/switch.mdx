@@ -18,4 +18,17 @@ const field = {
 }
 ```
 
+To put the switch at the end of the row, after its label, use `SWITCH_END` instead. The whole row toggles it:
+
+```ts
+import { SWITCH_END } from '@payloadpack/theme'
+
+const field = {
+  name: 'pinned',
+  type: 'checkbox',
+  label: 'Pin to the top',
+  admin: { className: SWITCH_END, description: 'Keep this showcase first in every list' }
+}
+```
+
 It is still Payload's checkbox: it saves with the form, and screen readers announce it as a checkbox. Its size and thumb are [tokens](../../customize/#switch).

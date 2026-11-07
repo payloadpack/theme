@@ -116,5 +116,24 @@
     .react-datepicker {
       box-shadow: var(--elevation-400-menu-panel);
     }
+
+    /* 6. Checkboxes and radios */
+    .field-type.checkbox .checkbox-input__wrap > .field-label {
+      flex-grow: 1;
+    }
+
+    :is(.checkbox-input__control, .radio-input > input) {
+      appearance: none;
+
+      &::before {
+        content: '';
+        position: absolute;
+        inset: -3px;
+      }
+    }
+
+    :is(.select-row, .select-all) .checkbox-input__control::before {
+      inset: -7px;
+    }
   }
 }

@@ -103,6 +103,7 @@
 == @payloadcms/richtext-lexical/field/index.css
 .rich-text-lexical &.error { --lexical-border-color: var(--color-border-danger-strong); }
 .rich-text-lexical & > .field-error.tooltip { inset-inline-end: auto; position: static; margin-bottom: 0.2em; max-width: fit-content; }
+.rich-text-lexical__label-row label.field-label:not(.unstyled) { margin-inline-end: unset; padding-bottom: unset; }
 .rich-text-lexical--read-only .editor-container .editor { animation: rich-text-lexical-fade-in-background 0.5s ease forwards; color: var(--color-text-tertiary); }
 
 == @payloadcms/richtext-lexical/lexical/LexicalEditor.css
@@ -441,6 +442,9 @@ html[data-enhanced-contrast] .column-selector__search-bar { outline: var(--strok
 .selected-hierarchies__pill .chip__remove { color: var(--color-icon-secondary); }
 .selected-hierarchies__pill .chip__remove:hover { color: var(--color-text); }
 
+== @payloadcms/ui/elements/Hierarchy/Field/index.css
+.hierarchy-field .field-label { display: flex; font-size: var(--text-body-large-font-size); font-weight: var(--text-body-large-font-weight); line-height: var(--text-body-large-line-height); letter-spacing: var(--text-body-large-letter-spacing); margin: unset; }
+
 == @payloadcms/ui/elements/Hierarchy/Modal/index.css
 .dialog.hierarchy-modal .dialog__body { display: flex; flex-direction: column; padding: 0; }
 
@@ -616,12 +620,16 @@ html[data-enhanced-contrast] .nav-group__toggle .nav-group__indicator { opacity:
 .field-type.row.query-preset-controls-row .row__fields @media (max-width: 1024px) { flex-direction: row; }
 .field-type.row.query-preset-controls-row .row__fields:has(> *:nth-child(2)) > .query-preset-heading { margin-block: 0; margin-inline-end: auto; }
 
+== @payloadcms/ui/elements/QueryPresets/fields/fields.css
+.query-preset-columns-field, .query-preset-group-by-field, .query-preset-where-field .field-label { margin-bottom: var(--spacer-2); }
+
 == @payloadcms/ui/elements/ReactSelect/MultiValue/index.css
 .multi-value &.rs__multi-value { display: flex; padding: 0; border: var(--stroke-width-small) solid var(--color-border); border-radius: var(--radius-chip); background: var(--color-bg); height: 1.25rem; margin: 0; }
 .multi-value &.rs__multi-value &:focus, &:focus-visible { outline: none; border: var(--accessibility-outline); }
 .multi-value.rs__multi-value:has(.multi-value-label__drag-button:focus-visible) { outline: var(--accessibility-outline); outline-offset: var(--accessibility-outline-inset); }
 
 == @payloadcms/ui/elements/ReactSelect/ValueContainer/index.css
+.value-container .rs__value-container > * .field-label { padding-bottom: 0; }
 .react-select .rs__value-container--is-multi { width: 100%; flex-wrap: wrap; }
 .react-select .rs__value-container--is-multi &.rs__value-container--has-value { padding: 0; }
 
@@ -691,6 +699,7 @@ html[data-enhanced-contrast] .nav-group__toggle .nav-group__indicator { opacity:
 .hierarchy-cell__button .btn__label { min-inline-size: 0; }
 
 == @payloadcms/ui/elements/Table/index.css
+.table tbody tr &:has(.select-row input:checked) { background: var(--color-bg-selected); }
 .table--appearance-condensed { border: var(--stroke-width-small) solid var(--color-border); border-radius: var(--radius-medium); scrollbar-width: thin; scrollbar-color: var(--scrollbar-color) transparent; tbody tr { background: var(--color-bg); } }
 .table--appearance-condensed table { border-collapse: collapse; }
 .table--appearance-condensed thead { background: var(--color-bg-secondary); }
@@ -774,6 +783,7 @@ html[data-enhanced-contrast] .nav-group__toggle .nav-group__indicator { opacity:
 .condition .btn { vertical-align: middle; margin: 0; }
 .condition__join .rs__control { min-height: var(--spacer-4); padding-block: 0; padding-inline: calc(var(--spacer-1) * 1.5) var(--spacer-4); text-transform: lowercase; }
 .condition__join .rs__indicators { inset-block: 0; min-height: 0; align-items: center; }
+.condition__field .field-label { padding-bottom: 0; }
 @media (max-width: 768px) .condition__join { grid-area: join; }
 @media (max-width: 768px) .condition__join .rs__control { min-width: calc(var(--spacer-4) * 3); }
 
@@ -789,6 +799,7 @@ html[data-enhanced-contrast] .nav-group__toggle .nav-group__indicator { opacity:
 .checkbox { position: relative; }
 .field-type.checkbox:has(+ .checkbox) { margin-bottom: var(--spacer-2); }
 .checkbox-input { display: flex; }
+.checkbox-input__wrap { position: relative; display: inline-flex; align-items: flex-start; gap: var(--spacer-2); width: 100%; }
 .checkbox-input__input { position: relative; display: inline-block; flex-shrink: 0; width: var(--spacer-3); height: var(--spacer-3); margin-block: var(--spacer-1); user-select: none; }
 .checkbox-input__control { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; padding: 0; border-radius: 0; outline: none; opacity: 0; }
 .checkbox-input__visuals { --checkbox-bg: var(--color-bg-secondary); --checkbox-border-color: var(--color-border-control-strong); --checkbox-focus-ring-color: transparent; --checkbox-mark-color: var(--color-icon); --checkbox-mark-halo-color: transparent; --checkbox-duration: 100ms; --checkbox-easing: cubic-bezier(0.645, 0.045, 0.355, 1); position: absolute; inset: 0; display: inline-grid; place-content: center; border: var(--stroke-width-small) solid var(--checkbox-border-color); border-radius: var(--radius-small); outline: var(--stroke-width-small) solid var(--checkbox-focus-ring-color); outline-offset: var(--stroke-width-small); background: var(--checkbox-bg); pointer-events: none; }
@@ -814,6 +825,7 @@ html[data-enhanced-contrast] .nav-group__toggle .nav-group__indicator { opacity:
 .checkbox-input label.field-label { margin-block-start: var(--spacer-1); }
 .checkbox > .field-description { padding-inline-start: var(--spacer-4); }
 .checkbox-input:not(.checkbox-input--read-only), .checkbox-input:not(.checkbox-input--read-only) label, .checkbox-input:not(.checkbox-input--read-only) input { cursor: pointer; }
+.checkbox-input--read-only label.field-label:not(.unstyled) { color: var(--field-color-text-disabled); }
 .checkbox-input__tooltip { left: 0; width: max-content; max-width: 280px; white-space: normal; text-align: start; }
 .checkbox-input__tooltip.tooltip--caret-left .tooltip__caret { left: 0.5rem; transform: translateX(-50%); }
 .checkbox-input__tooltip.tooltip--caret-left.tooltip--position-bottom .tooltip__caret { transform: translateX(-50%) rotate(180deg); }
@@ -854,6 +866,15 @@ html[data-enhanced-contrast] .nav-group__toggle .nav-group__indicator { opacity:
 == @payloadcms/ui/fields/FieldError/index.css
 .field-error.tooltip { --field-error-max-width: calc(100vw - var(--spacer-6) * 2); --tooltip-max-width: var(--field-error-max-width); display: block; max-inline-size: min(var(--field-error-max-width), var(--tooltip-max-width)); white-space: normal; overflow-wrap: anywhere; color: var(--field-color-error-text); background-color: var(--field-color-error-bg); }
 .field-error.tooltip:focus-visible { outline: var(--accessibility-outline); outline-offset: var(--accessibility-outline-offset); }
+
+== @payloadcms/ui/fields/FieldLabel/index.css
+label.field-label, .field-label--with-control { display: flex; align-items: center; }
+label.field-label:not(.unstyled), .field-label--with-control:not(.unstyled) { display: flex; color: var(--field-color-label); font-weight: var(--text-body-medium-bold-font-weight); letter-spacing: var(--field-label-letter-spacing); }
+label.field-label:not(.unstyled), .field-label--with-control:not(.unstyled) html:not([dir='RTL']) & { margin-right: auto; }
+label.field-label:not(.unstyled), .field-label--with-control:not(.unstyled) html[dir='RTL'] & { margin-left: auto; }
+.field-label:not(.unstyled) .required { color: var(--field-color-label-required); }
+.field-label:not(.unstyled) .required html:not([dir='RTL']) & { margin-left: var(--spacer-1); }
+.field-label:not(.unstyled) .required html[dir='RTL'] & { margin-right: var(--spacer-1); }
 
 == @payloadcms/ui/fields/JSON/index.css
 .json-field &.error .code-editor { border-color: var(--field-color-border-error); }
@@ -987,6 +1008,9 @@ html[data-enhanced-contrast] .nav-group__toggle .nav-group__indicator { opacity:
 == @payloadcms/ui/fields/Upload/RelationshipContent/index.css
 .upload-relationship-details .btn { margin: 0; }
 .upload-relationship-details__actions .btn:focus-visible { outline-offset: -3px; }
+
+== @payloadcms/ui/fields/Upload/index.css
+.upload__label > .field-label:not(.unstyled) { display: flex; align-items: center; color: var(--field-color-label); font-weight: var(--text-body-medium-bold-font-weight); letter-spacing: var(--field-label-letter-spacing); margin-inline-end: auto; }
 
 == @payloadcms/ui/forms/NullifyField/index.css
 .nullify-locale-field .field-type.checkbox { display: flex; flex-direction: column; margin: 0; }
@@ -1138,6 +1162,9 @@ form > .form-submit .btn { width: 100%; }
 == @payloadcms/ui/views/HierarchyList/index.css
 .hierarchy-list .list-header a { text-decoration: none; }
 
+== @payloadcms/ui/views/List/ListHeader/index.css
+.list-drawer__select-collection-wrap .field-label { margin-bottom: var(--spacer-2); display: block; }
+
 == @payloadcms/ui/views/List/index.css
 .collection-list .list-header a { text-decoration: none; }
 
@@ -1145,6 +1172,7 @@ form > .form-submit .btn { width: 100%; }
 .login__form__actions .form-submit .btn { width: 100%; justify-content: center; }
 
 == @payloadcms/ui/views/Version/Default/index.css
+.view-version__modifiedCheckBox label.field-label { font-weight: var(--text-body-medium-font-weight); }
 .compare-version .rs__control { padding: var(--spacer-2); }
 
 == @payloadcms/ui/views/Version/RenderFieldsToDiff/DiffCollapser/index.css

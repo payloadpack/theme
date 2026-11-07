@@ -5,6 +5,7 @@ import {
   deleteSavedAppearance,
   demoCookie,
   findShowcase,
+  NOTIFY_SWITCH_SELECTOR,
   openAppearancePanel,
   openFineTune,
   saveAppearancePreference
@@ -48,7 +49,7 @@ const openShowcase = async (page: Page, setup: object, theme: string) => {
   await page.locator('.field-type.checkbox').filter({ hasText: 'Featured' }).getByRole('checkbox').check()
   await page.locator('.radio-group').filter({ hasText: 'Size' }).locator('.radio-input').filter({ hasText: /^m$/ }).click()
   await page.locator(`.${RADIO_CARDS} .radio-input`).nth(1).click()
-  await page.locator(`.${SWITCH}`).getByRole('checkbox').check()
+  await page.locator(NOTIFY_SWITCH_SELECTOR).getByRole('checkbox').check()
   await page.getByRole('tab', { name: 'General' }).click()
   await page.evaluate(() => {
     ;(document.activeElement as HTMLElement | null)?.blur()
@@ -74,7 +75,7 @@ for (const theme of ['dark', 'light']) {
     }
 
     for (const [name, className] of Object.entries(CUSTOM_FIELD_CLASS_NAMES)) {
-      await page.locator(`.${className}`).scrollIntoViewIfNeeded()
+      await page.locator(`.${className}`).first().scrollIntoViewIfNeeded()
       const column = await visibleBoundingBox(page, '.document-fields__fields')
       const field = await visibleBoundingBox(page, `.${className}`)
       await expect(page).toHaveScreenshot(`${name}-${theme}.png`, {

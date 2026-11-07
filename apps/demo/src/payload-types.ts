@@ -330,6 +330,10 @@ export interface Showcase {
    * Email everyone who follows this showcase
    */
   notify?: boolean | null;
+  /**
+   * Keep this showcase first in every list
+   */
+  pinned?: boolean | null;
   body?: LexicalRichText<LexicalNodes_A13DBFDA> | null;
   links?:
     | {
@@ -873,6 +877,7 @@ export interface ShowcaseSelect<T extends boolean = true> {
         skiStorage?: T;
       };
   notify?: T;
+  pinned?: T;
   body?: T;
   links?:
     | T

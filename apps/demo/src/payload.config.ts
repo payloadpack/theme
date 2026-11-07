@@ -1,6 +1,6 @@
 import { sqliteAdapter } from '@payloadcms/db-sqlite'
 import { FixedToolbarFeature, lexicalEditor } from '@payloadcms/richtext-lexical'
-import { RADIO_CARDS, SWITCH, themePlugin, VERTICAL_TABS } from '@payloadpack/theme'
+import { RADIO_CARDS, SWITCH, SWITCH_END, themePlugin, VERTICAL_TABS } from '@payloadpack/theme'
 import path from 'path'
 import { createElement, Fragment } from 'react'
 import { buildConfig } from 'payload'
@@ -104,6 +104,12 @@ export default buildConfig({
           type: 'checkbox',
           label: 'Notify subscribers',
           admin: { className: SWITCH, description: 'Email everyone who follows this showcase' }
+        },
+        {
+          name: 'pinned',
+          type: 'checkbox',
+          label: 'Pin to the top',
+          admin: { className: SWITCH_END, description: 'Keep this showcase first in every list' }
         },
         {
           name: 'body',
