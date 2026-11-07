@@ -1,0 +1,67 @@
+@layer payload {
+  html[data-character='enhanced'] {
+    /* 1. Checkbox and radio */
+    .checkbox-input__mark-halo {
+      display: none;
+    }
+
+    .radio-input__styled-radio {
+      border-width: var(--stroke-width-small);
+    }
+
+    /* 2. Toasts */
+    .payload-toast-item [data-button] {
+      flex-shrink: 0;
+      height: var(--spacer-4);
+      padding-inline: var(--spacer-2);
+      border-radius: var(--radius-medium);
+      font-family: inherit;
+      font-size: var(--text-body-medium-bold-font-size);
+      font-weight: var(--text-body-medium-bold-font-weight);
+      cursor: pointer;
+
+      &:focus-visible {
+        outline: var(--accessibility-outline);
+      }
+    }
+
+    /* 3. Nav */
+    @media (min-width: 769px) {
+      .nav__header .user-menu {
+        margin-inline-end: calc(var(--spacer-5) + var(--spacer-1));
+      }
+
+      .nav:has(.payloadpack-appearance-panel--nav) .nav__header .user-menu {
+        margin-inline-end: calc(2 * (var(--spacer-5) + var(--spacer-1)));
+      }
+
+      .payloadpack-nav-bar {
+        position: absolute;
+        inset-block-start: calc(var(--spacer-2) + (var(--button-height) - var(--spacer-5)) / 2);
+        inset-inline-end: var(--spacer-2-5);
+        flex-direction: row-reverse;
+        padding: 0;
+        background: none;
+      }
+
+      &[data-rail] {
+        .nav__header {
+          padding-block-end: calc(var(--spacer-2) + var(--spacer-5) + var(--spacer-1));
+        }
+
+        .nav__header .user-menu {
+          width: 0;
+          margin-inline-end: 0;
+          opacity: 0;
+          visibility: hidden;
+        }
+
+        .payloadpack-nav-bar {
+          inset-inline-end: calc(100% - (var(--payloadpack-rail-width) + var(--spacer-5)) / 2);
+          flex-direction: column;
+          padding: 0;
+        }
+      }
+    }
+  }
+}

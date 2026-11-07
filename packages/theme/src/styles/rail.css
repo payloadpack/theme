@@ -1,0 +1,11 @@
+@layer payload {
+  html[data-rail] {
+    @media (min-width: 769px) {
+      .nav__link-label,
+      .nav-group__label {
+        background-color: var(--color-bg-tooltip);
+        color: var(--color-text-ontooltip);
+      }
+    }
+  }
+}

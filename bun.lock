@@ -33,7 +33,7 @@
     },
     "packages/theme": {
       "name": "@payloadpack/theme",
-      "version": "0.2.3",
+      "version": "0.2.4",
       "devDependencies": {
         "@payloadcms/richtext-lexical": "4.0.0-beta.6",
         "@payloadcms/ui": "4.0.0-beta.6",

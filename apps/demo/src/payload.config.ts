@@ -6,11 +6,12 @@ import { createElement, Fragment } from 'react'
 import { buildConfig } from 'payload'
 import { fileURLToPath } from 'url'
 
+import { collections, globals } from './collections'
 import { seed } from './seed'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
-const choice = (title: string, description: string) =>
+const radioCardLabel = (title: string, description: string) =>
   createElement(Fragment, null, createElement('strong', null, title), createElement('span', null, description))
 
 const AMENITIES = [
@@ -82,9 +83,9 @@ export default buildConfig({
           type: 'radio',
           admin: { className: RADIO_CARDS },
           options: [
-            { label: choice('Plus', 'For individuals and small teams.'), value: 'plus' },
-            { label: choice('Pro', 'For growing businesses.'), value: 'pro' },
-            { label: choice('Enterprise', 'For large teams and enterprises.'), value: 'enterprise' }
+            { label: radioCardLabel('Plus', 'For individuals and small teams.'), value: 'plus' },
+            { label: radioCardLabel('Pro', 'For growing businesses.'), value: 'pro' },
+            { label: radioCardLabel('Enterprise', 'For large teams and enterprises.'), value: 'enterprise' }
           ]
         },
         { name: 'tags', type: 'select', hasMany: true, options: AMENITIES },
@@ -125,13 +126,25 @@ export default buildConfig({
         }
       ],
       versions: { drafts: true }
-    }
+    },
+    ...collections
   ],
   cookiePrefix: 'theme-demo',
   db: sqliteAdapter({ client: { url: process.env.DATABASE_URI || '' } }),
   editor: lexicalEditor(),
+  globals,
   onInit: seed,
-  plugins: [themePlugin()],
+  plugins: [
+    themePlugin({
+      palettes: [
+        { slug: 'payload' },
+        { slug: 'neutral' },
+        { slug: 'warm' },
+        { slug: 'soft' },
+        { label: 'Indigo', slug: 'indigo' }
+      ]
+    })
+  ],
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: { outputFile: path.resolve(dirname, 'payload-types.ts') }
 })

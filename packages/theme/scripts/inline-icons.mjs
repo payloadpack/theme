@@ -1,9 +1,11 @@
-import { readFileSync, writeFileSync } from 'node:fs'
+import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 const iconsDir = path.join(path.dirname(createRequire(import.meta.url).resolve('lucide-static/package.json')), 'icons')
-const stylesheet = new URL('../dist/styles/lucide.css', import.meta.url)
+const distDir = fileURLToPath(new URL('../dist', import.meta.url))
+const iconUrl = /url\('lucide-static\/icons\/([a-z0-9-]+)\.svg'\)/g
 
 const toDataUri = (svg) =>
   `url("data:image/svg+xml,${encodeURIComponent(
@@ -14,8 +16,11 @@ const toDataUri = (svg) =>
       .trim()
   )}")`
 
-const css = readFileSync(stylesheet, 'utf8').replace(/url\('lucide-static\/icons\/([a-z0-9-]+)\.svg'\)/g, (_, name) =>
-  toDataUri(readFileSync(path.join(iconsDir, `${name}.svg`), 'utf8'))
-)
-
-writeFileSync(stylesheet, css)
+for (const file of readdirSync(distDir, { recursive: true }).filter((name) => name.endsWith('.css'))) {
+  const stylesheet = path.join(distDir, file)
+  const css = readFileSync(stylesheet, 'utf8')
+  const inlined = css.replace(iconUrl, (_, name) => toDataUri(readFileSync(path.join(iconsDir, `${name}.svg`), 'utf8')))
+  if (inlined !== css) {
+    writeFileSync(stylesheet, inlined)
+  }
+}

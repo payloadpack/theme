@@ -1,13 +1,10 @@
-import { test as setup } from '@playwright/test'
+import { expect, test as setup } from '@playwright/test'
 
-import { demoUser } from '../src/seed'
-import { authFile } from './demo'
+import { DEMO_USER } from '../src/seed'
+import { AUTH_FILE } from './demo'
 
-setup('log in as the demo user', async ({ page }) => {
-  await page.goto('/admin/login')
-  await page.fill('#field-email', demoUser.email)
-  await page.fill('#field-password', demoUser.password)
-  await page.click('button[type="submit"]')
-  await page.waitForURL('/admin')
-  await page.context().storageState({ path: authFile })
+setup('log in as the demo user', async ({ request }) => {
+  await expect(await request.post('/api/users/login', { data: DEMO_USER })).toBeOK()
+  await request.delete('/api/payload-preferences/nav')
+  await request.storageState({ path: AUTH_FILE })
 })

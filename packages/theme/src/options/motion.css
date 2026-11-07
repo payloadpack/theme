@@ -1,0 +1,331 @@
+@property --payloadpack-avatar {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+
+@layer payload {
+  html[data-motion='auto'] {
+    @media (prefers-reduced-motion: no-preference) {
+      /* 1. Tokens */
+      --payloadpack-duration-fast: 100ms;
+      --payloadpack-duration-normal: 150ms;
+      --payloadpack-duration-slow: 200ms;
+      --payloadpack-duration-slower: 300ms;
+      --payloadpack-duration-slowest: 500ms;
+      --payloadpack-ease-state: cubic-bezier(0, 0.2, 0.2, 1);
+      --payloadpack-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+      --payloadpack-ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+      --payloadpack-ease-toggle: cubic-bezier(0.645, 0.045, 0.355, 1);
+      --payloadpack-ease-linear: linear;
+      --payloadpack-motion-hover-duration: var(--payloadpack-duration-fast);
+      --payloadpack-motion-hover-easing: var(--payloadpack-ease-state);
+      --payloadpack-motion-enter-duration: var(--payloadpack-duration-normal);
+      --payloadpack-motion-enter-easing: var(--payloadpack-ease-out);
+      --payloadpack-motion-panel-duration: var(--payloadpack-duration-slow);
+      --payloadpack-motion-panel-easing: ease-out;
+      --payloadpack-duration-exit: calc(var(--payloadpack-motion-enter-duration) * 2 / 3);
+      --payloadpack-duration-tooltip-exit: min(var(--payloadpack-duration-exit), 200ms);
+      --payloadpack-duration-label: calc(var(--payloadpack-motion-panel-duration) * 0.75);
+      --payloadpack-duration-avatar: calc(var(--payloadpack-motion-panel-duration) / 2);
+
+      /* 2. Tooltips */
+      .tooltip {
+        transition:
+          opacity var(--payloadpack-duration-tooltip-exit) var(--payloadpack-motion-enter-easing),
+          visibility var(--payloadpack-duration-tooltip-exit) var(--payloadpack-motion-enter-easing);
+      }
+
+      .tooltip--show {
+        transition:
+          opacity var(--payloadpack-motion-enter-duration) var(--payloadpack-motion-enter-easing),
+          visibility var(--payloadpack-motion-enter-duration) var(--payloadpack-motion-enter-easing);
+
+        @starting-style {
+          opacity: 0;
+        }
+      }
+
+      /* 3. Fields */
+      .form-input,
+      .form-input-group,
+      .react-select .rs__control,
+      .code-editor,
+      .search-input,
+      .react-datepicker__input-container input {
+        transition:
+          border var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing),
+          box-shadow var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing),
+          background-color var(--payloadpack-duration-slowest) var(--payloadpack-ease-state);
+      }
+
+      .checkbox-input__visuals,
+      .radio-input__styled-radio {
+        transition: box-shadow var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing);
+      }
+
+      .checkbox-input__control:is(:checked, :indeterminate) + .checkbox-input__visuals,
+      .radio-input--is-selected .radio-input__styled-radio {
+        transition:
+          background-color var(--payloadpack-duration-fast) var(--payloadpack-ease-toggle),
+          box-shadow var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing);
+      }
+
+      .payloadpack-switch .checkbox-input__visuals {
+        transition:
+          grid-template-columns var(--payloadpack-duration-slow),
+          box-shadow var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing);
+      }
+
+      .payloadpack-switch .checkbox-input__control:is(:checked, :indeterminate) + .checkbox-input__visuals {
+        transition:
+          grid-template-columns var(--payloadpack-duration-slow),
+          background-color var(--payloadpack-duration-fast) var(--payloadpack-ease-toggle),
+          box-shadow var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing);
+      }
+
+      /* 4. Buttons */
+      .btn {
+        transition:
+          border var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing),
+          color var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing),
+          background var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing);
+      }
+
+      /* 5. Cards */
+      .card {
+        transition:
+          border var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing),
+          box-shadow var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing),
+          background var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing);
+      }
+
+      /* 6. Popups and menus */
+      .popup__content:popover-open,
+      .rs__menu {
+        transform-origin: var(--caret-left, 50%) top;
+        transition:
+          opacity var(--payloadpack-motion-enter-duration) var(--payloadpack-motion-enter-easing),
+          scale var(--payloadpack-motion-enter-duration) var(--payloadpack-motion-enter-easing),
+          translate var(--payloadpack-motion-enter-duration) var(--payloadpack-motion-enter-easing);
+
+        @starting-style {
+          opacity: 0;
+          translate: 0 calc(-1 * var(--spacer-2));
+        }
+      }
+
+      .rs__menu {
+        @starting-style {
+          scale: 0.95;
+        }
+      }
+
+      .popup--v-top:popover-open,
+      .rs__menu--placement-top {
+        transform-origin: var(--caret-left, 50%) bottom;
+
+        @starting-style {
+          translate: 0 var(--spacer-2);
+        }
+      }
+
+      .popup--side-right:popover-open,
+      .popup--side-left:popover-open {
+        transform-origin: top;
+
+        @starting-style {
+          translate: 0;
+        }
+      }
+
+      .popup__hidden-content {
+        opacity: 0;
+        scale: 0.95;
+        transition:
+          all 0s var(--payloadpack-duration-exit),
+          opacity var(--payloadpack-duration-exit) var(--payloadpack-motion-enter-easing),
+          scale var(--payloadpack-duration-exit) var(--payloadpack-motion-enter-easing);
+        transition-behavior: allow-discrete, normal, normal;
+      }
+
+      /* 7. Nav */
+      .template-default {
+        transition: grid-template-columns var(--payloadpack-motion-panel-duration) var(--payloadpack-motion-panel-easing);
+      }
+
+      @media (width <= 768px) {
+        .template-default:not(.template-default--nav-hydrated) {
+          grid-template-columns: 0 auto;
+        }
+      }
+
+      @media (769px <= width <= 1440px) {
+        &:not([data-nav='rail']) .template-default:not(.template-default--nav-open, .template-default--nav-hydrated) {
+          grid-template-columns: 0 auto;
+        }
+      }
+
+      .template-default__wrap {
+        grid-column: 2;
+        transition: margin var(--payloadpack-motion-panel-duration) var(--payloadpack-motion-panel-easing);
+      }
+
+      .nav {
+        interpolate-size: allow-keywords;
+        transition:
+          width var(--payloadpack-motion-panel-duration) var(--payloadpack-motion-panel-easing),
+          visibility var(--payloadpack-motion-panel-duration);
+      }
+
+      .nav__header,
+      .nav__close,
+      .payloadpack-nav-bar,
+      .user-menu,
+      .nav__link,
+      .nav-group__toggle {
+        transition-duration: var(--payloadpack-motion-panel-duration);
+        transition-timing-function: var(--payloadpack-motion-panel-easing);
+      }
+
+      .nav__header,
+      .nav__close,
+      .payloadpack-nav-bar,
+      .nav__link {
+        transition-property: margin, padding, inset;
+      }
+
+      .user-menu {
+        transition-property: width, margin, opacity, visibility;
+      }
+
+      .user-menu__trigger {
+        transition:
+          width 0s var(--payloadpack-duration-avatar),
+          height 0s var(--payloadpack-duration-avatar),
+          padding 0s var(--payloadpack-duration-avatar),
+          border-radius 0s var(--payloadpack-duration-avatar),
+          box-shadow var(--payloadpack-duration-avatar) var(--payloadpack-motion-panel-easing),
+          border var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing),
+          color var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing),
+          background var(--payloadpack-motion-hover-duration) var(--payloadpack-motion-hover-easing);
+      }
+
+      &[data-rail] .user-menu__trigger {
+        transition-delay:
+          var(--payloadpack-duration-avatar), var(--payloadpack-duration-avatar), var(--payloadpack-duration-avatar),
+          var(--payloadpack-duration-avatar), var(--payloadpack-duration-avatar), 0s, 0s, 0s;
+      }
+
+      .user-menu__trigger .btn__content {
+        transition: gap 0s var(--payloadpack-duration-avatar);
+      }
+
+      .user-menu__trigger .btn__icon {
+        transition:
+          max-width 0s var(--payloadpack-duration-avatar),
+          opacity var(--payloadpack-duration-avatar) var(--payloadpack-motion-panel-easing) var(--payloadpack-duration-avatar);
+      }
+
+      &[data-rail] .user-menu__trigger .btn__icon {
+        transition-delay: var(--payloadpack-duration-avatar), 0s;
+      }
+
+      .user-menu__trigger .btn__label {
+        filter: blur(calc(min(var(--payloadpack-avatar), 1 - var(--payloadpack-avatar)) * 4px));
+        opacity: calc(1 - min(var(--payloadpack-avatar), 1 - var(--payloadpack-avatar)) * 2);
+        transition:
+          font-size 0s var(--payloadpack-duration-avatar),
+          line-height 0s var(--payloadpack-duration-avatar),
+          --payloadpack-avatar var(--payloadpack-motion-panel-duration) var(--payloadpack-ease-linear),
+          text-transform var(--payloadpack-motion-panel-duration) var(--payloadpack-ease-linear);
+        transition-behavior: normal, allow-discrete, normal, allow-discrete;
+      }
+
+      &[data-rail] .user-menu__trigger .btn__label {
+        --payloadpack-avatar: 1;
+      }
+
+      .nav-group__toggle {
+        transition-property: margin, opacity, filter, visibility;
+      }
+
+      .sidebar-tabs__tabs {
+        transition:
+          width 0s var(--payloadpack-motion-panel-duration),
+          margin var(--payloadpack-motion-panel-duration) var(--payloadpack-motion-panel-easing),
+          opacity var(--payloadpack-motion-panel-duration) var(--payloadpack-motion-panel-easing),
+          filter var(--payloadpack-motion-panel-duration) var(--payloadpack-motion-panel-easing),
+          visibility var(--payloadpack-motion-panel-duration) var(--payloadpack-motion-panel-easing);
+      }
+
+      &[data-rail] .sidebar-tabs__tabs {
+        transition-delay: 0s;
+      }
+
+      .nav__link-label,
+      .nav-group__label {
+        transition:
+          opacity var(--payloadpack-duration-label) var(--payloadpack-motion-panel-easing),
+          white-space 0s var(--payloadpack-motion-panel-duration);
+        transition-behavior: normal, allow-discrete;
+      }
+
+      .nav-group__indicator .icon--chevron {
+        transition: transform var(--payloadpack-duration-slow) var(--payloadpack-ease-out);
+      }
+
+      &[data-rail] :is(.nav__link-label, .nav-group__label) {
+        transition:
+          all 0s var(--payloadpack-motion-panel-duration),
+          opacity var(--payloadpack-duration-label) var(--payloadpack-motion-panel-easing),
+          white-space 0s;
+        transition-behavior: allow-discrete, normal, allow-discrete;
+      }
+
+      /* 8. Appearance panel */
+      .payloadpack-appearance-panel__sheet {
+        translate: 100% 0;
+        transition:
+          translate var(--payloadpack-duration-slow) var(--payloadpack-ease-out),
+          display var(--payloadpack-duration-slow),
+          overlay var(--payloadpack-duration-slow);
+        transition-behavior: normal, allow-discrete, allow-discrete;
+
+        &:popover-open {
+          translate: 0;
+          transition-duration: var(--payloadpack-duration-slower);
+          transition-timing-function: var(--payloadpack-ease-drawer);
+
+          @starting-style {
+            translate: 100% 0;
+          }
+        }
+
+        @media (width <= 768px) {
+          translate: 0 100%;
+
+          &:popover-open {
+            @starting-style {
+              translate: 0 100%;
+            }
+          }
+        }
+      }
+
+      @media (width > 768px) {
+        &[dir='rtl'] .payloadpack-appearance-panel__sheet {
+          translate: -100% 0;
+
+          &:popover-open {
+            translate: 0;
+
+            @starting-style {
+              translate: -100% 0;
+            }
+          }
+        }
+      }
+    }
+  }
+}

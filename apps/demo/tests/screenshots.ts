@@ -1,16 +1,27 @@
 import { RADIO_CARDS, SWITCH, VERTICAL_TABS } from '@payloadpack/theme'
 import { expect, type Page, test } from '@playwright/test'
 
-import { cookie, findShowcase } from './demo'
+import {
+  deleteSavedAppearance,
+  demoCookie,
+  findShowcase,
+  openAppearancePanel,
+  openFineTune,
+  saveAppearancePreference
+} from './demo'
 
-const looks = {
-  stock: [cookie('admin-theme', 'stock'), cookie('density', 'compact'), cookie('icons', 'payload')],
-  themed: [cookie('admin-theme', 'neutral'), cookie('density', 'comfortable'), cookie('icons', 'lucide')]
+test.beforeEach(async ({ page }) => {
+  await deleteSavedAppearance(page.request)
+})
+
+const APPEARANCE_VARIANTS = {
+  payload: { character: 'payload', palette: 'payload' },
+  themed: {}
 }
 
-const fields = { 'radio-cards': RADIO_CARDS, switch: SWITCH, 'vertical-tabs': VERTICAL_TABS }
+const CUSTOM_FIELD_CLASS_NAMES = { 'radio-cards': RADIO_CARDS, switch: SWITCH, 'vertical-tabs': VERTICAL_TABS }
 
-const box = async (page: Page, selector: string) => {
+const visibleBoundingBox = async (page: Page, selector: string) => {
   const rect = await page.locator(selector).first().boundingBox()
   if (!rect) {
     throw new Error(`${selector} is not visible`)
@@ -18,8 +29,9 @@ const box = async (page: Page, selector: string) => {
   return rect
 }
 
-const openShowcase = async (page: Page, cookies: ReturnType<typeof cookie>[], theme: string) => {
-  await page.context().addCookies([...cookies, cookie('theme', theme)])
+const openShowcase = async (page: Page, setup: object, theme: string) => {
+  await saveAppearancePreference(page.request, setup)
+  await page.context().addCookies([demoCookie('theme', theme)])
   const showcase = await findShowcase(page)
   await page.clock.setFixedTime(showcase.updatedAt.getTime() + 60 * 60 * 1000)
   await page.goto(showcase.path, { waitUntil: 'networkidle' })
@@ -41,24 +53,30 @@ const openShowcase = async (page: Page, cookies: ReturnType<typeof cookie>[], th
 
 for (const theme of ['dark', 'light']) {
   test(theme, async ({ page }) => {
-    for (const [look, cookies] of Object.entries(looks)) {
-      await openShowcase(page, cookies, theme)
+    for (const [look, setup] of Object.entries(APPEARANCE_VARIANTS)) {
+      await openShowcase(page, setup, theme)
       await expect(page).toHaveScreenshot(`compare-${look}-${theme}.png`, { clip: { height: 540, width: 720, x: 0, y: 0 } })
     }
 
-    for (const [name, className] of Object.entries(fields)) {
+    for (const [name, className] of Object.entries(CUSTOM_FIELD_CLASS_NAMES)) {
       await page.locator(`.${className}`).scrollIntoViewIfNeeded()
-      const column = await box(page, '.document-fields__fields')
-      const field = await box(page, `.${className}`)
+      const column = await visibleBoundingBox(page, '.document-fields__fields')
+      const field = await visibleBoundingBox(page, `.${className}`)
       await expect(page).toHaveScreenshot(`${name}-${theme}.png`, {
         clip: { height: field.height + 32, width: column.width + 32, x: column.x - 16, y: field.y - 16 }
       })
     }
 
-    await page.evaluate(() => window.scrollTo(0, 0))
-    await page.locator('.user-menu__trigger').click()
-    await page.getByRole('menuitem', { name: 'Appearance' }).hover()
-    await expect(page.getByRole('menuitemradio', { name: 'Lucide' })).toBeVisible()
-    await expect(page).toHaveScreenshot(`appearance-${theme}.png`, { clip: { height: 560, width: 440, x: 0, y: 0 } })
+    await openShowcase(page, APPEARANCE_VARIANTS.themed, theme)
+    const sheet = await openAppearancePanel(page)
+    await openFineTune(sheet)
+    const height = await sheet.evaluate((element) =>
+      [...element.children].reduce((sum, child) => sum + Math.max(child.scrollHeight, (child as HTMLElement).offsetHeight), 0)
+    )
+    await page.setViewportSize({ height: Math.ceil(height), width: 1280 })
+    await page.mouse.move(0, 0)
+    await expect(page).toHaveScreenshot(`appearance-${theme}.png`, {
+      clip: await visibleBoundingBox(page, '.payloadpack-appearance-panel__sheet')
+    })
   })
 }

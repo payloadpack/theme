@@ -1,0 +1,23 @@
+@layer payload {
+  [data-palette='neutral'] {
+    /* 1. Light palette */
+    --payloadpack-bg-app: #f6f6f6;
+    --payloadpack-bg-surface: #ffffff;
+    --payloadpack-text-primary: #171717;
+    --payloadpack-text-secondary: #646464;
+    --payloadpack-action-primary: #0a0a0a;
+    --payloadpack-accent: var(--payloadpack-text-primary);
+    --payloadpack-elevation-card: 0 0 0 0.5px rgb(0 0 0 / 0.08), 0 1px 2px rgb(0 0 0 / 0.08);
+
+    /* 2. Dark palette */
+    &[data-theme='dark'] {
+      --payloadpack-bg-app: #151514;
+      --payloadpack-bg-surface: #0f0f0e;
+      --payloadpack-text-primary: #f3f2ed;
+      --payloadpack-text-secondary: #a3a29b;
+      --payloadpack-action-primary: var(--payloadpack-text-primary);
+      --payloadpack-accent: var(--payloadpack-text-primary);
+      --payloadpack-elevation-card: initial;
+    }
+  }
+}

@@ -4,10 +4,10 @@
   "type": "module",
   "scripts": {
     "build": "next build",
-    "dev": "next dev --port 3020",
+    "dev": "next dev --port ${DEMO_PORT:-3020}",
     "generate:importmap": "payload generate:importmap",
     "generate:types": "payload generate:types",
-    "start": "next start --port 3020",
+    "start": "next start --port ${DEMO_PORT:-3020}",
     "screenshots": "playwright test --project=screenshots --update-snapshots=changed",
     "test:e2e": "playwright test --project=e2e",
     "typecheck": "next typegen && tsc --noEmit"

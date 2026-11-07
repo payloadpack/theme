@@ -3,7 +3,7 @@
     --payloadpack-switch-size: 1.5rem;
     --payloadpack-switch-gap: 0.1;
     --payloadpack-switch-radius: 99rem;
-    --payloadpack-switch-thumb: var(--color-text);
+    --payloadpack-switch-thumb: var(--ramp-white-1000);
     --payloadpack-switch-padding: calc(var(--payloadpack-switch-size) * var(--payloadpack-switch-gap));
     --payloadpack-switch-width: calc(
       var(--payloadpack-switch-size) * 2 - (var(--stroke-width-small) + var(--payloadpack-switch-padding)) * 2
@@ -25,8 +25,7 @@
       grid-template-columns: 0fr 1fr 1fr;
       place-content: stretch;
       padding: var(--payloadpack-switch-padding);
-      border-radius: calc(var(--payloadpack-switch-radius) + var(--payloadpack-switch-padding) + var(--stroke-width-small));
-      transition: grid-template-columns 200ms;
+      border-radius: var(--payloadpack-switch-radius);
 
       &::before {
         content: '';

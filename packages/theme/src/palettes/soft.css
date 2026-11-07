@@ -1,0 +1,44 @@
+@layer payload {
+  [data-palette='soft'] {
+    /* 1. Light palette */
+    --payloadpack-bg-app: #fafafa;
+    --payloadpack-bg-surface: #ffffff;
+    --payloadpack-bg-subtle: #fafafa;
+    --payloadpack-bg-selected: #eeeeee;
+    --payloadpack-border-default: #ebebeb;
+    --payloadpack-text-primary: #333333;
+    --payloadpack-text-secondary: #737373;
+    --payloadpack-text-muted: #9e9e9e;
+    --payloadpack-action-primary: #1f1f1f;
+    --payloadpack-accent: #0078e7;
+    --payloadpack-status-success: #17b144;
+    --payloadpack-status-info: var(--payloadpack-accent);
+    --payloadpack-status-warning: #fcc300;
+    --payloadpack-status-error: #e0373a;
+    --payloadpack-elevation-card: 0 0 0 0.5px rgb(0 0 0 / 0.08), 0 1px 2px rgb(0 0 0 / 0.08);
+    --payloadpack-elevation-selected: none;
+    --payloadpack-elevation-popover: 0 0 0 0.5px rgb(0 0 0 / 0.1), 0 1px 2px rgb(0 0 0 / 0.08);
+
+    /* 2. Dark palette */
+    &[data-theme='dark'] {
+      --payloadpack-bg-app: #1f1f1f;
+      --payloadpack-bg-surface: #1a1a1a;
+      --payloadpack-bg-subtle: #1f1f1f;
+      --payloadpack-bg-popover: #1f1f1f;
+      --payloadpack-bg-selected: #292929;
+      --payloadpack-bg-field: var(--payloadpack-bg-surface);
+      --payloadpack-border-default: #282828;
+      --payloadpack-text-primary: #d6d6d6;
+      --payloadpack-text-secondary: #9d9d9d;
+      --payloadpack-text-muted: #6b6b6b;
+      --payloadpack-action-primary: #ffffff;
+      --payloadpack-action-primary-text: #1f1f1f;
+      --payloadpack-accent: #4e9cf6;
+      --payloadpack-status-success: #34c357;
+      --payloadpack-status-warning: #ffc004;
+      --payloadpack-status-error: #f36157;
+      --payloadpack-elevation-card: 0 0 0 0.5px rgb(255 255 255 / 0.08);
+      --payloadpack-elevation-popover: 0 0 0 0.5px rgb(255 255 255 / 0.1), 0 1px 3px rgb(255 255 255 / 0.05);
+    }
+  }
+}

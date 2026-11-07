@@ -1,0 +1,120 @@
+@layer payload {
+  html:is([data-character='enhanced'], [data-character='studio']) {
+    /* 1. Focus */
+    &,
+    [data-theme] {
+      --accessibility-outline: var(--stroke-width-medium) solid var(--accessibility-focus-color);
+    }
+
+    .sidebar-tabs__tab:focus-visible,
+    .doc-controls__meta .btn:focus-visible {
+      outline-offset: calc(-1 * var(--stroke-width-medium));
+    }
+
+    .nav__close:focus-visible .sidebar-toggle {
+      outline: var(--accessibility-outline);
+      outline-offset: calc(-1 * var(--stroke-width-medium));
+    }
+
+    .nav__close:focus-visible::after {
+      content: none;
+    }
+
+    /* 2. Sidebar tabs */
+    .sidebar-tabs__tabs {
+      gap: 2px;
+      padding: 3px;
+      border-radius: calc(var(--button-radius) + min(var(--button-radius), 3px));
+    }
+
+    .sidebar-tabs__tab {
+      height: calc(var(--field-min-height-large) - 6px);
+      border: 0;
+      border-radius: var(--button-radius);
+    }
+
+    /* 3. Nav */
+    @media (min-width: 769px) {
+      --nav-width: 18rem;
+
+      .nav__close {
+        display: none;
+      }
+    }
+
+    .nav__header {
+      padding-inline: var(--spacer-2-5);
+    }
+
+    .nav-group {
+      border-block-start: 0;
+    }
+
+    .nav-group:not(:first-child)::before {
+      content: '';
+      display: block;
+      margin: calc(-1 * var(--spacer-2)) var(--spacer-2-5) var(--spacer-2);
+      border-block-start: var(--stroke-width-small) solid var(--color-border);
+    }
+
+    .nav__link--selected {
+      font-weight: var(--text-body-medium-bold-font-weight);
+    }
+
+    .nav__link,
+    .nav-group__toggle {
+      padding-inline: calc(var(--spacer-2-5) + var(--spacer-2));
+
+      &::before {
+        inset-inline: var(--spacer-2-5);
+      }
+    }
+
+    .nav-group__indicator {
+      inset-inline: auto calc(var(--spacer-2-5) + var(--spacer-2));
+      transform: none;
+    }
+
+    /* 4. Checkbox cells */
+    .payloadpack-checkbox-cell {
+      > :not(.drawer-link),
+      .drawer-link__cell {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.5rem;
+        height: 1.5rem;
+        vertical-align: middle;
+        font-size: 0;
+
+        &::before {
+          content: '';
+          width: 1rem;
+          height: 1rem;
+          background-color: currentColor;
+          mask: url('lucide-static/icons/check.svg') center / contain no-repeat;
+        }
+      }
+
+      .bool-cell {
+        display: contents;
+        font-size: 0;
+      }
+
+      &[data-value='false'] > :not(.drawer-link),
+      &[data-value='false'] .drawer-link__cell {
+        opacity: 0.6;
+
+        &::before {
+          mask-image: url('lucide-static/icons/x.svg');
+        }
+      }
+    }
+
+    /* 5. Floating surfaces */
+    .payload-toast-item,
+    .react-datepicker {
+      box-shadow: var(--elevation-400-menu-panel);
+    }
+  }
+}

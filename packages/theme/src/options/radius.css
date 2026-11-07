@@ -1,0 +1,54 @@
+@layer payload {
+  html[data-radius] {
+    /* 1. None */
+    &[data-radius='none'] {
+      --radius-small: 0px;
+      --radius-chip: 0px;
+      --radius-medium: var(--payloadpack-radius-control, 0px);
+      --radius-large: var(--payloadpack-radius-card, 0px);
+
+      .payloadpack-switch {
+        --payloadpack-switch-radius: 0px;
+      }
+    }
+
+    /* 2. Small */
+    &[data-radius='sm'] {
+      --radius-small: 0.0625rem;
+      --radius-chip: 0.125rem;
+      --radius-medium: var(--payloadpack-radius-control, 0.1875rem);
+      --radius-large: var(--payloadpack-radius-card, 0.5rem);
+    }
+
+    /* 3. Medium */
+    &[data-radius='md'] {
+      --radius-medium: var(--payloadpack-radius-control, 0.3125rem);
+      --radius-large: var(--payloadpack-radius-card, 0.8125rem);
+    }
+
+    /* 4. Large */
+    &:is([data-radius='lg'], [data-radius='full']) {
+      --radius-small: 0.25rem;
+      --radius-chip: 0.3125rem;
+      --radius-medium: var(--payloadpack-radius-control, 0.5rem);
+      --radius-large: var(--payloadpack-radius-card, 1.25rem);
+    }
+
+    /* 5. Full */
+    &[data-radius='full'] {
+      --button-radius: var(--payloadpack-radius-control, calc(var(--field-min-height-large) / 2));
+      --field-border-radius: var(--button-radius);
+    }
+
+    /* 6. Menus and toasts */
+    --popup-radius: calc(var(--popup-item-radius) + min(var(--popup-item-radius), var(--spacer-1)));
+
+    .payload-toast-item,
+    .slash-menu-popup,
+    .table-action-menu-dropdown,
+    .timezone-picker__menu,
+    .toolbar-popup__dropdown-items {
+      border-radius: var(--popup-radius);
+    }
+  }
+}

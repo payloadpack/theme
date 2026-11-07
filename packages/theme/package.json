@@ -1,7 +1,7 @@
 {
   "name": "@payloadpack/theme",
   "version": "0.2.4",
-  "description": "Admin theme for Payload 4: a warm dark palette, a comfortable density and Lucide icons, switchable from the user menu.",
+  "description": "Admin theme for Payload 4: characters, palettes and custom colors that each editor picks in an Appearance panel.",
   "keywords": [
     "payload",
     "payloadcms",
@@ -53,7 +53,7 @@
     "build:swc": "swc ./src -d ./dist --config-file .swcrc --strip-leading-paths --ignore \"**/*.d.ts\"",
     "build:types": "tsc -p tsconfig.json",
     "clean": "rimraf {dist,*.tsbuildinfo}",
-    "copyfiles": "copyfiles -u 1 \"src/**/*.css\" dist/ && cp ../../README.md README.md",
+    "copyfiles": "copyfiles -u 1 \"src/**/*.css\" \"src/fonts/*\" dist/ && cp ../../README.md README.md",
     "prepublishOnly": "bun run build",
     "test": "vitest run"
   },
