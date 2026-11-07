@@ -9,6 +9,7 @@ import {
   deleteSavedAppearance,
   demoCookie,
   findShowcase,
+  NOTIFY_SWITCH_SELECTOR,
   openAppearancePanel,
   openFineTune,
   openShareMenuItem,
@@ -770,27 +771,27 @@ test.describe('Theme values', () => {
 
   test('switches slide a light thumb and line the description up with the label', async ({ page }) => {
     await openShowcase(page)
-    const field = page.locator(`.${SWITCH}`)
+    const field = page.locator(NOTIFY_SWITCH_SELECTOR)
     const track = field.locator('.checkbox-input__visuals')
 
-    const box = await elementSize(page, `.${SWITCH} .checkbox-input__visuals`)
+    const box = await elementSize(page, `${NOTIFY_SWITCH_SELECTOR} .checkbox-input__visuals`)
     expect(box?.height).toBe(24)
     expect(box?.width).toBeCloseTo(41.2, 1)
     await expect(track).toHaveCSS('grid-template-columns', /^0px 17\.\d+px 17\.\d+px$/)
     await expect(track).toHaveCSS('border-top-color', 'rgba(0, 0, 0, 0)')
     await expect(track).toHaveCSS('background-color', await computedColor(page, 'var(--payloadpack-toggle-border)'))
-    expect(await computedStyleValue(page, `.${SWITCH} .checkbox-input__visuals`, 'background-color', '::before')).toBe(
-      await computedColor(page, 'var(--ramp-white-1000)')
-    )
+    expect(
+      await computedStyleValue(page, `${NOTIFY_SWITCH_SELECTOR} .checkbox-input__visuals`, 'background-color', '::before')
+    ).toBe(await computedColor(page, 'var(--ramp-white-1000)'))
 
     await field.getByText('Notify subscribers').click()
     await expect(field.getByRole('checkbox')).toBeChecked()
     await expect(track).toHaveCSS('grid-template-columns', /^17\.\d+px 17\.\d+px 0px$/)
     await expect(track).toHaveCSS('border-top-color', 'rgba(0, 0, 0, 0)')
     await expect(track).toHaveCSS('background-color', await computedColor(page, 'var(--payloadpack-toggle-checked-bg)'))
-    expect(await computedStyleValue(page, `.${SWITCH} .checkbox-input__visuals`, 'background-color', '::before')).toBe(
-      await computedColor(page, 'var(--payloadpack-toggle-mark)')
-    )
+    expect(
+      await computedStyleValue(page, `${NOTIFY_SWITCH_SELECTOR} .checkbox-input__visuals`, 'background-color', '::before')
+    ).toBe(await computedColor(page, 'var(--payloadpack-toggle-mark)'))
 
     const indent = await field.evaluate((root) => {
       const description = root.querySelector('.field-description') as HTMLElement
@@ -804,9 +805,69 @@ test.describe('Theme values', () => {
 
     await field.getByText('Notify subscribers').click()
     await page.evaluate(() => (document.documentElement.dataset.theme = 'light'))
-    expect(await computedStyleValue(page, `.${SWITCH} .checkbox-input__visuals`, 'background-color', '::before')).toBe(
-      await computedColor(page, 'var(--ramp-white-1000)')
+    expect(
+      await computedStyleValue(page, `${NOTIFY_SWITCH_SELECTOR} .checkbox-input__visuals`, 'background-color', '::before')
+    ).toBe(await computedColor(page, 'var(--ramp-white-1000)'))
+  })
+
+  test('SWITCH_END puts the switch after its label at the end of the row, and the whole row toggles it', async ({ page }) => {
+    await openShowcase(page)
+    const field = page.locator('.field-type.checkbox:has(#field-pinned)')
+    await field.scrollIntoViewIfNeeded()
+    const [row, label, toggle] = await Promise.all(
+      ['.checkbox-input__wrap', '.field-label', '.checkbox-input__input'].map(
+        async (selector) => (await field.locator(selector).boundingBox())!
+      )
     )
+
+    expect(label.x).toBe(row.x)
+    expect(toggle.x + toggle.width).toBe(row.x + row.width)
+    await expect(field.locator('.field-description')).toHaveCSS('padding-inline-start', '0px')
+
+    await page.mouse.click(toggle.x - 40, toggle.y + toggle.height / 2)
+    await expect(field.getByRole('checkbox')).toBeChecked()
+  })
+
+  for (const { character, toggles } of [
+    { character: 'enhanced', toggles: true },
+    { character: 'payload', toggles: false }
+  ]) {
+    test(`a click at the far end of a checkbox row ${toggles ? 'toggles it' : 'leaves it alone'} under ${character}`, async ({
+      page
+    }) => {
+      await saveAppearancePreference(page.request, { character })
+      await openShowcase(page)
+      const row = (await page.locator('.field-type.checkbox:has(#field-featured) .checkbox-input__wrap').boundingBox())!
+
+      await page.mouse.click(row.x + row.width - 4, row.y + row.height / 2)
+      await expect(page.locator('#field-featured')).toBeChecked({ checked: toggles })
+    })
+  }
+
+  test('checkboxes and radios take clicks just outside their box: 24px in forms, 32px in list selection', async ({ page }) => {
+    await openShowcase(page)
+    const clickJustOutside = async (control: Locator, offset: number) => {
+      const box = (await control.boundingBox())!
+      await page.mouse.click(box.x + box.width / 2, box.y - offset)
+    }
+    const radio = page.locator('#field-size-xs')
+    const featured = page.locator('#field-featured')
+
+    expect(await elementSize(page, '.radio-input:has(#field-size-xs) .radio-input__styled-radio')).toEqual({
+      height: 18,
+      width: 18
+    })
+    await clickJustOutside(radio, 2)
+    await expect(radio).toBeChecked()
+    await clickJustOutside(featured, 2)
+    await expect(featured).toBeChecked()
+
+    await page.goto('/admin/collections/products')
+    await waitForHydration(page)
+    const rowCheckbox = page.locator('tbody .select-row input').first()
+    expect(await elementSize(page, 'tbody .select-row .checkbox-input__visuals')).toEqual({ height: 18, width: 18 })
+    await clickJustOutside(rowCheckbox, 6)
+    await expect(rowCheckbox).toBeChecked()
   })
 
   test('Payload icons keep the Payload tick without its halo', async ({ page }) => {
@@ -1076,12 +1137,14 @@ test.describe('Radius', () => {
   test('none squares buttons, fields, the switch, the sidebar tabs and popups', async ({ page }) => {
     await saveAppearancePreference(page.request, { options: { enhanced: { radius: 'none' } } })
     await openShowcase(page)
-    const track = page.locator(`.${SWITCH} .checkbox-input__visuals`)
+    const track = page.locator(`${NOTIFY_SWITCH_SELECTOR} .checkbox-input__visuals`)
 
     await expect(page.locator(button).first()).toHaveCSS('border-radius', '0px')
     await expect(page.locator(field).first()).toHaveCSS('border-radius', '0px')
     await expect(track).toHaveCSS('border-radius', '0px')
-    expect(await computedStyleValue(page, `.${SWITCH} .checkbox-input__visuals`, 'border-radius', '::before')).toBe('0px')
+    expect(
+      await computedStyleValue(page, `${NOTIFY_SWITCH_SELECTOR} .checkbox-input__visuals`, 'border-radius', '::before')
+    ).toBe('0px')
     await expect(page.locator('.sidebar-tabs__tabs')).toHaveCSS('border-radius', '0px')
 
     await page.getByRole('button', { name: 'More options' }).first().click()
@@ -1352,7 +1415,7 @@ test.describe('Motion', () => {
       '.field-type.text .form-input',
       '.field-type.checkbox:not(.payloadpack-switch) .checkbox-input__visuals',
       '.radio-input__styled-radio',
-      `.${SWITCH} .checkbox-input__visuals`
+      `${NOTIFY_SWITCH_SELECTOR} .checkbox-input__visuals`
     ]
     const ringDurations = () =>
       Promise.all(
@@ -2211,6 +2274,34 @@ test.describe('Rail', () => {
       route.request().method() === 'POST' ? route.fulfill({ json: {} }) : route.fallback()
     )
   )
+
+  for (const icons of ['payload', 'lucide'] as const) {
+    test(`with ${icons} icons, closing to the rail fades the icons in without moving the labels`, async ({ page }) => {
+      await saveAppearancePreference(page.request, { options: { enhanced: { icons } } })
+      await page.goto('/admin')
+      await waitForHydration(page)
+      const link = page.locator('.nav__link').first()
+      const labelOffset = () =>
+        link.evaluate((element) =>
+          Math.round(
+            element.querySelector('.nav__link-label')!.getBoundingClientRect().left -
+              element.getBoundingClientRect().left -
+              parseFloat(getComputedStyle(element).paddingInlineStart)
+          )
+        )
+      const openLabelOffset = await labelOffset()
+
+      await page.getByRole('button', { name: 'Hide sidebar' }).click()
+      await expect(page.locator('html')).toHaveAttribute('data-rail', '')
+      await page.evaluate(() =>
+        document.getAnimations().forEach((animation) => {
+          animation.pause()
+          animation.currentTime = 100
+        })
+      )
+      expect(await labelOffset()).toBeCloseTo(openLabelOffset, 0)
+    })
+  }
 
   test('collapses the nav into a 64px rail of Lucide icons without labels', async ({ page }) => {
     await saveAppearancePreference(page.request, { options: { enhanced: { icons: 'payload' } } })

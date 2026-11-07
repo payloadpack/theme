@@ -1,8 +1,11 @@
+import { SWITCH } from '@payloadpack/theme'
 import { type APIRequestContext, test as base, expect, type Locator, type Page, type Request } from '@playwright/test'
 
 export const AUTH_FILE = 'tests/.auth/demo.json'
 
 export const DEMO_PORT = process.env.DEMO_PORT ?? '3021'
+
+export const NOTIFY_SWITCH_SELECTOR = `.${SWITCH}:has(#field-notify)`
 
 export const baseURL = `http://localhost:${DEMO_PORT}`
 
