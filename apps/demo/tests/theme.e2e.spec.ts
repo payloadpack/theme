@@ -859,6 +859,14 @@ test.describe('Theme values', () => {
       'data:image/svg+xml'
     )
     expect(await computedStyleValue(page, '.nav__link', 'mask-image', '::after')).toContain('data:image/svg+xml')
+
+    await page
+      .getByRole('button', { name: /^Add new/ })
+      .first()
+      .click()
+    await expect
+      .poll(() => computedStyleValue(page, '.doc-drawer__header-close svg.icon--chevron', 'mask-size'))
+      .toBe('min(100%, 18px) auto')
   })
 
   test('lets a click on a Lucide icon reach the control under it', async ({ page }) => {
@@ -2485,9 +2493,13 @@ test.describe('Studio character', () => {
     await openList(page)
     const toggle = page.locator('.payloadpack-nav-toggle')
     const open = (await toggle.boundingBox())!
+    expect((await page.locator('.sidebar-tabs__tabs').boundingBox())!.y - (open.y + open.height)).toBe(12)
     await page.getByRole('button', { name: 'Hide sidebar' }).click()
     await expect(page.locator('html')).toHaveAttribute('data-rail', '')
     await waitForAnimations(page.locator('.template-default'))
+    await waitForAnimations(page.locator('.nav'))
+    const toggleRow = (await page.locator('.payloadpack-nav-bar').boundingBox())!
+    expect((await page.locator('.nav__link').first().boundingBox())!.y).toBeGreaterThanOrEqual(toggleRow.y + toggleRow.height)
 
     const [nav, card, rail] = await Promise.all(
       ['.nav', '.template-default__wrap', '.payloadpack-nav-toggle'].map(

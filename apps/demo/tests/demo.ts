@@ -19,20 +19,19 @@ export const test = base.extend<{ editor: ReturnType<typeof getEditorForWorker>;
       await editorRequest.dispose()
       const isPreferenceSave = (request: Request) =>
         request.url().includes('/api/payload-preferences/') && request.method() === 'POST'
-      let preferenceSavesInFlight = 0
+      const unansweredPreferenceSaves = new Set<Request>()
       context.on('request', (request) => {
-        preferenceSavesInFlight += Number(isPreferenceSave(request))
+        if (isPreferenceSave(request)) {
+          unansweredPreferenceSaves.add(request)
+        }
       })
-      const countSettledPreferenceSave = (request: Request) => {
-        preferenceSavesInFlight -= Number(isPreferenceSave(request))
-      }
-      context.on('requestfinished', countSettledPreferenceSave)
-      context.on('requestfailed', countSettledPreferenceSave)
+      context.on('response', (response) => unansweredPreferenceSaves.delete(response.request()))
+      context.on('requestfailed', (request) => unansweredPreferenceSaves.delete(request))
       await use()
       await context.route('**/api/payload-preferences/**', (route) =>
         isPreferenceSave(route.request()) ? route.abort() : route.fallback()
       )
-      await expect.poll(() => preferenceSavesInFlight).toBe(0)
+      await expect.poll(() => unansweredPreferenceSaves.size).toBe(0)
     },
     { auto: true }
   ],

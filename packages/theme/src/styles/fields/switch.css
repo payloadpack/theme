@@ -14,6 +14,17 @@
       padding-inline-start: calc(var(--payloadpack-switch-width) + var(--spacer-2));
     }
 
+    &.payloadpack-switch--end {
+      .checkbox-input__wrap {
+        flex-direction: row-reverse;
+        justify-content: space-between;
+      }
+
+      &.field-type > .field-description {
+        padding-inline-start: 0;
+      }
+    }
+
     .checkbox-input .checkbox-input__input {
       width: var(--payloadpack-switch-width);
       height: var(--payloadpack-switch-size);

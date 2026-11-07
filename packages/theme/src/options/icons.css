@@ -125,6 +125,7 @@
     svg.icon--write { --payloadpack-icon: url('lucide-static/icons/square-pen.svg'); }
     svg.icon--x { --payloadpack-icon: url('lucide-static/icons/x.svg'); }
 
+    svg.icon--chevron[width='24'] { --payloadpack-icon-size: 1.125rem; }
     .collapsible__indicator svg.icon--chevron { --payloadpack-icon-size: 1rem; }
     .sidebar-tabs__tab svg.icon--align-justified { --payloadpack-icon: url('lucide-static/icons/layers-2.svg'); }
 

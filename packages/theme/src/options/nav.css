@@ -17,6 +17,19 @@
       .nav__scroll {
         overflow-x: hidden;
       }
+
+      &:not([data-icons='lucide']) .nav__link::after {
+        content: '';
+        order: -1;
+        flex-shrink: 0;
+        width: 1rem;
+        height: 1lh;
+        margin-inline-end: -1rem;
+        background-color: currentColor;
+        opacity: 0.8;
+        mask: var(--payloadpack-icon) center / contain no-repeat;
+        filter: opacity(0);
+      }
     }
 
     /* 2. Rail */
@@ -42,7 +55,7 @@
 
         .sidebar-tabs:has(.sidebar-tabs__tab--active:first-child) > .sidebar-tabs__tabs {
           width: calc(var(--nav-width) - 2 * var(--spacer-2-5));
-          margin-block-end: calc(-1 * (var(--field-min-height-large) + 2 * var(--stroke-width-small) + var(--spacer-2-5)));
+          margin-block: 0 calc(-1 * (var(--field-min-height-large) + 2 * var(--stroke-width-small)));
         }
 
         .nav-group:not(.nav-group--collapsed) > .nav-group__toggle {
@@ -70,12 +83,14 @@
 
         .nav__link::after {
           content: '';
+          order: -1;
+          flex-shrink: 0;
           width: 1rem;
           height: 1lh;
-          margin: 0;
           background-color: currentColor;
           opacity: 0.8;
           mask: var(--payloadpack-icon) center / contain no-repeat;
+          filter: none;
         }
 
         .nav__link:is(:hover, :focus-visible, .nav__link--selected)::after {

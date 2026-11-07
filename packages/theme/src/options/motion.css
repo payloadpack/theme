@@ -263,6 +263,10 @@
         transition-delay: 0s;
       }
 
+      .nav__link::after {
+        transition: filter var(--payloadpack-duration-label) var(--payloadpack-motion-panel-easing);
+      }
+
       .nav__link-label,
       .nav-group__label {
         transition:
