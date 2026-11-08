@@ -320,6 +320,12 @@ html[data-theme='dark'] @media (max-width: 768px) .rich-text-lexical &.error > .
 .column-selector__search-bar svg { display: block; flex-shrink: 0; color: var(--color-icon-secondary); }
 html[data-enhanced-contrast] .column-selector__search-bar { outline: var(--stroke-width-small) solid var(--color-border-control); }
 
+== @payloadcms/ui/elements/Combobox/index.css
+.popup.combobox > .popup__content { min-width: 0; }
+.popup__scroll-container:has(> .combobox__content) { padding: 0; overflow: hidden; }
+.popup__scroll-container:not(.popup__scroll-container--show-scrollbar) > .combobox__content > .combobox__entries { scrollbar-width: none; -ms-overflow-style: none; }
+.popup__scroll-container:not(.popup__scroll-container--show-scrollbar) > .combobox__content > .combobox__entries &::-webkit-scrollbar { display: none; }
+
 == @payloadcms/ui/elements/CopyToClipboard/index.css
 .copy-to-clipboard { position: relative; cursor: pointer; vertical-align: middle; border: 0; background: transparent; border-radius: var(--button-radius); color: var(--color-icon); outline: var(--stroke-width-medium) solid transparent; outline-offset: calc(var(--stroke-width-medium) * -1); }
 .copy-to-clipboard &:hover { background: var(--color-bg-secondary); }
@@ -481,6 +487,7 @@ html[data-enhanced-contrast] .column-selector__search-bar { outline: var(--strok
 .list-header__content { display: grid; grid-template-columns: 1fr auto; width: 100%; }
 
 == @payloadcms/ui/elements/ListSelection/index.css
+.list-selection { display: flex; margin-left: auto; min-width: 0; max-width: 100%; overflow-x: auto; padding-block: var(--spacer-1); padding-inline-end: var(--spacer-1); scroll-padding-inline: var(--spacer-1); color: var(--color-text-secondary); gap: var(--spacer-1); align-items: center; }
 .list-selection__button, .list-selection__button.btn { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 == @payloadcms/ui/elements/LivePreview/Toolbar/SizeInput/index.css
@@ -529,6 +536,8 @@ a.nav__link:focus-visible &::before { outline: var(--accessibility-outline); out
 .nav__link--selected &::before { background: var(--color-bg-selected); }
 @media (max-width: 1024px) .nav__scroll { --nav-padding-inline-start: var(--spacer-2); --nav-padding-inline-end: var(--spacer-2); }
 @media (max-width: 768px) .nav__scroll { --nav-padding-inline-start: var(--gutter-h); --nav-padding-inline-end: var(--gutter-h); }
+html[data-enhanced-contrast] .nav__header + .nav__scroll .nav__wrap > .nav-group:first-child { padding-block-start: 0; }
+html[data-enhanced-contrast] .nav__header + .nav__scroll .nav__wrap > .nav-group:first-child > .nav-group__toggle { border-block-start: 0; }
 html[data-enhanced-contrast] .nav__link--selected::before { background: var(--color-bg-secondary); border: var(--stroke-width-small) solid var(--color-border-selected); }
 
 == @payloadcms/ui/elements/NavGroup/index.css
@@ -548,6 +557,9 @@ html[data-enhanced-contrast] .nav-group &:first-child { padding-block-start: var
 html[data-enhanced-contrast] .nav-group &.nav-group--collapsed:has(~ .nav-group) > .nav-group__toggle { border-block-end: 0; }
 html[data-enhanced-contrast] .nav-group__toggle { color: var(--color-text); font-weight: var(--text-body-medium-bold-font-weight); border-block: var(--stroke-width-small) solid var(--color-border-control); }
 html[data-enhanced-contrast] .nav-group__toggle .nav-group__indicator { opacity: 1; color: var(--color-icon-primary); }
+
+== @payloadcms/ui/elements/PageControls/index.css
+@media (max-width: 768px) .page-controls > .collection-list__list-selection &:not(:has(.list-selection)) { display: none; }
 
 == @payloadcms/ui/elements/Pagination/ClickableArrow/index.css
 .clickable-arrow--right .icon { transform: rotate(-90deg); }

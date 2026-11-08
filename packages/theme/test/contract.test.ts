@@ -223,7 +223,8 @@ const HARD_CODED_BY_PAYLOAD = [
     file: 'elements/FileManager/FileToolbar/index.css',
     selector: '.file-toolbar__filename-btn',
     declaration: 'padding: var(--spacer-1) var(--spacer-2);'
-  }
+  },
+  { file: 'elements/ListSelection/index.css', selector: '.list-selection', declaration: 'padding-block: var(--spacer-1);' }
 ]
 
 const READ_BY_DESCENDANTS: Record<string, string[]> = {

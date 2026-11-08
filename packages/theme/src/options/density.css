@@ -250,6 +250,10 @@
       min-height: var(--button-height);
     }
 
+    .list-selection {
+      margin-block: calc(-1 * var(--spacer-1));
+    }
+
     .doc-tab__label {
       line-height: var(--text-body-medium-line-height);
     }
