@@ -73,28 +73,30 @@ const insertTableIntoShowcaseBody = async (page: Page) => {
   await page.locator('.LexicalEditorTheme__table').first().waitFor()
 }
 
+const DASHBOARD_VIEW: View = {
+  name: 'dashboard',
+  overlays: [
+    { name: 'appearance-panel', open: openAppearancePanel },
+    { name: 'user-menu', open: (page) => page.locator('.user-menu__trigger').click() },
+    {
+      name: 'command-palette',
+      open: async (page) => {
+        await page.keyboard.press('Control+k')
+        await page.locator('.cmd-palette').waitFor()
+      }
+    },
+    {
+      name: 'rail',
+      onlyInSetups: ['enhanced-neutral', 'studio-neutral'],
+      open: (page) => page.locator('.payloadpack-nav-toggle').click()
+    },
+    { hoversPointer: true, name: 'hovered-nav-link', open: (page) => page.locator('#nav-posts').hover() }
+  ],
+  path: '/admin'
+}
+
 const SIGNED_IN_VIEWS: View[] = [
-  {
-    name: 'dashboard',
-    overlays: [
-      { name: 'appearance-panel', open: openAppearancePanel },
-      { name: 'user-menu', open: (page) => page.locator('.user-menu__trigger').click() },
-      {
-        name: 'command-palette',
-        open: async (page) => {
-          await page.keyboard.press('Control+k')
-          await page.locator('.cmd-palette').waitFor()
-        }
-      },
-      {
-        name: 'rail',
-        onlyInSetups: ['enhanced-neutral', 'studio-neutral'],
-        open: (page) => page.locator('.payloadpack-nav-toggle').click()
-      },
-      { hoversPointer: true, name: 'hovered-nav-link', open: (page) => page.locator('#nav-posts').hover() }
-    ],
-    path: '/admin'
-  },
+  DASHBOARD_VIEW,
   { name: 'account', path: '/admin/account', timestampsToMask: ['.doc-controls__meta'] },
   {
     name: 'posts-list',
@@ -249,11 +251,6 @@ const PHONE_VIEWPORT = { height: 812, width: 375 }
 
 const LOADING_PLACEHOLDERS = '.shimmer-effect, .loading-overlay:not(.loading-overlay--exiting)'
 
-const saveSetupAndTheme = async (page: Page, setup: object, theme: Theme) => {
-  await saveAppearancePreference(page.request, setup)
-  await page.context().addCookies([demoCookie('theme', theme)])
-}
-
 const openPathAndSettle = async (page: Page, path: string) => {
   await page.goto(path, { waitUntil: 'networkidle' })
   await expect(page.locator(LOADING_PLACEHOLDERS)).toHaveCount(0)
@@ -289,7 +286,8 @@ const filterOverlaysForSetup = (view: View, setupName: string) =>
 
 const openViewInSetup = async (page: Page, view: View, setup: object, theme: Theme) => {
   await setClockForView(page, view)
-  await saveSetupAndTheme(page, setup, theme)
+  await expect(await saveAppearancePreference(page.request, setup)).toBeOK()
+  await page.context().addCookies([demoCookie('theme', theme)])
   await openSignedInPathAndSettle(page, view.path)
 }
 
@@ -309,9 +307,9 @@ test.describe('signed out', () => {
   }
 })
 
-for (const view of SIGNED_IN_VIEWS) {
-  for (const { name: setupName, setup, themes } of SETUPS_PER_VIEW) {
-    for (const theme of themes) {
+for (const { name: setupName, setup, themes } of SETUPS_PER_VIEW) {
+  for (const theme of themes) {
+    for (const view of SIGNED_IN_VIEWS) {
       test(`${view.name} ${setupName} ${theme}`, async ({ page }) => {
         await openViewInSetup(page, view, setup, theme)
         await expectViewScreenshot(page, view, `${view.name}-${setupName}-${theme}`)
@@ -359,9 +357,7 @@ test.describe('phone', () => {
   }
 
   test('dashboard phone nav', async ({ page }) => {
-    await page.clock.setFixedTime(FROZEN_NOW)
-    await saveSetupAndTheme(page, {}, 'light')
-    await openSignedInPathAndSettle(page, '/admin')
+    await openViewInSetup(page, DASHBOARD_VIEW, {}, 'light')
     await page.locator('.app-header__sidebar-toggle').click()
     await expectOverlayScreenshot(page, {}, 'dashboard-phone-nav')
   })
