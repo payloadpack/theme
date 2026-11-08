@@ -11,7 +11,7 @@
 
 <p align="center">
   <a href="https://www.npmjs.com/package/@payloadpack/theme"><img alt="npm version" src="https://img.shields.io/npm/v/@payloadpack/theme"></a>
-  <a href="https://github.com/payloadpack/theme/actions/workflows/ci.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/payloadpack/theme/ci.yml?branch=main"></a>
+  <a href="https://github.com/payloadpack/theme/actions/workflows/ci.yml"><img alt="Build status" src="https://github.com/payloadpack/theme/actions/workflows/ci.yml/badge.svg?branch=main"></a>
   <a href="https://payloadcms.com"><img alt="Payload version" src="https://img.shields.io/npm/dependency-version/@payloadpack/theme/peer/payload"></a>
   <a href="https://github.com/payloadpack/theme/blob/main/packages/theme/LICENSE"><img alt="PolyForm Perimeter license" src="https://img.shields.io/badge/license-PolyForm%20Perimeter-blue"></a>
 </p>
@@ -29,44 +29,12 @@
 
 ## What you get
 
-<table>
-  <tr>
-    <td width="50%" valign="top">
-      <img width="40" height="40" alt="" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/icons/styles.svg"><br>
-      <b>Three styles</b><br>
-      Payload's own, Enhanced and Studio. Fine-tune corners, typeface, density, icons, motion and nav.
-    </td>
-    <td width="50%" valign="top">
-      <img width="40" height="40" alt="" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/icons/palettes.svg"><br>
-      <b>Palettes and custom colors</b><br>
-      Payload, Neutral, Warm and Soft in light and dark. Editors mix their own, and you can ship yours.
-    </td>
-  </tr>
-  <tr>
-    <td valign="top">
-      <img width="40" height="40" alt="" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/icons/appearance.svg"><br>
-      <b>A setup per editor</b><br>
-      Saved in Payload's preferences and rendered on the server. It follows every editor, and pages never flash.
-    </td>
-    <td valign="top">
-      <img width="40" height="40" alt="" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/icons/fields.svg"><br>
-      <b>Field layouts</b><br>
-      Vertical tabs, radio cards and switches, each one <code>className</code> away.
-    </td>
-  </tr>
-  <tr>
-    <td valign="top">
-      <img width="40" height="40" alt="" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/icons/icons.svg"><br>
-      <b>Icons everywhere</b><br>
-      Lucide icons in the nav and document menu, matched to your collections automatically.
-    </td>
-    <td valign="top">
-      <img width="40" height="40" alt="" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/icons/tokens.svg"><br>
-      <b>One token sheet</b><br>
-      Restyle the whole admin from a short list of CSS custom properties.
-    </td>
-  </tr>
-</table>
+- 📐 **Three styles.** Payload's own, Enhanced and Studio. Fine-tune corners, typeface, density, icons, motion and nav.
+- 🎨 **Palettes and custom colors.** Payload, Neutral, Warm and Soft in light and dark. Editors mix their own, and you can ship yours.
+- 👤 **A setup per editor.** Saved in Payload's preferences and rendered on the server. It follows every editor, and pages never flash.
+- 🎛️ **Field layouts.** Vertical tabs, radio cards and switches, each one `className` away.
+- ✨ **Icons everywhere.** Lucide icons in the nav and document menu, matched to your collections automatically.
+- 🖌️ **One token sheet.** Restyle the whole admin from a short list of CSS custom properties.
 
 ## Install
 
