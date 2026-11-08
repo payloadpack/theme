@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.3.0](https://github.com/payloadpack/theme/compare/v0.2.4...v0.3.0) (2026-11-08)
+
+
+### Features
+
+* add a switch style for checkbox fields ([#30](https://github.com/payloadpack/theme/issues/30)) ([ed17a9e](https://github.com/payloadpack/theme/commit/ed17a9eb162afd876ad32148bda21157f8e9d413))
+* add characters, palettes and the Appearance panel ([#31](https://github.com/payloadpack/theme/issues/31)) ([9190ca7](https://github.com/payloadpack/theme/commit/9190ca78b569685215e2b17cf78fe96b703bda90))
+* **theme:** add a right-aligned switch and larger click targets ([#39](https://github.com/payloadpack/theme/issues/39)) ([ddd0f11](https://github.com/payloadpack/theme/commit/ddd0f11b62a482bc0f326fc191838307e99d0241))
+
+
+### Bug Fixes
+
+* keep the Appearance panel from signed-out views ([#35](https://github.com/payloadpack/theme/issues/35)) ([bb263b3](https://github.com/payloadpack/theme/commit/bb263b3306bbc66ef0366951a0d88145185d0561))
+* support Payload 4.0.0-beta.6 ([#28](https://github.com/payloadpack/theme/issues/28)) ([f27371b](https://github.com/payloadpack/theme/commit/f27371b6ffb3c7071b202aa2572154fe64a4c90e))
+* support Payload 4.0.0-beta.7 ([#42](https://github.com/payloadpack/theme/issues/42)) ([1fa275a](https://github.com/payloadpack/theme/commit/1fa275a672b48ffbdd3a7cde96473517d7eb1eba))
+* **theme:** fit new elements, add visual tests ([#43](https://github.com/payloadpack/theme/issues/43)) ([909c5ec](https://github.com/payloadpack/theme/commit/909c5ec459fb7ed2d8ea5b77e698c3fa925fb7c5))
+
+
+### Documentation
+
+* add docs site and slim the README ([#34](https://github.com/payloadpack/theme/issues/34)) ([0453930](https://github.com/payloadpack/theme/commit/045393031ac871d46f2a1b616df4b5779b8a8db0))
+* serve the docs from theme.payloadpack.com ([#38](https://github.com/payloadpack/theme/issues/38)) ([e6cb8e2](https://github.com/payloadpack/theme/commit/e6cb8e23ed1c53a4b882b6a3625315caeaedd95e))
+
+
+### Chores
+
+* **theme:** license under PolyForm Perimeter ([#41](https://github.com/payloadpack/theme/issues/41)) ([b8862d6](https://github.com/payloadpack/theme/commit/b8862d6fa3c563da98e9f5851ac80f2128c3cb40))
+
 ## [0.2.4](https://github.com/payloadpack/theme/compare/v0.2.3...v0.2.4) (2026-10-28)
 
 
