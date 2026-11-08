@@ -35,12 +35,15 @@ cd apps/docs && bun run dev
 
 ## Test
 
-| Command                             | What it checks                                                                                                                                                                                         |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `cd packages/theme && bun run test` | The plugin config, how an editor's setup resolves against it, the provider's server render, and that every Payload token, class, icon and hard-coded size the theme depends on still exists in Payload |
-| `cd apps/demo && bun run test:e2e`  | The rendered sizes, colors and icons in a real browser, on a fresh production build of the demo                                                                                                        |
+| Command                               | What it checks                                                                                                                                                                                         |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `cd packages/theme && bun run test`   | The plugin config, how an editor's setup resolves against it, the provider's server render, and that every Payload token, class, icon and hard-coded size the theme depends on still exists in Payload |
+| `cd apps/demo && bun run test:e2e`    | The rendered sizes, colors and icons in a real browser, on a fresh production build of the demo                                                                                                        |
+| `cd apps/demo && bun run test:visual` | Every admin view and overlay, pixel for pixel, against the approved screenshots in `apps/demo/tests/__visual__`                                                                                        |
 
-Run both after bumping Payload. A failing contract test names the token, class or hard-coded value that changed.
+Run all three after bumping Payload. A failing contract test names the token, class or hard-coded value that changed.
+
+The approved screenshots are Linux images rendered in CI's Playwright container, and the CI visual job is the gate. On macOS, the first `bun run test:visual` records git-ignored `-darwin` images and fails on them; later runs compare against those, so refresh them with `bun run test:visual --update-snapshots=changed` after an intended change. On other platforms, rely on CI and the label below. It uses the same port as `test:e2e`, so run the two one after the other. To accept an intended visual change in a pull request, add the `update-visuals` label: CI renders the screenshots again, commits them to the branch, and the pull request shows each changed image.
 
 ## Images
 
@@ -54,4 +57,4 @@ Run both after bumping Payload. A failing contract test names the token, class o
 
 Merge pull requests with a [Conventional Commits](https://www.conventionalcommits.org) title. Release Please opens a release pull request; merging it publishes the package to npm with provenance, and the docs site deploys to GitHub Pages. To deploy the docs by hand, run the Docs workflow from the Actions tab.
 
-The release and screenshots workflows need the repository secret `PAYLOADPACK_RELEASE_BOT_TOKEN`. The release workflow publishes to npm through Trusted Publishing, so no npm token is stored.
+The release, screenshots and visual baseline workflows need the repository secret `PAYLOADPACK_RELEASE_BOT_TOKEN`. The release workflow publishes to npm through Trusted Publishing, so no npm token is stored.

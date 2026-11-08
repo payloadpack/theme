@@ -1,5 +1,5 @@
 import { sqliteAdapter } from '@payloadcms/db-sqlite'
-import { FixedToolbarFeature, lexicalEditor } from '@payloadcms/richtext-lexical'
+import { BlocksFeature, CodeBlock, FixedToolbarFeature, lexicalEditor, TableFeature } from '@payloadcms/richtext-lexical'
 import { RADIO_CARDS, SWITCH, SWITCH_END, themePlugin, VERTICAL_TABS } from '@payloadpack/theme'
 import path from 'path'
 import { createElement, Fragment } from 'react'
@@ -88,7 +88,7 @@ export default buildConfig({
             { label: radioCardLabel('Enterprise', 'For large teams and enterprises.'), value: 'enterprise' }
           ]
         },
-        { name: 'tags', type: 'select', hasMany: true, options: AMENITIES },
+        { name: 'amenityTags', type: 'select', hasMany: true, options: AMENITIES },
         {
           name: 'amenities',
           type: 'group',
@@ -114,7 +114,14 @@ export default buildConfig({
         {
           name: 'body',
           type: 'richText',
-          editor: lexicalEditor({ features: ({ defaultFeatures }) => [...defaultFeatures, FixedToolbarFeature()] })
+          editor: lexicalEditor({
+            features: ({ defaultFeatures }) => [
+              ...defaultFeatures,
+              FixedToolbarFeature(),
+              BlocksFeature({ blocks: [CodeBlock()] }),
+              TableFeature()
+            ]
+          })
         },
         { name: 'links', type: 'array', fields: [{ name: 'label', type: 'text' }] },
         { name: 'authors', type: 'relationship', hasMany: true, relationTo: 'users' },
@@ -129,6 +136,12 @@ export default buildConfig({
             { label: 'General', fields: [{ name: 'metaTitle', type: 'text' }] },
             { label: 'Advanced', fields: [{ name: 'canonicalUrl', type: 'text' }] }
           ]
+        },
+        { name: 'eventStart', type: 'date', timezone: true, admin: { date: { pickerAppearance: 'dayAndTime' } } },
+        {
+          name: 'customFieldComponents',
+          type: 'ui',
+          admin: { components: { Field: '/fields/CustomFieldComponents#CustomFieldComponents' } }
         }
       ],
       versions: { drafts: true }
@@ -139,6 +152,7 @@ export default buildConfig({
   db: sqliteAdapter({ client: { url: process.env.DATABASE_URI || '' } }),
   editor: lexicalEditor(),
   globals,
+  localization: { defaultLocale: 'en', locales: ['en', 'sv'] },
   onInit: seed,
   plugins: [
     themePlugin({

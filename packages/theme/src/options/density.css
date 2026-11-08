@@ -109,6 +109,14 @@
       }
     }
 
+    .live-preview-toolbar {
+      max-height: none;
+    }
+
+    .toolbar-input .form-input {
+      width: calc(4ch + 2 * var(--field-padding-inline));
+    }
+
     .slug-field-component__input {
       padding-inline-end: calc(var(--button-height) + var(--spacer-1) + var(--spacer-2));
     }
@@ -156,6 +164,7 @@
     }
 
     .column-selector__search-bar,
+    .combobox__search-bar,
     .item-search__input,
     .group-by-control__label,
     .react-datepicker__month-select,
@@ -284,14 +293,24 @@
       height: calc(var(--button-height) + 2 * var(--spacer-2) + var(--stroke-width-small));
     }
 
-    .column-selector__search {
+    .column-selector__search,
+    .combobox__search {
       height: calc(var(--control-height) + 2 * var(--spacer-2) + var(--stroke-width-small));
     }
 
     /* 6. Navigation */
     .nav__link::before,
-    .nav-group__toggle::before {
+    .nav-group__toggle::before,
+    .sidebar-row-wrapper > .sidebar-row::before {
       inset-block: 2px;
+    }
+
+    .pill-selector {
+      gap: var(--spacer-2);
+
+      @media (min-width: 769px) {
+        padding: var(--spacer-3);
+      }
     }
 
     .nav-group__toggle {

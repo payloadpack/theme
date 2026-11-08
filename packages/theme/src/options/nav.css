@@ -72,6 +72,10 @@
           }
         }
 
+        .sidebar-tabs__tooltip {
+          pointer-events: none;
+        }
+
         .sidebar-tabs__content > :not(:first-child) {
           display: none;
         }

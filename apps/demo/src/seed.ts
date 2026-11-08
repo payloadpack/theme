@@ -1,12 +1,42 @@
 import { buildEditorState } from '@payloadcms/richtext-lexical'
 import { randomUUID } from 'node:crypto'
-import type { CollectionSlug, Payload } from 'payload'
+import type { CollectionSlug, GlobalSlug, Payload } from 'payload'
 
 import type { Post } from './payload-types'
 
 export const DEMO_USER = { email: 'demo@payloadpack.com', password: 'demo' }
 
 const isoDateInOctober = (offset: number) => new Date(Date.UTC(2026, 9, 1 + offset, 9)).toISOString()
+
+const buildTimestampsInOctober = (offset: number) => ({
+  createdAt: isoDateInOctober(offset),
+  updatedAt: isoDateInOctober(offset)
+})
+
+const pinVersionTimestampsToDocumentDates = async (payload: Payload, collection: Exclude<CollectionSlug, 'payload-kv'>) => {
+  const { docs: versions } = await payload.findVersions({ collection, depth: 0, overrideAccess: true, pagination: false })
+  for (const { id, version } of versions) {
+    await payload.db.updateVersion({
+      collection,
+      id,
+      returning: false,
+      versionData: { createdAt: version.createdAt, updatedAt: version.createdAt, version: {} }
+    })
+  }
+}
+
+const pinGlobalTimestamps = async (payload: Payload, slug: GlobalSlug, savedAt: string) => {
+  await payload.db.updateGlobal({ slug, data: { createdAt: savedAt, updatedAt: savedAt }, returning: false })
+  const { docs: versions } = await payload.findGlobalVersions({ slug, depth: 0, overrideAccess: true, pagination: false })
+  for (const { id } of versions) {
+    await payload.db.updateGlobalVersion({
+      global: slug,
+      id,
+      returning: false,
+      versionData: { createdAt: savedAt, updatedAt: savedAt, version: {} }
+    })
+  }
+}
 
 const slugify = (text: string) =>
   text
@@ -70,18 +100,24 @@ const CUSTOMERS = [
 const STATUSES = ['pending', 'paid', 'shipped', 'delivered', 'cancelled'] as const
 
 export async function seed(payload: Payload) {
-  const empty = async (collection: CollectionSlug) => (await payload.count({ collection, overrideAccess: true })).totalDocs === 0
-  const all = async <T extends CollectionSlug>(collection: T) =>
+  const isCollectionEmpty = async (collection: CollectionSlug) =>
+    (await payload.count({ collection, overrideAccess: true, trash: true })).totalDocs === 0
+  const findDocsInCreationOrder = async <T extends CollectionSlug>(collection: T) =>
     (await payload.find({ collection, depth: 0, limit: 100, overrideAccess: true, sort: 'createdAt' })).docs
 
-  if (await empty('users')) {
-    const user = await payload.create({ collection: 'users', data: { ...DEMO_USER, apiKey: randomUUID() }, overrideAccess: true })
+  if (await isCollectionEmpty('users')) {
+    const user = await payload.create({
+      collection: 'users',
+      data: { ...DEMO_USER, apiKey: randomUUID(), ...buildTimestampsInOctober(0) },
+      overrideAccess: true
+    })
 
     await payload.create({
       collection: 'showcase',
       data: {
         authors: [user.id],
         code: "export const theme = 'neutral'",
+        ...buildTimestampsInOctober(0),
         links: [{ label: 'First link' }],
         smallCode: '// keeps its own 10px font size',
         slug: 'showcase',
@@ -90,178 +126,192 @@ export async function seed(payload: Payload) {
       },
       overrideAccess: true
     })
+    await pinVersionTimestampsToDocumentDates(payload, 'users')
+    await pinVersionTimestampsToDocumentDates(payload, 'showcase')
   }
-  const [author] = await all('users')
+  const [author] = await findDocsInCreationOrder('users')
 
-  if (await empty('media')) {
-    await Promise.all(
-      ['Harbor', 'Forest', 'Studio', 'Market', 'Coast', 'Summit'].map((label, index) =>
-        payload.create({
-          collection: 'media',
-          data: {
-            alt: `${label} illustration`,
-            caption: index % 2 ? `A ${label.toLowerCase()} scene.` : undefined,
-            createdAt: isoDateInOctober(index)
-          },
-          file: labelledSvgUpload(label, index * 55),
-          overrideAccess: true
-        })
-      )
-    )
+  if (await isCollectionEmpty('media')) {
+    for (const [index, label] of ['Harbor', 'Forest', 'Studio', 'Market', 'Coast', 'Summit'].entries()) {
+      await payload.create({
+        collection: 'media',
+        data: {
+          alt: `${label} illustration`,
+          caption: index % 2 ? `A ${label.toLowerCase()} scene.` : undefined,
+          ...buildTimestampsInOctober(index)
+        },
+        file: labelledSvgUpload(label, index * 55),
+        overrideAccess: true
+      })
+    }
+    await pinVersionTimestampsToDocumentDates(payload, 'media')
   }
-  const media = await all('media')
+  const media = await findDocsInCreationOrder('media')
 
-  if (await empty('categories')) {
+  if (await isCollectionEmpty('categories')) {
     const news = await payload.create({
       collection: 'categories',
-      data: { createdAt: isoDateInOctober(0), description: 'Announcements and updates.', name: 'News', slug: 'news' },
+      data: {
+        ...buildTimestampsInOctober(0),
+        description: 'Announcements and updates.',
+        name: 'News',
+        slug: 'news'
+      },
       overrideAccess: true
     })
-    await Promise.all(
-      ['Guides', 'Releases', 'Design', 'Engineering', 'Community'].map((name, index) =>
-        payload.create({
-          collection: 'categories',
-          data: {
-            createdAt: isoDateInOctober(index + 1),
-            name,
-            parent: name === 'Releases' ? news.id : undefined,
-            slug: slugify(name)
-          },
-          overrideAccess: true
-        })
-      )
-    )
-  }
-  const categories = await all('categories')
-
-  if (await empty('posts')) {
-    await Promise.all(
-      Array.from({ length: 24 }, (_, index) => {
-        const title = POSTS[index] ?? `Weekly notes #${index - POSTS.length + 1}`
-        return payload.create({
-          collection: 'posts',
-          data: {
-            _status: index % 5 === 4 ? 'draft' : 'published',
-            author: author?.id,
-            categories: [categories[index % categories.length]!.id, categories[(index + 2) % categories.length]!.id],
-            content: richTextFromText(`${title}. This post is demo content for the theme.`),
-            createdAt: isoDateInOctober(index),
-            excerpt: `A short look at ${title.toLowerCase()}.`,
-            heroImage: media[index % media.length]?.id,
-            publishedAt: isoDateInOctober(index),
-            readingTime: 3 + (index % 7),
-            slug: slugify(title),
-            title
-          },
-          overrideAccess: true
-        })
+    for (const [index, name] of ['Guides', 'Releases', 'Design', 'Engineering', 'Community'].entries()) {
+      await payload.create({
+        collection: 'categories',
+        data: {
+          ...buildTimestampsInOctober(index + 1),
+          name,
+          parent: name === 'Releases' ? news.id : undefined,
+          slug: slugify(name)
+        },
+        overrideAccess: true
       })
-    )
+    }
+    await pinVersionTimestampsToDocumentDates(payload, 'categories')
   }
+  const categories = await findDocsInCreationOrder('categories')
 
-  if (await empty('pages')) {
-    await Promise.all(
-      ['Home', 'About', 'Pricing', 'Contact', 'Careers', 'Privacy'].map((title, index) =>
-        payload.create({
-          collection: 'pages',
-          data: {
-            _status: title === 'Careers' ? 'draft' : 'published',
-            createdAt: isoDateInOctober(index),
-            layout: [
-              { blockType: 'hero', heading: title, image: media[index % media.length]?.id, subheading: `Welcome to ${title}.` },
-              { blockType: 'content', body: richTextFromText(`${title} page body.`) },
-              {
-                blockType: 'faq',
-                items: [
-                  { answer: 'Yes, every palette has a light and a dark version.', question: 'Does it support dark mode?' },
-                  { answer: 'No, the defaults work out of the box.', question: 'Do I need to configure it?' }
-                ]
-              }
-            ],
-            meta: { description: `The ${title.toLowerCase()} page.`, title },
-            publishedAt: isoDateInOctober(index),
-            slug: slugify(title),
-            title
-          },
-          overrideAccess: true
-        })
-      )
-    )
-  }
-
-  if (await empty('products')) {
-    await Promise.all(
-      Array.from({ length: PRODUCTS.length * COLORS.length }, (_, index) => {
-        const name = PRODUCTS[index % PRODUCTS.length]!
-        const color = COLORS[Math.floor(index / PRODUCTS.length)]!
-        return payload.create({
-          collection: 'products',
-          data: {
-            categories: [categories[index % categories.length]!.id],
-            condition: index % 7 === 0 ? 'refurbished' : 'new',
-            createdAt: isoDateInOctober(index),
-            gallery: [media[index % media.length]!.id],
-            inStock: index % 6 !== 5,
-            price: 9 + ((index * 7) % 90) + 0.95,
-            sku: `PP-${1000 + index}`,
-            specs: { color, weight: `${100 + index * 10}g` },
-            stock: (index * 13) % 40,
-            supplier: { email: 'orders@supplier.example', name: 'Supplier AB' },
-            title: `${name}, ${color}`,
-            variants: [
-              { color, price: 19, size: 's' },
-              { color, price: 21, size: 'm' }
-            ]
-          },
-          overrideAccess: true
-        })
+  if (await isCollectionEmpty('tags')) {
+    for (const [index, name] of ['Announcement', 'Tutorial', 'Release'].entries()) {
+      await payload.create({
+        collection: 'tags',
+        data: { ...buildTimestampsInOctober(index), name },
+        overrideAccess: true
       })
-    )
+    }
+    await pinVersionTimestampsToDocumentDates(payload, 'tags')
   }
-  const products = await all('products')
+  const tags = await findDocsInCreationOrder('tags')
 
-  if (await empty('customers')) {
-    await Promise.all(
-      CUSTOMERS.map(([name, company], index) =>
-        payload.create({
-          collection: 'customers',
-          data: {
-            company: company || undefined,
-            createdAt: isoDateInOctober(index),
-            email: `${name!.split(' ')[0]!.toLowerCase()}@example.com`,
-            name: name!,
-            tier: (['standard', 'silver', 'gold'] as const)[index % 3]
-          },
-          overrideAccess: true
-        })
-      )
-    )
-  }
-  const customers = await all('customers')
-
-  if (await empty('orders')) {
-    await Promise.all(
-      Array.from({ length: 18 }, (_, index) => {
-        const items = [0, 1, 2]
-          .slice(0, 1 + (index % 3))
-          .map((offset) => products[(index * 3 + offset) % products.length]!)
-          .map((product) => ({ price: product.price as number, product: product.id, quantity: 1 + (index % 2) }))
-        return payload.create({
-          collection: 'orders',
-          data: {
-            createdAt: isoDateInOctober(index),
-            customer: customers[index % customers.length]!.id,
-            items,
-            orderNumber: `#${2041 + index}`,
-            placedAt: isoDateInOctober(index),
-            shipping: { city: 'Stockholm', country: 'SE', line1: `Storgatan ${index + 1}`, postalCode: '111 22' },
-            status: STATUSES[index % STATUSES.length],
-            total: Math.round(items.reduce((sum, item) => sum + item.price * item.quantity, 0) * 100) / 100
-          },
-          overrideAccess: true
-        })
+  if (await isCollectionEmpty('posts')) {
+    for (let index = 0; index < 24; index++) {
+      const title = POSTS[index] ?? `Weekly notes #${index - POSTS.length + 1}`
+      await payload.create({
+        collection: 'posts',
+        data: {
+          _h_tags: index % 3 === 0 ? [tags[(index / 3) % tags.length]!.id] : undefined,
+          _status: index % 5 === 4 ? 'draft' : 'published',
+          author: author?.id,
+          categories: [categories[index % categories.length]!.id, categories[(index + 2) % categories.length]!.id],
+          content: richTextFromText(`${title}. This post is demo content for the theme.`),
+          ...buildTimestampsInOctober(index),
+          excerpt: `A short look at ${title.toLowerCase()}.`,
+          heroImage: media[index % media.length]?.id,
+          publishedAt: isoDateInOctober(index),
+          readingTime: 3 + (index % 7),
+          slug: slugify(title),
+          title
+        },
+        overrideAccess: true
       })
-    )
+    }
+    await pinVersionTimestampsToDocumentDates(payload, 'posts')
+  }
+
+  if (await isCollectionEmpty('pages')) {
+    for (const [index, title] of ['Home', 'About', 'Pricing', 'Contact', 'Careers', 'Privacy'].entries()) {
+      await payload.create({
+        collection: 'pages',
+        data: {
+          _status: title === 'Careers' ? 'draft' : 'published',
+          ...buildTimestampsInOctober(index),
+          layout: [
+            { blockType: 'hero', heading: title, image: media[index % media.length]?.id, subheading: `Welcome to ${title}.` },
+            { blockType: 'content', body: richTextFromText(`${title} page body.`) },
+            {
+              blockType: 'faq',
+              items: [
+                { answer: 'Yes, every palette has a light and a dark version.', question: 'Does it support dark mode?' },
+                { answer: 'No, the defaults work out of the box.', question: 'Do I need to configure it?' }
+              ]
+            }
+          ],
+          meta: { description: `The ${title.toLowerCase()} page.`, title },
+          publishedAt: isoDateInOctober(index),
+          slug: slugify(title),
+          title
+        },
+        overrideAccess: true
+      })
+    }
+    await pinVersionTimestampsToDocumentDates(payload, 'pages')
+  }
+
+  if (await isCollectionEmpty('products')) {
+    for (let index = 0; index < PRODUCTS.length * COLORS.length; index++) {
+      const name = PRODUCTS[index % PRODUCTS.length]!
+      const color = COLORS[Math.floor(index / PRODUCTS.length)]!
+      await payload.create({
+        collection: 'products',
+        data: {
+          categories: [categories[index % categories.length]!.id],
+          condition: index % 7 === 0 ? 'refurbished' : 'new',
+          ...buildTimestampsInOctober(index),
+          gallery: [media[index % media.length]!.id],
+          inStock: index % 6 !== 5,
+          price: 9 + ((index * 7) % 90) + 0.95,
+          sku: `PP-${1000 + index}`,
+          specs: { color, weight: `${100 + index * 10}g` },
+          stock: (index * 13) % 40,
+          supplier: { email: 'orders@supplier.example', name: 'Supplier AB' },
+          title: `${name}, ${color}`,
+          variants: [
+            { color, price: 19, size: 's' },
+            { color, price: 21, size: 'm' }
+          ]
+        },
+        overrideAccess: true
+      })
+    }
+    await pinVersionTimestampsToDocumentDates(payload, 'products')
+  }
+  const products = await findDocsInCreationOrder('products')
+
+  if (await isCollectionEmpty('customers')) {
+    for (const [index, [name, company]] of CUSTOMERS.entries()) {
+      await payload.create({
+        collection: 'customers',
+        data: {
+          _status: 'published',
+          company: company || undefined,
+          ...buildTimestampsInOctober(index),
+          email: `${name!.split(' ')[0]!.toLowerCase()}@example.com`,
+          name: name!,
+          tier: (['standard', 'silver', 'gold'] as const)[index % 3]
+        },
+        overrideAccess: true
+      })
+    }
+    await pinVersionTimestampsToDocumentDates(payload, 'customers')
+  }
+  const customers = await findDocsInCreationOrder('customers')
+
+  if (await isCollectionEmpty('orders')) {
+    for (let index = 0; index < 18; index++) {
+      const items = [0, 1, 2]
+        .slice(0, 1 + (index % 3))
+        .map((offset) => products[(index * 3 + offset) % products.length]!)
+        .map((product) => ({ price: product.price as number, product: product.id, quantity: 1 + (index % 2) }))
+      await payload.create({
+        collection: 'orders',
+        data: {
+          ...buildTimestampsInOctober(index),
+          customer: customers[index % customers.length]!.id,
+          items,
+          orderNumber: `#${2041 + index}`,
+          placedAt: isoDateInOctober(index),
+          shipping: { city: 'Stockholm', country: 'SE', line1: `Storgatan ${index + 1}`, postalCode: '111 22' },
+          status: STATUSES[index % STATUSES.length],
+          total: Math.round(items.reduce((sum, item) => sum + item.price * item.quantity, 0) * 100) / 100
+        },
+        overrideAccess: true
+      })
+    }
+    await pinVersionTimestampsToDocumentDates(payload, 'orders')
   }
 
   const settings = await payload.findGlobal({ slug: 'site-settings', overrideAccess: true })
@@ -277,5 +327,6 @@ export async function seed(payload: Payload) {
       },
       overrideAccess: true
     })
+    await pinGlobalTimestamps(payload, 'site-settings', isoDateInOctober(0))
   }
 }

@@ -1,4 +1,6 @@
-import type { CollectionConfig, Field, GlobalConfig } from 'payload'
+import { type CollectionConfig, createTagField, type Field, type GlobalConfig } from 'payload'
+
+const DEMO_ORIGIN = `http://localhost:${process.env.DEMO_PORT ?? '3020'}`
 
 const link: Field = {
   name: 'link',
@@ -30,7 +32,12 @@ const link: Field = {
 export const collections: CollectionConfig[] = [
   {
     slug: 'pages',
-    admin: { defaultColumns: ['title', 'slug', '_status', 'updatedAt'], group: 'Content', useAsTitle: 'title' },
+    admin: {
+      defaultColumns: ['title', 'slug', '_status', 'updatedAt'],
+      group: 'Content',
+      livePreview: { url: `${DEMO_ORIGIN}/live-preview.html` },
+      useAsTitle: 'title'
+    },
     fields: [
       { name: 'title', type: 'text', required: true },
       {
@@ -126,13 +133,23 @@ export const collections: CollectionConfig[] = [
         type: 'date',
         admin: { date: { pickerAppearance: 'dayAndTime' }, position: 'sidebar' }
       },
-      { name: 'readingTime', type: 'number', admin: { position: 'sidebar', readOnly: true } }
+      { name: 'readingTime', type: 'number', admin: { position: 'sidebar', readOnly: true } },
+      createTagField({ relationTo: 'tags' })
     ],
-    versions: { drafts: true }
+    enableQueryPresets: true,
+    trash: true,
+    versions: { drafts: { schedulePublish: true } }
+  },
+  {
+    slug: 'tags',
+    admin: { group: 'Content', useAsTitle: 'name' },
+    fields: [{ name: 'name', type: 'text', required: true }],
+    tags: true
   },
   {
     slug: 'categories',
     admin: { group: 'Content', useAsTitle: 'name' },
+    orderable: true,
     fields: [
       { name: 'name', type: 'text', required: true },
       { name: 'description', type: 'textarea' },
@@ -227,7 +244,8 @@ export const collections: CollectionConfig[] = [
       { name: 'company', type: 'text' },
       { name: 'tier', type: 'select', defaultValue: 'standard', options: ['standard', 'silver', 'gold'] },
       { name: 'orders', type: 'join', collection: 'orders', on: 'customer' }
-    ]
+    ],
+    versions: { drafts: { autosave: true } }
   },
   {
     slug: 'orders',

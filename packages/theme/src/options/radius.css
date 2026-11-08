@@ -50,5 +50,10 @@
     .toolbar-popup__dropdown-items {
       border-radius: var(--popup-radius);
     }
+
+    /* 7. Boxes */
+    .pill-selector {
+      border-radius: var(--radius-medium);
+    }
   }
 }

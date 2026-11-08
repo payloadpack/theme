@@ -20,3 +20,4 @@ apps/demo/media/
 apps/demo/e2e-media/
 .claude/worktrees/
 .astro/
+apps/demo/tests/__visual__/*-darwin.png

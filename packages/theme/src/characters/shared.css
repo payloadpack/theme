@@ -62,7 +62,8 @@
     }
 
     .nav__link,
-    .nav-group__toggle {
+    .nav-group__toggle,
+    .sidebar-row-wrapper > .sidebar-row {
       padding-inline: calc(var(--spacer-2-5) + var(--spacer-2));
 
       &::before {

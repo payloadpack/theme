@@ -1,4 +1,4 @@
-import { SWITCH } from '@payloadpack/theme'
+import { RADIO_CARDS, SWITCH } from '@payloadpack/theme'
 import { type APIRequestContext, test as base, expect, type Locator, type Page, type Request } from '@playwright/test'
 
 export const AUTH_FILE = 'tests/.auth/demo.json'
@@ -9,7 +9,11 @@ export const NOTIFY_SWITCH_SELECTOR = `.${SWITCH}:has(#field-notify)`
 
 export const baseURL = `http://localhost:${DEMO_PORT}`
 
+export const deleteEditorPreferences = async (request: APIRequestContext) =>
+  expect(await request.delete('/api/payload-preferences?where[key][exists]=true')).toBeOK()
+
 export const getEditorForWorker = (parallelIndex: number) => ({
+  apiKey: `editor-${parallelIndex}-api-key-0000-000000000000`,
   authFile: `tests/.auth/editor-${parallelIndex}.json`,
   credentials: { email: `editor-${parallelIndex}@payloadpack.com`, password: 'editor' }
 })
@@ -18,7 +22,7 @@ export const test = base.extend<{ editor: ReturnType<typeof getEditorForWorker>;
   isolateEditorPreferences: [
     async ({ context, editor, playwright }, use) => {
       const editorRequest = await playwright.request.newContext({ baseURL, storageState: editor.authFile })
-      await expect(await editorRequest.delete('/api/payload-preferences?where[key][exists]=true')).toBeOK()
+      await deleteEditorPreferences(editorRequest)
       await editorRequest.dispose()
       const isPreferenceSave = (request: Request) =>
         request.url().includes('/api/payload-preferences/') && request.method() === 'POST'
@@ -96,4 +100,19 @@ export const openShareMenuItem = async (sheet: Locator, action: 'Copy setup' | '
 export const findShowcase = async (page: Page) => {
   const { docs } = await (await page.request.get('/api/showcase?where[slug][equals]=showcase&limit=1')).json()
   return { path: `/admin/collections/showcase/${docs[0].id}`, updatedAt: new Date(docs[0].updatedAt) }
+}
+
+export const parkPointer = async (page: Page) => {
+  const viewport = page.viewportSize()
+  if (!viewport) {
+    throw new Error('The page has no viewport')
+  }
+  await page.mouse.move(viewport.width - 1, viewport.height - 1)
+}
+
+export const fillShowcaseChoiceFields = async (page: Page) => {
+  await page.locator('.field-type.checkbox').filter({ hasText: 'Featured' }).getByRole('checkbox').check()
+  await page.locator('.radio-group').filter({ hasText: 'Size' }).locator('.radio-input').filter({ hasText: /^m$/ }).click()
+  await page.locator(`.${RADIO_CARDS} .radio-input`).nth(1).click()
+  await page.locator(NOTIFY_SWITCH_SELECTOR).getByRole('checkbox').check()
 }
