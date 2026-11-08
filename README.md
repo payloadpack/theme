@@ -13,7 +13,7 @@
   <a href="https://www.npmjs.com/package/@payloadpack/theme"><img alt="npm version" src="https://img.shields.io/npm/v/@payloadpack/theme"></a>
   <a href="https://github.com/payloadpack/theme/actions/workflows/ci.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/payloadpack/theme/ci.yml?branch=main"></a>
   <a href="https://payloadcms.com"><img alt="Payload version" src="https://img.shields.io/npm/dependency-version/@payloadpack/theme/peer/payload"></a>
-  <a href="https://github.com/payloadpack/theme/blob/main/packages/theme/LICENSE"><img alt="MIT license" src="https://img.shields.io/npm/l/@payloadpack/theme"></a>
+  <a href="https://github.com/payloadpack/theme/blob/main/packages/theme/LICENSE"><img alt="PolyForm Perimeter license" src="https://img.shields.io/badge/license-PolyForm%20Perimeter-blue"></a>
 </p>
 
 <p align="center">
@@ -187,8 +187,12 @@ Every token, and how to ship your own palette, is in the [customize docs](https:
 
 Payload 4.0.0-beta.6+, Next.js 16.4.2+ and React 19, in Safari 17, Chrome 114 or Firefox 128 and later.
 
+## License
+
+Use it in any project, including client work you charge for and products you sell. What you can't do is offer the theme, or a copy or fork of it, to others as a competing admin theme, paid or free. The terms are the [PolyForm Perimeter License 1.0.1](https://github.com/payloadpack/theme/blob/main/packages/theme/LICENSE).
+
 <p align="center">
   <a href="https://theme.payloadpack.com/">Documentation</a> ·
   <a href="https://github.com/payloadpack/theme/blob/main/CONTRIBUTING.md">Contributing</a> ·
-  <a href="https://github.com/payloadpack/theme/blob/main/packages/theme/LICENSE">MIT License</a>
+  <a href="https://github.com/payloadpack/theme/blob/main/packages/theme/LICENSE">PolyForm Perimeter License</a>
 </p>
