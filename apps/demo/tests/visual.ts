@@ -41,6 +41,7 @@ const OPTION_SETUPS: NamedSetup[] = [
 ]
 
 type Overlay = {
+  editsRichText?: boolean
   fullPage?: boolean
   hoversPointer?: boolean
   name: string
@@ -122,6 +123,7 @@ const SIGNED_IN_VIEWS: View[] = [
       { name: 'timezone-menu', open: (page) => page.locator('.timezone-picker .rs__control').first().click() },
       { name: 'more-options', open: clickButton(/^More options/) },
       {
+        editsRichText: true,
         name: 'slash-menu',
         open: async (page) => {
           await typeInShowcaseBody(page, '/')
@@ -129,14 +131,16 @@ const SIGNED_IN_VIEWS: View[] = [
         }
       },
       {
+        editsRichText: true,
         name: 'code-block-language-menu',
         open: async (page) => {
           await insertFromSlashMenu(page, 'Code')
           await page.locator('.payload-richtext-code-block__language-selector-button').click()
         }
       },
-      { name: 'table-size-picker', open: openTableSizePicker },
+      { editsRichText: true, name: 'table-size-picker', open: openTableSizePicker },
       {
+        editsRichText: true,
         name: 'table-action-menu',
         open: async (page) => {
           await insertTableIntoShowcaseBody(page)
@@ -270,10 +274,20 @@ const expectViewScreenshot = async (page: Page, view: View, shotName: string) =>
   })
 }
 
-const expectOverlayScreenshot = async (page: Page, overlay: Pick<Overlay, 'fullPage' | 'hoversPointer'>, shotName: string) => {
+const waitForDeferredEditorUpdates = (page: Page) =>
+  page.evaluate(() => new Promise<void>((resolve) => requestIdleCallback(() => requestIdleCallback(() => resolve()))))
+
+const expectOverlayScreenshot = async (
+  page: Page,
+  overlay: Pick<Overlay, 'editsRichText' | 'fullPage' | 'hoversPointer'>,
+  shotName: string
+) => {
   await expect(page.locator(LOADING_PLACEHOLDERS)).toHaveCount(0)
   if (!overlay.hoversPointer) {
     await parkPointer(page)
+  }
+  if (overlay.editsRichText) {
+    await waitForDeferredEditorUpdates(page)
   }
   await expect(page).toHaveScreenshot(`${shotName}.png`, { fullPage: overlay.fullPage })
 }
