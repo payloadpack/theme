@@ -253,11 +253,35 @@ const VIEWS_WITH_EVERY_OPTION = SIGNED_IN_VIEWS.filter(({ name }) => name === 's
 
 const PHONE_VIEWPORT = { height: 812, width: 375 }
 
-const LOADING_PLACEHOLDERS = '.shimmer-effect, .loading-overlay:not(.loading-overlay--exiting)'
+const LOADING_PLACEHOLDERS =
+  '.shimmer-effect, .loading-overlay:not(.loading-overlay--exiting), .monaco-editor:not(:has(.view-line))'
+
+type MonacoOnWindow = {
+  editor: {
+    colorize: (text: string, languageId: string, options: object) => Promise<string>
+    getEditors: () => { getModel: () => { getLanguageId: () => string } | null }[]
+  }
+}
+
+const waitForCodeEditorHighlighting = (page: Page) =>
+  page.evaluate(async () => {
+    const monaco = (window as Window & { monaco?: MonacoOnWindow }).monaco
+    if (!monaco) {
+      return
+    }
+    const languageIds = monaco.editor.getEditors().flatMap((editor) => editor.getModel()?.getLanguageId() ?? [])
+    await Promise.all(languageIds.map((languageId) => monaco.editor.colorize('', languageId, {})))
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+  })
+
+const waitForLoadingToFinish = async (page: Page) => {
+  await expect(page.locator(LOADING_PLACEHOLDERS)).toHaveCount(0)
+  await waitForCodeEditorHighlighting(page)
+}
 
 const openPathAndSettle = async (page: Page, path: string) => {
   await page.goto(path, { waitUntil: 'networkidle' })
-  await expect(page.locator(LOADING_PLACEHOLDERS)).toHaveCount(0)
+  await waitForLoadingToFinish(page)
 }
 
 const openSignedInPathAndSettle = async (page: Page, path: string) => {
@@ -265,11 +289,25 @@ const openSignedInPathAndSettle = async (page: Page, path: string) => {
   await waitForHydration(page)
 }
 
+const growViewportToPage = async (page: Page) => {
+  const viewport = page.viewportSize()
+  if (!viewport) {
+    throw new Error('The page has no viewport')
+  }
+  const pageHeight = await page.evaluate(() => document.documentElement.scrollHeight)
+  if (pageHeight <= viewport.height) {
+    return
+  }
+  await page.setViewportSize({ height: pageHeight, width: viewport.width })
+  await expect.poll(() => page.evaluate(() => [...document.images].every((image) => image.complete))).toBe(true)
+  await waitForLoadingToFinish(page)
+}
+
 const expectViewScreenshot = async (page: Page, view: View, shotName: string) => {
   await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())
+  await growViewportToPage(page)
   await parkPointer(page)
   await expect(page).toHaveScreenshot(`${shotName}.png`, {
-    fullPage: true,
     mask: (view.timestampsToMask ?? []).map((selector) => page.locator(selector))
   })
 }
@@ -282,14 +320,17 @@ const expectOverlayScreenshot = async (
   overlay: Pick<Overlay, 'editsRichText' | 'fullPage' | 'hoversPointer'>,
   shotName: string
 ) => {
-  await expect(page.locator(LOADING_PLACEHOLDERS)).toHaveCount(0)
+  await waitForLoadingToFinish(page)
+  if (overlay.fullPage) {
+    await growViewportToPage(page)
+  }
   if (!overlay.hoversPointer) {
     await parkPointer(page)
   }
   if (overlay.editsRichText) {
     await waitForDeferredEditorUpdates(page)
   }
-  await expect(page).toHaveScreenshot(`${shotName}.png`, { fullPage: overlay.fullPage })
+  await expect(page).toHaveScreenshot(`${shotName}.png`)
 }
 
 const setClockForView = (page: Page, view: View) =>
@@ -314,8 +355,9 @@ test.describe('signed out', () => {
         await page.clock.setFixedTime(FROZEN_NOW)
         await page.context().addCookies([demoCookie('theme', theme)])
         await openPathAndSettle(page, view.path)
+        await growViewportToPage(page)
         await parkPointer(page)
-        await expect(page).toHaveScreenshot(`${view.name}-${theme}.png`, { fullPage: true })
+        await expect(page).toHaveScreenshot(`${view.name}-${theme}.png`)
       })
     }
   }
