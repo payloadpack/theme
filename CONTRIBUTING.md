@@ -47,11 +47,12 @@ The approved screenshots are Linux images rendered in CI's Playwright container,
 
 ## Images
 
-| Command                               | What it makes                                                                  |
-| ------------------------------------- | ------------------------------------------------------------------------------ |
-| `cd apps/demo && bun run screenshots` | The README and docs screenshots. The Screenshots workflow commits them on main |
-| `cd apps/demo && bun run panel-tour`  | The README's panel tour GIFs. Needs [ffmpeg](https://ffmpeg.org)               |
-| `cd apps/docs && bun run brand`       | The logo and the docs favicon                                                  |
+| Command                                  | What it makes                                                                            |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `cd apps/demo && bun run screenshots`    | The README and docs screenshots. The Screenshots workflow opens a pull request with them |
+| `cd apps/demo && bun run social-preview` | The social preview card. Upload it under the repository's Settings → Social preview      |
+| `cd apps/demo && bun run panel-tour`     | The README's panel tour GIFs. Needs [ffmpeg](https://ffmpeg.org)                         |
+| `cd apps/docs && bun run brand`          | The logo and the docs favicon                                                            |
 
 ## Release
 

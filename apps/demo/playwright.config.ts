@@ -5,6 +5,7 @@ import { AUTH_FILE, baseURL, DEMO_PORT } from './tests/demo'
 const E2E_DATABASE_FILE = 'e2e.db'
 const E2E_MEDIA_DIR = 'e2e-media'
 const TEST_TIMEOUT_MS = 60_000
+const GITHUB_ASSETS_SNAPSHOT_PATH_TEMPLATE = '{testDir}/../../../.github/assets/{arg}{ext}'
 
 export default defineConfig({
   projects: [
@@ -14,9 +15,17 @@ export default defineConfig({
       dependencies: ['setup'],
       expect: { toHaveScreenshot: { scale: 'device' } },
       name: 'screenshots',
-      snapshotPathTemplate: '{testDir}/../../../.github/assets/{arg}{ext}',
+      snapshotPathTemplate: GITHUB_ASSETS_SNAPSHOT_PATH_TEMPLATE,
       testMatch: /screenshots\.ts/,
       use: { deviceScaleFactor: 2, storageState: AUTH_FILE, viewport: { height: 800, width: 1280 } }
+    },
+    {
+      dependencies: ['setup'],
+      expect: { toHaveScreenshot: { scale: 'device' } },
+      name: 'social-preview',
+      snapshotPathTemplate: GITHUB_ASSETS_SNAPSHOT_PATH_TEMPLATE,
+      testMatch: /social-preview\.ts/,
+      use: { deviceScaleFactor: 2, storageState: AUTH_FILE }
     },
     { dependencies: ['setup'], name: 'panel-tour', testMatch: /panel-tour\.ts/ },
     {

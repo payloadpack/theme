@@ -1,7 +1,7 @@
 {
   "name": "@payloadpack/theme",
   "version": "0.3.0",
-  "description": "Admin theme for Payload 4: characters, palettes and custom colors that each editor picks in an Appearance panel.",
+  "description": "Custom admin UI theme for Payload v4. Three styles and four palettes, in light and dark.",
   "keywords": [
     "payload",
     "payloadcms",
