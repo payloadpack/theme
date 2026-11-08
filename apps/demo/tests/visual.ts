@@ -1,4 +1,4 @@
-import { expect, type Page } from '@playwright/test'
+import { expect, type Page, type Request } from '@playwright/test'
 
 import {
   buildCustomPalette,
@@ -279,14 +279,61 @@ const waitForLoadingToFinish = async (page: Page) => {
   await waitForCodeEditorHighlighting(page)
 }
 
-const openPathAndSettle = async (page: Page, path: string) => {
+const NETWORK_QUIET_MS = 500
+
+const trackNetworkActivity = (page: Page) => {
+  const requestsInFlight = new Set<Request>()
+  let lastNetworkActivityAt = Date.now()
+  const markRequestStarted = (request: Request) => {
+    requestsInFlight.add(request)
+    lastNetworkActivityAt = Date.now()
+  }
+  const markRequestEnded = (request: Request) => {
+    requestsInFlight.delete(request)
+    lastNetworkActivityAt = Date.now()
+  }
+  page.on('request', markRequestStarted)
+  page.on('requestfinished', markRequestEnded)
+  page.on('requestfailed', markRequestEnded)
+  return (quietSince: number) =>
+    expect
+      .poll(() => requestsInFlight.size === 0 && Date.now() - Math.max(lastNetworkActivityAt, quietSince) >= NETWORK_QUIET_MS, {
+        intervals: [100]
+      })
+      .toBe(true)
+}
+
+const openSignedOutPathAndSettle = async (page: Page, path: string) => {
   await page.goto(path, { waitUntil: 'networkidle' })
   await waitForLoadingToFinish(page)
 }
 
 const openSignedInPathAndSettle = async (page: Page, path: string) => {
-  await openPathAndSettle(page, path)
+  const waitForNetworkQuietSince = trackNetworkActivity(page)
+  await page.goto(path)
   await waitForHydration(page)
+  await waitForNetworkQuietSince(Date.now())
+  await waitForLoadingToFinish(page)
+}
+
+const readPageHeightAfterIdle = (page: Page) =>
+  page.evaluate(
+    () =>
+      new Promise<number>((resolve) =>
+        requestIdleCallback(() =>
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve(document.documentElement.scrollHeight)))
+        )
+      )
+  )
+
+const measureSettledPageHeight = async (page: Page) => {
+  let previousPageHeight = await readPageHeightAfterIdle(page)
+  let pageHeight = await readPageHeightAfterIdle(page)
+  while (pageHeight !== previousPageHeight) {
+    previousPageHeight = pageHeight
+    pageHeight = await readPageHeightAfterIdle(page)
+  }
+  return pageHeight
 }
 
 const growViewportToPage = async (page: Page) => {
@@ -294,7 +341,7 @@ const growViewportToPage = async (page: Page) => {
   if (!viewport) {
     throw new Error('The page has no viewport')
   }
-  const pageHeight = await page.evaluate(() => document.documentElement.scrollHeight)
+  const pageHeight = await measureSettledPageHeight(page)
   if (pageHeight <= viewport.height) {
     return
   }
@@ -354,7 +401,7 @@ test.describe('signed out', () => {
       test(`${view.name} ${theme}`, async ({ page }) => {
         await page.clock.setFixedTime(FROZEN_NOW)
         await page.context().addCookies([demoCookie('theme', theme)])
-        await openPathAndSettle(page, view.path)
+        await openSignedOutPathAndSettle(page, view.path)
         await growViewportToPage(page)
         await parkPointer(page)
         await expect(page).toHaveScreenshot(`${view.name}-${theme}.png`)
