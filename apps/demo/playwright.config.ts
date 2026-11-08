@@ -26,7 +26,13 @@ export default defineConfig({
       name: 'visual',
       snapshotPathTemplate: '{testDir}/__visual__/{arg}-{platform}{ext}',
       testMatch: /visual\.ts/,
-      use: { deviceScaleFactor: 1, locale: 'en-US', timezoneId: 'UTC', viewport: { height: 900, width: 1440 } }
+      use: {
+        deviceScaleFactor: 1,
+        launchOptions: { args: ['--disable-partial-raster'] },
+        locale: 'en-US',
+        timezoneId: 'UTC',
+        viewport: { height: 900, width: 1440 }
+      }
     }
   ],
   reporter: 'list',

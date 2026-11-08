@@ -138,7 +138,9 @@ const SIGNED_IN_VIEWS: View[] = [
         name: 'table-action-menu',
         open: async (page) => {
           await insertTableIntoShowcaseBody(page)
-          await page.locator('.LexicalEditorTheme__tableCell').first().click()
+          const firstTableCell = page.locator('.LexicalEditorTheme__tableCell').first()
+          await firstTableCell.click()
+          await firstTableCell.evaluate((cell) => cell.scrollIntoView({ block: 'center' }))
           await page.locator('.table-cell-action-button').click()
           await page.locator('.table-action-menu-dropdown').waitFor()
         }
