@@ -7,7 +7,7 @@
 
 <h1 align="center">@payloadpack/theme</h1>
 
-<p align="center">A warmer, roomier admin for Payload 4.<br>Every editor picks their own style and palette. You configure nothing.</p>
+<p align="center">Custom admin UI theme for Payload v4.<br>Three styles and four palettes, in light and dark.</p>
 
 <p align="center">
   <a href="https://www.npmjs.com/package/@payloadpack/theme"><img alt="npm version" src="https://img.shields.io/npm/v/@payloadpack/theme"></a>

@@ -6,7 +6,16 @@ export default defineConfig({
   integrations: [
     starlight({
       title: '@payloadpack/theme',
-      description: 'A warmer, roomier admin theme for Payload 4.',
+      description: 'Custom admin UI theme for Payload v4. Three styles and four palettes, in light and dark.',
+      head: [
+        {
+          tag: 'meta',
+          attrs: {
+            property: 'og:image',
+            content: 'https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/social-preview.png'
+          }
+        }
+      ],
       social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/payloadpack/theme' }],
       customCss: ['@fontsource-variable/inter', './src/styles/docs.css'],
       components: {

@@ -1,14 +1,17 @@
-import { expect, type Page, type Request } from '@playwright/test'
+import { expect, type Page } from '@playwright/test'
 
 import {
   buildCustomPalette,
   demoCookie,
   openAppearancePanel,
+  openSignedInPathAndSettle,
+  openSignedOutPathAndSettle,
   parkPointer,
   fillShowcaseChoiceFields,
   saveAppearancePreference,
+  SETTLE_TIMEOUT_MS,
   test,
-  waitForHydration
+  waitForLoadingToFinish
 } from './demo'
 
 const FROZEN_NOW = new Date('2026-11-01T09:00:00Z')
@@ -252,73 +255,6 @@ const VIEWS_WITH_EVERY_PALETTE = SIGNED_IN_VIEWS.filter(({ name }) => ['dashboar
 const VIEWS_WITH_EVERY_OPTION = SIGNED_IN_VIEWS.filter(({ name }) => name === 'showcase-edit')
 
 const PHONE_VIEWPORT = { height: 812, width: 375 }
-
-const LOADING_PLACEHOLDERS =
-  '.shimmer-effect, .loading-overlay:not(.loading-overlay--exiting), .monaco-editor:not(:has(.view-line))'
-
-type MonacoOnWindow = {
-  editor: {
-    colorize: (text: string, languageId: string, options: object) => Promise<string>
-    getEditors: () => { getModel: () => { getLanguageId: () => string } | null }[]
-  }
-}
-
-const waitForCodeEditorHighlighting = (page: Page) =>
-  page.evaluate(async () => {
-    const monaco = (window as Window & { monaco?: MonacoOnWindow }).monaco
-    if (!monaco) {
-      return
-    }
-    const languageIds = monaco.editor.getEditors().flatMap((editor) => editor.getModel()?.getLanguageId() ?? [])
-    await Promise.all(languageIds.map((languageId) => monaco.editor.colorize('', languageId, {})))
-    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
-  })
-
-const waitForLoadingToFinish = async (page: Page) => {
-  await expect(page.locator(LOADING_PLACEHOLDERS)).toHaveCount(0)
-  await waitForCodeEditorHighlighting(page)
-}
-
-const NETWORK_QUIET_MS = 500
-
-const SETTLE_TIMEOUT_MS = 30_000
-
-const trackNetworkActivity = (page: Page) => {
-  const requestsInFlight = new Set<Request>()
-  let lastNetworkActivityAt = Date.now()
-  const markRequestStarted = (request: Request) => {
-    requestsInFlight.add(request)
-    lastNetworkActivityAt = Date.now()
-  }
-  const markRequestEnded = (request: Request) => {
-    requestsInFlight.delete(request)
-    lastNetworkActivityAt = Date.now()
-  }
-  page.on('request', markRequestStarted)
-  page.on('requestfinished', markRequestEnded)
-  page.on('requestfailed', markRequestEnded)
-  return (quietSince: number) =>
-    expect
-      .poll(() => requestsInFlight.size === 0 && Date.now() - Math.max(lastNetworkActivityAt, quietSince) >= NETWORK_QUIET_MS, {
-        intervals: [100],
-        message: `no requests for ${NETWORK_QUIET_MS} ms after hydration`,
-        timeout: SETTLE_TIMEOUT_MS
-      })
-      .toBe(true)
-}
-
-const openSignedOutPathAndSettle = async (page: Page, path: string) => {
-  await page.goto(path, { waitUntil: 'networkidle' })
-  await waitForLoadingToFinish(page)
-}
-
-const openSignedInPathAndSettle = async (page: Page, path: string) => {
-  const waitForNetworkQuietSince = trackNetworkActivity(page)
-  await page.goto(path)
-  await waitForHydration(page)
-  await waitForNetworkQuietSince(Date.now())
-  await waitForLoadingToFinish(page)
-}
 
 const readPageHeightAfterIdle = (page: Page) =>
   page.evaluate(
