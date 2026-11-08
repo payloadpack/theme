@@ -2,7 +2,6 @@ import { expect, type Page } from '@playwright/test'
 
 import {
   buildCustomPalette,
-  deleteEditorPreferences,
   demoCookie,
   openAppearancePanel,
   parkPointer,
@@ -249,9 +248,7 @@ const PHONE_VIEWPORT = { height: 812, width: 375 }
 const LOADING_PLACEHOLDERS = '.shimmer-effect, .loading-overlay:not(.loading-overlay--exiting)'
 
 const saveSetupAndTheme = async (page: Page, setup: object, theme: Theme) => {
-  await deleteEditorPreferences(page.request)
   await saveAppearancePreference(page.request, setup)
-  await page.context().clearCookies({ name: demoCookie('nav-rail', '').name })
   await page.context().addCookies([demoCookie('theme', theme)])
 }
 
@@ -288,19 +285,25 @@ const setClockForView = (page: Page, view: View) =>
 const filterOverlaysForSetup = (view: View, setupName: string) =>
   (view.overlays ?? []).filter(({ onlyInSetups }) => onlyInSetups?.includes(setupName) ?? true)
 
+const openViewInSetup = async (page: Page, view: View, setup: object, theme: Theme) => {
+  await setClockForView(page, view)
+  await saveSetupAndTheme(page, setup, theme)
+  await openSignedInPathAndSettle(page, view.path)
+}
+
 test.describe('signed out', () => {
   test.use({ storageState: { cookies: [], origins: [] } })
 
   for (const view of SIGNED_OUT_VIEWS) {
-    test(view.name, async ({ page }) => {
-      await page.clock.setFixedTime(FROZEN_NOW)
-      for (const theme of THEMES) {
+    for (const theme of THEMES) {
+      test(`${view.name} ${theme}`, async ({ page }) => {
+        await page.clock.setFixedTime(FROZEN_NOW)
         await page.context().addCookies([demoCookie('theme', theme)])
         await openPathAndSettle(page, view.path)
         await parkPointer(page)
         await expect(page).toHaveScreenshot(`${view.name}-${theme}.png`, { fullPage: true })
-      }
-    })
+      })
+    }
   }
 })
 
@@ -308,57 +311,56 @@ for (const view of SIGNED_IN_VIEWS) {
   for (const { name: setupName, setup, themes } of SETUPS_PER_VIEW) {
     for (const theme of themes) {
       test(`${view.name} ${setupName} ${theme}`, async ({ page }) => {
-        await setClockForView(page, view)
-        await saveSetupAndTheme(page, setup, theme)
-        await openSignedInPathAndSettle(page, view.path)
+        await openViewInSetup(page, view, setup, theme)
         await expectViewScreenshot(page, view, `${view.name}-${setupName}-${theme}`)
+      })
 
-        for (const overlay of filterOverlaysForSetup(view, setupName)) {
-          await saveSetupAndTheme(page, setup, theme)
-          await openSignedInPathAndSettle(page, view.path)
+      for (const overlay of filterOverlaysForSetup(view, setupName)) {
+        test(`${view.name} ${overlay.name} ${setupName} ${theme}`, async ({ page }) => {
+          await openViewInSetup(page, view, setup, theme)
           await overlay.open(page)
           await expectOverlayScreenshot(page, overlay, `${view.name}-${overlay.name}-${setupName}-${theme}`)
-        }
-      })
+        })
+      }
     }
   }
 }
 
 for (const view of VIEWS_WITH_EVERY_PALETTE) {
   for (const { name: paletteName, setup } of PALETTE_SETUPS) {
-    test(`${view.name} palette ${paletteName}`, async ({ page }) => {
-      await setClockForView(page, view)
-      for (const theme of THEMES) {
-        await saveSetupAndTheme(page, setup, theme)
-        await openSignedInPathAndSettle(page, view.path)
+    for (const theme of THEMES) {
+      test(`${view.name} palette ${paletteName} ${theme}`, async ({ page }) => {
+        await openViewInSetup(page, view, setup, theme)
         await expectViewScreenshot(page, view, `${view.name}-palette-${paletteName}-${theme}`)
-      }
-    })
+      })
+    }
   }
 }
 
 for (const view of VIEWS_WITH_EVERY_OPTION) {
   for (const { name: optionName, setup } of OPTION_SETUPS) {
     test(`${view.name} option ${optionName}`, async ({ page }) => {
-      await setClockForView(page, view)
-      await saveSetupAndTheme(page, setup, 'light')
-      await openSignedInPathAndSettle(page, view.path)
+      await openViewInSetup(page, view, setup, 'light')
       await expectViewScreenshot(page, view, `${view.name}-option-${optionName}`)
     })
   }
 }
 
-test('phone', async ({ page }) => {
-  await page.setViewportSize(PHONE_VIEWPORT)
-  await page.clock.setFixedTime(FROZEN_NOW)
-  await saveSetupAndTheme(page, {}, 'light')
+test.describe('phone', () => {
+  test.use({ viewport: PHONE_VIEWPORT })
 
   for (const view of VIEWS_WITH_EVERY_PALETTE) {
-    await openSignedInPathAndSettle(page, view.path)
-    await expectViewScreenshot(page, view, `${view.name}-phone`)
+    test(`${view.name} phone`, async ({ page }) => {
+      await openViewInSetup(page, view, {}, 'light')
+      await expectViewScreenshot(page, view, `${view.name}-phone`)
+    })
   }
 
-  await openSignedInPathAndSettle(page, '/admin')
-  await page.locator('.app-header__sidebar-toggle').click()
-  await expectOverlayScreenshot(page, {}, 'dashboard-phone-nav')
+  test('dashboard phone nav', async ({ page }) => {
+    await page.clock.setFixedTime(FROZEN_NOW)
+    await saveSetupAndTheme(page, {}, 'light')
+    await openSignedInPathAndSettle(page, '/admin')
+    await page.locator('.app-header__sidebar-toggle').click()
+    await expectOverlayScreenshot(page, {}, 'dashboard-phone-nav')
+  })
 })

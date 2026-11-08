@@ -9,9 +9,6 @@ export const NOTIFY_SWITCH_SELECTOR = `.${SWITCH}:has(#field-notify)`
 
 export const baseURL = `http://localhost:${DEMO_PORT}`
 
-export const deleteEditorPreferences = async (request: APIRequestContext) =>
-  expect(await request.delete('/api/payload-preferences?where[key][exists]=true')).toBeOK()
-
 export const getEditorForWorker = (parallelIndex: number) => ({
   apiKey: `editor-${parallelIndex}-api-key-0000-000000000000`,
   authFile: `tests/.auth/editor-${parallelIndex}.json`,
@@ -22,7 +19,7 @@ export const test = base.extend<{ editor: ReturnType<typeof getEditorForWorker>;
   isolateEditorPreferences: [
     async ({ context, editor, playwright }, use) => {
       const editorRequest = await playwright.request.newContext({ baseURL, storageState: editor.authFile })
-      await deleteEditorPreferences(editorRequest)
+      await expect(await editorRequest.delete('/api/payload-preferences?where[key][exists]=true')).toBeOK()
       await editorRequest.dispose()
       const isPreferenceSave = (request: Request) =>
         request.url().includes('/api/payload-preferences/') && request.method() === 'POST'

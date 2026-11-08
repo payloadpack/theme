@@ -106,7 +106,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3]
+        shard: [1, 2, 3, 4, 5, 6]
     container:
       image: mcr.microsoft.com/playwright:v1.63.0-noble
       options: --ipc=host
