@@ -25,9 +25,7 @@
         flex-direction: column;
         overflow: hidden;
         padding: 40px 64px 0;
-        background:
-          radial-gradient(ellipse 55% 60% at 50% 100%, rgb(16 185 129 / 0.18), transparent 70%),
-          radial-gradient(ellipse 50% 60% at 100% 0%, rgb(6 182 212 / 0.12), transparent 70%), #0b0c0e;
+        background: radial-gradient(ellipse 50% 60% at 100% 0%, rgb(125 211 252 / 0.14), transparent 70%), #0b0c0e;
         color: #f4f4f5;
         font-family: Geist, sans-serif;
       }
@@ -61,21 +59,15 @@
         letter-spacing: -0.005em;
       }
 
-      .admin-window-glow {
-        flex: 1;
-        min-height: 0;
-        margin-top: 26px;
-        filter: drop-shadow(0 -8px 28px rgb(16 185 129 / 0.3));
-      }
-
       .admin-window {
+        flex: 1;
         overflow: hidden;
-        height: 100%;
+        margin-top: 26px;
         border: 1px solid rgb(255 255 255 / 0.12);
         border-bottom: 0;
         border-radius: 14px 14px 0 0;
         background: #18181b;
-        mask-image: linear-gradient(to bottom, #000 72%, transparent);
+        box-shadow: 0 -12px 60px -12px rgb(125 211 252 / 0.3);
       }
 
       .admin-window-bar {
@@ -105,11 +97,9 @@
     <div class="brand"><img src="../../../.github/assets/icons/logo-dark.svg" alt="" />payloadpack/theme</div>
     <h1>Custom Admin UI Theme for Payload v4</h1>
     <p class="tagline">Three styles and four palettes, in light and dark.</p>
-    <div class="admin-window-glow">
-      <div class="admin-window">
-        <div class="admin-window-bar"><span></span><span></span><span></span></div>
-        <img class="admin-screenshot" alt="" />
-      </div>
+    <div class="admin-window">
+      <div class="admin-window-bar"><span></span><span></span><span></span></div>
+      <img class="admin-screenshot" alt="" />
     </div>
   </body>
 </html>
