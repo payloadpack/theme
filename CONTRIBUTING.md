@@ -51,7 +51,7 @@ The approved screenshots are Linux images rendered in CI's Playwright container,
 | ------------------------------------- | ------------------------------------------------------------------------------ |
 | `cd apps/demo && bun run screenshots` | The README and docs screenshots. The Screenshots workflow commits them on main |
 | `cd apps/demo && bun run panel-tour`  | The README's panel tour GIFs. Needs [ffmpeg](https://ffmpeg.org)               |
-| `cd apps/docs && bun run brand`       | The logo, the README's feature icons and the docs favicon                      |
+| `cd apps/docs && bun run brand`       | The logo and the docs favicon                                                  |
 
 ## Release
 
