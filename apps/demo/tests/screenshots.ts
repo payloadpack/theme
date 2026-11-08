@@ -5,9 +5,10 @@ import {
   deleteSavedAppearance,
   demoCookie,
   findShowcase,
-  NOTIFY_SWITCH_SELECTOR,
   openAppearancePanel,
   openFineTune,
+  parkPointer,
+  fillShowcaseChoiceFields,
   saveAppearancePreference
 } from './demo'
 
@@ -46,20 +47,13 @@ const openShowcase = async (page: Page, setup: object, theme: string) => {
   const showcase = await findShowcase(page)
   await page.clock.setFixedTime(showcase.updatedAt.getTime() + 60 * 60 * 1000)
   await page.goto(showcase.path, { waitUntil: 'networkidle' })
-  await page.locator('.field-type.checkbox').filter({ hasText: 'Featured' }).getByRole('checkbox').check()
-  await page.locator('.radio-group').filter({ hasText: 'Size' }).locator('.radio-input').filter({ hasText: /^m$/ }).click()
-  await page.locator(`.${RADIO_CARDS} .radio-input`).nth(1).click()
-  await page.locator(NOTIFY_SWITCH_SELECTOR).getByRole('checkbox').check()
+  await fillShowcaseChoiceFields(page)
   await page.getByRole('tab', { name: 'General' }).click()
   await page.evaluate(() => {
     ;(document.activeElement as HTMLElement | null)?.blur()
     window.scrollTo(0, 0)
   })
-  const viewport = page.viewportSize()
-  if (!viewport) {
-    throw new Error('The page has no viewport')
-  }
-  await page.mouse.move(viewport.width - 1, viewport.height - 1)
+  await parkPointer(page)
 }
 
 for (const theme of ['dark', 'light']) {

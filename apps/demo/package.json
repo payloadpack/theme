@@ -11,6 +11,7 @@
     "start": "next start --port ${DEMO_PORT:-3020}",
     "screenshots": "playwright test --project=screenshots --update-snapshots=changed",
     "test:e2e": "playwright test --project=e2e",
+    "test:visual": "playwright test --project=visual",
     "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {

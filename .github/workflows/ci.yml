@@ -100,9 +100,56 @@ jobs:
           name: e2e-traces-${{ matrix.shard }}
           path: apps/demo/test-results
 
+  visual:
+    name: visual (${{ matrix.shard }}/${{ strategy.job-total }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6]
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
+      options: --ipc=host
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install unzip for the Bun installer
+        run: apt-get update && apt-get install --yes --no-install-recommends unzip
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Install dependencies (frozen lockfile)
+        run: bun install --frozen-lockfile
+
+      - name: Build package
+        run: bun run build
+        working-directory: packages/theme
+
+      - name: Visual regression tests
+        run: bun run test:visual --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+        working-directory: apps/demo
+        env:
+          PAYLOAD_SECRET: ci-only-secret
+
+      - name: Upload the differing screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-differences-${{ matrix.shard }}
+          path: apps/demo/test-results
+
   validate:
     if: always()
-    needs: [unit-tests-and-typecheck, e2e]
+    needs: [unit-tests-and-typecheck, e2e, visual]
     runs-on: ubuntu-latest
     steps:
       - name: Fail when a job did not pass

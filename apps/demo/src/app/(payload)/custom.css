@@ -30,3 +30,8 @@
     --payloadpack-elevation-popover: 0 0 0 0.5px rgb(255 255 255 / 0.09), 0 4px 12px rgb(0 0 0 / 0.4);
   }
 }
+
+.custom-field-components {
+  display: grid;
+  gap: var(--spacer-3);
+}

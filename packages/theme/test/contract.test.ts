@@ -224,7 +224,57 @@ const HARD_CODED_BY_PAYLOAD = [
     selector: '.file-toolbar__filename-btn',
     declaration: 'padding: var(--spacer-1) var(--spacer-2);'
   },
-  { file: 'elements/ListSelection/index.css', selector: '.list-selection', declaration: 'padding-block: var(--spacer-1);' }
+  { file: 'elements/ListSelection/index.css', selector: '.list-selection', declaration: 'padding-block: var(--spacer-1);' },
+  {
+    file: 'elements/ColumnSelection/Popup.css',
+    selector: '.column-selector__search',
+    declaration: 'height: calc(var(--spacer-5) + var(--spacer-2) + var(--stroke-width-small));'
+  },
+  {
+    file: 'elements/ColumnSelection/Popup.css',
+    selector: '.column-selector__search-bar',
+    declaration: 'height: var(--spacer-4);'
+  },
+  {
+    file: 'elements/Combobox/index.css',
+    selector: '.combobox__search',
+    declaration: 'height: calc(var(--spacer-5) + var(--spacer-2) + var(--stroke-width-small));'
+  },
+  { file: 'elements/Combobox/index.css', selector: '.combobox__search-bar', declaration: 'height: var(--spacer-4);' },
+  { file: 'elements/ItemsDrawer/ItemSearch/index.css', selector: '.item-search__input', declaration: 'height: var(--spacer-4);' },
+  { file: 'elements/GroupBy/Popup.css', selector: '.group-by-control__label', declaration: 'height: var(--spacer-4);' },
+  {
+    file: 'elements/GroupBy/Popup.css',
+    selector: '.group-by-control__select-trigger',
+    declaration: 'min-height: var(--spacer-4);'
+  },
+  { file: 'elements/GroupBy/Popup.css', selector: '.group-by-control__header', declaration: 'height: var(--spacer-6);' },
+  { file: 'elements/DatePicker/index.css', selector: '.react-datepicker__year-select', declaration: 'height: var(--spacer-4);' },
+  {
+    file: 'elements/PillSelector/index.css',
+    selector: '.pill-selector',
+    declaration: 'padding: var(--spacer-4); gap: var(--spacer-2-5);'
+  },
+  {
+    file: 'elements/LivePreview/Toolbar/SizeInput/index.css',
+    selector: '.toolbar-input .form-input',
+    declaration: 'width: calc(var(--spacer-4) * 2);'
+  },
+  {
+    file: 'elements/LivePreview/Toolbar/index.css',
+    selector: '.live-preview-toolbar',
+    declaration: 'max-height: var(--spacer-6);'
+  },
+  {
+    file: 'elements/SidebarRow/index.css',
+    selector: '.sidebar-row-wrapper > .sidebar-row',
+    declaration: 'padding-inline: calc(var(--spacer-3) + var(--spacer-1));'
+  },
+  {
+    file: 'elements/SidebarRow/index.css',
+    selector: '.sidebar-row-wrapper > .sidebar-row',
+    declaration: "&::before { content: ''; position: absolute; inset-block: var(--spacer-1);"
+  }
 ]
 
 const READ_BY_DESCENDANTS: Record<string, string[]> = {

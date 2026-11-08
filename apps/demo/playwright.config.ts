@@ -18,7 +18,17 @@ export default defineConfig({
       testMatch: /screenshots\.ts/,
       use: { deviceScaleFactor: 2, storageState: AUTH_FILE, viewport: { height: 800, width: 1280 } }
     },
-    { dependencies: ['setup'], name: 'panel-tour', testMatch: /panel-tour\.ts/ }
+    { dependencies: ['setup'], name: 'panel-tour', testMatch: /panel-tour\.ts/ },
+    {
+      dependencies: ['setup'],
+      expect: { toHaveScreenshot: { maxDiffPixels: 0, threshold: 0 } },
+      fullyParallel: true,
+      name: 'visual',
+      snapshotPathTemplate: '{testDir}/__visual__/{arg}-{platform}{ext}',
+      testMatch: /visual\.ts/,
+      use: { launchOptions: { args: ['--disable-partial-raster'] }, locale: 'en-US', timezoneId: 'UTC' },
+      workers: 1
+    }
   ],
   reporter: 'list',
   testDir: './tests',

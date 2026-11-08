@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Live preview</title>
+  </head>
+  <body style="margin: 2rem; font: 16px/1.5 sans-serif">
+    <h1>Live preview</h1>
+    <p>The page a frontend renders beside the document.</p>
+    <script>
+      window.parent.postMessage({ type: 'payload-live-preview', ready: true }, '*')
+    </script>
+  </body>
+</html>

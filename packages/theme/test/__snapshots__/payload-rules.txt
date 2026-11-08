@@ -323,6 +323,10 @@ html[data-enhanced-contrast] .column-selector__search-bar { outline: var(--strok
 == @payloadcms/ui/elements/Combobox/index.css
 .popup.combobox > .popup__content { min-width: 0; }
 .popup__scroll-container:has(> .combobox__content) { padding: 0; overflow: hidden; }
+.combobox__search { display: flex; flex-shrink: 0; align-items: center; height: calc(var(--spacer-5) + var(--spacer-2) + var(--stroke-width-small)); padding-inline: var(--spacer-2-5); border-bottom: var(--stroke-width-small) solid var(--color-border); }
+.combobox__search-bar { display: flex; align-items: center; flex: 1; min-width: 0; height: var(--spacer-4); padding-inline-end: var(--spacer-2); background: var(--color-bg-secondary); border-radius: var(--button-radius); }
+.combobox__search-bar &:focus-within { outline: var(--accessibility-outline); outline-offset: var(--accessibility-outline-offset); }
+.combobox__search-bar svg { display: block; flex-shrink: 0; color: var(--color-icon-secondary); }
 .popup__scroll-container:not(.popup__scroll-container--show-scrollbar) > .combobox__content > .combobox__entries { scrollbar-width: none; -ms-overflow-style: none; }
 .popup__scroll-container:not(.popup__scroll-container--show-scrollbar) > .combobox__content > .combobox__entries &::-webkit-scrollbar { display: none; }
 
@@ -457,6 +461,9 @@ html[data-enhanced-contrast] .column-selector__search-bar { outline: var(--strok
 == @payloadcms/ui/elements/Hierarchy/Search/index.css
 .hierarchy-search__controls .search-input { flex: 1; }
 
+== @payloadcms/ui/elements/Hierarchy/Tree/index.css
+.tree__all-option .sidebar-row__title { font-weight: var(--text-body-medium-bold-font-weight); }
+
 == @payloadcms/ui/elements/ItemsDrawer/ItemSearch/index.css
 .item-search .icon--search { flex-shrink: 0; width: var(--spacer-3); height: var(--spacer-3); color: var(--color-icon-secondary); }
 .item-search__input { font-size: var(--text-body-medium-font-size); font-weight: var(--text-body-medium-font-weight); line-height: var(--text-body-medium-line-height); letter-spacing: var(--text-body-medium-letter-spacing); width: 100%; border: var(--stroke-width-small) solid transparent; border-radius: var(--field-border-radius); background: var(--color-bg-secondary); color: var(--color-text); height: var(--spacer-4); padding: 0 var(--spacer-2-5); -webkit-appearance: none; }
@@ -491,7 +498,11 @@ html[data-enhanced-contrast] .column-selector__search-bar { outline: var(--strok
 .list-selection__button, .list-selection__button.btn { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 == @payloadcms/ui/elements/LivePreview/Toolbar/SizeInput/index.css
+.toolbar-input { width: max-content; }
 .toolbar-input .form-input { flex: 0 0 auto; width: calc(var(--spacer-4) * 2); }
+
+== @payloadcms/ui/elements/LivePreview/Toolbar/index.css
+.live-preview-toolbar { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); background-color: var(--color-bg); color: var(--color-text); max-height: var(--spacer-6); padding: var(--spacer-2); align-items: center; flex-shrink: 0; }
 
 == @payloadcms/ui/elements/LoadMoreRow/index.css
 .load-more-row__button.btn { background-color: transparent; padding: 0; color: var(--color-text); font-size: inherit; text-decoration: underline; }
@@ -516,6 +527,12 @@ html[data-enhanced-contrast] .column-selector__search-bar { outline: var(--strok
 .sidebar-tabs__tab &:hover { color: var(--color-icon); }
 .sidebar-tabs__tab &:focus-visible { outline: var(--accessibility-outline); outline-offset: var(--accessibility-outline-inset); border-radius: var(--button-radius); }
 .sidebar-tabs__tab--active { background-color: var(--color-bg); border-color: var(--color-border); color: var(--color-icon); }
+.sidebar-tabs__tooltip { pointer-events: auto; }
+.sidebar-tabs__tooltip &.sidebar-tabs__tooltip--focused { display: block; }
+.sidebar-tabs__tooltip .tooltip__caret-stroke { stroke: none; }
+.sidebar-tabs__tooltip &::before { content: ''; position: absolute; inset-inline: 0; block-size: var(--spacer-2-5); }
+.sidebar-tabs__tooltip &.tooltip--position-bottom::before { inset-block-end: 100%; }
+.sidebar-tabs__tooltip &.tooltip--position-top::before { inset-block-start: 100%; }
 .sidebar-tabs__content { width: 100%; flex-grow: 1; position: relative; }
 
 == @payloadcms/ui/elements/Nav/index.css
@@ -572,6 +589,11 @@ html[data-enhanced-contrast] .nav-group__toggle .nav-group__indicator { opacity:
 
 == @payloadcms/ui/elements/Pill/index.css
 .pill__icon .icon { flex-shrink: 0; width: var(--pill-icon-size); height: var(--pill-icon-size); }
+
+== @payloadcms/ui/elements/PillSelector/index.css
+.pill-selector { display: flex; flex-wrap: wrap; background: var(--color-bg-secondary); padding: var(--spacer-4); gap: var(--spacer-2-5); }
+.pill-selector .pill__icon { padding: 0; }
+@media (max-width: 768px) .pill-selector { padding: var(--spacer-2-5); }
 
 == @payloadcms/ui/elements/Popup/PopupButtonList/SubmenuTrigger/index.css
 .popup-button-list__submenu-trigger { --color-bg-selected: var(--color-bg-selected-strong); --color-text-selected: var(--color-text-onselected-strong); width: 100%; text-align: start; }
@@ -687,6 +709,25 @@ html[data-enhanced-contrast] .nav-group__toggle .nav-group__indicator { opacity:
 .segmented-control__icon { display: flex; align-items: center; justify-content: center; width: var(--spacer-4); height: var(--spacer-4); padding: var(--spacer-0); border-radius: var(--radius-medium); background-color: transparent; color: var(--color-text-secondary); }
 .segmented-control__input:checked + .segmented-control__icon { background-color: var(--color-bg); box-shadow: inset 0 0 0 var(--stroke-width-small) var(--color-border); color: var(--color-text); }
 .segmented-control__input:focus-visible + .segmented-control__icon { outline: var(--stroke-width-small) solid var(--color-border-selected); outline-offset: var(--accessibility-outline-inset); box-shadow: none; }
+
+== @payloadcms/ui/elements/SidebarRow/index.css
+.sidebar-row-wrapper { padding-block: var(--spacer-1); width: calc(100% + var(--spacer-1)); margin-inline-start: calc(-1 * var(--spacer-1)); }
+.sidebar-row-wrapper &:first-child { padding-block-start: 0; }
+.sidebar-row-wrapper &:last-child { padding-block-end: 0; }
+.sidebar-row { display: flex; align-items: center; gap: var(--spacer-1); border-radius: var(--button-radius); font-size: var(--text-body-medium-font-size); font-weight: var(--text-body-medium-font-weight); line-height: var(--text-body-medium-line-height); position: relative; user-select: none; cursor: pointer; text-decoration: none; color: inherit; }
+.sidebar-row &:hover { background: var(--color-bg-secondary); text-decoration: none; }
+.sidebar-row-wrapper > .sidebar-row { position: relative; isolation: isolate; padding-block: var(--spacer-2); padding-inline: calc(var(--spacer-3) + var(--spacer-1)); background: transparent; }
+.sidebar-row-wrapper > .sidebar-row &::before { content: ''; position: absolute; inset-block: var(--spacer-1); inset-inline: calc(var(--spacer-2) + var(--spacer-1)); z-index: -1; border-radius: var(--button-radius); }
+.sidebar-row-wrapper > .sidebar-row &:hover:not(.sidebar-row--selected) { background: transparent; }
+.sidebar-row-wrapper > .sidebar-row &:hover:not(.sidebar-row--selected) &::before { background: var(--color-bg-secondary); }
+.sidebar-row-wrapper > .sidebar-row &:focus-visible { outline: none; }
+.sidebar-row-wrapper > .sidebar-row &:focus-visible &::before { outline: var(--accessibility-outline); outline-offset: var(--accessibility-outline-offset); }
+.sidebar-row-wrapper > .sidebar-row &.sidebar-row--selected { background: transparent; }
+.sidebar-row-wrapper > .sidebar-row &.sidebar-row--selected &::before { background: var(--color-bg-selected); }
+.sidebar-row--selected { font-weight: var(--text-body-medium-bold-font-weight); background: var(--color-bg-selected); }
+.sidebar-row--selected &:hover { background: var(--color-bg-selected); }
+.sidebar-row__title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--color-text); }
+.sidebar-row--selected > .sidebar-row__title { color: var(--color-text); }
 
 == @payloadcms/ui/elements/SidebarToggle/index.css
 .sidebar-toggle { position: relative; display: flex; align-items: center; justify-content: center; width: var(--spacer-5); height: var(--spacer-5); padding: 0; border: 0; border-radius: var(--button-radius); background: var(--color-bg); color: var(--color-icon); cursor: pointer; outline: none; }
