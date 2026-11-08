@@ -243,6 +243,8 @@ test.describe('Appearance panel', () => {
     await expect(sheet).toBeHidden()
 
     await page.setViewportSize({ height: 800, width: 375 })
+    await expect(page.locator('.nav')).toHaveAttribute('inert')
+    await waitForAnimations(page.locator('.template-default'))
     expect(await page.locator('#payloadpack-appearance').evaluate((element) => getComputedStyle(element).translate)).toBe(
       '0px 100%'
     )

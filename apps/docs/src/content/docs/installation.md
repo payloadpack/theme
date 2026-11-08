@@ -26,7 +26,7 @@ List `themePlugin()` after any plugin that adds collections, so their checkbox c
 ## Regenerate the import map
 
 ```sh
-payload generate:importmap
+bunx payload generate:importmap
 ```
 
 Run it again after every upgrade of the theme.

@@ -69,11 +69,24 @@ for (const theme of ['dark', 'light']) {
     }
 
     for (const [name, className] of Object.entries(CUSTOM_FIELD_CLASS_NAMES)) {
-      await page.locator(`.${className}`).first().scrollIntoViewIfNeeded()
+      const fieldPadding = await page
+        .locator(`.${className}`)
+        .first()
+        .evaluate((element) => {
+          element.scrollIntoView({ block: 'center' })
+          const fieldBox = element.getBoundingClientRect()
+          const gapAbove = element.previousElementSibling
+            ? fieldBox.top - element.previousElementSibling.getBoundingClientRect().bottom
+            : Infinity
+          const gapBelow = element.nextElementSibling
+            ? element.nextElementSibling.getBoundingClientRect().top - fieldBox.bottom
+            : Infinity
+          return Math.min(16, gapAbove, gapBelow)
+        })
       const column = await visibleBoundingBox(page, '.document-fields__fields')
       const field = await visibleBoundingBox(page, `.${className}`)
       await expect(page).toHaveScreenshot(`${name}-${theme}.png`, {
-        clip: { height: field.height + 32, width: column.width + 32, x: column.x - 16, y: field.y - 16 }
+        clip: { height: field.height + 2 * fieldPadding, width: column.width + 32, x: column.x - 16, y: field.y - fieldPadding }
       })
     }
 

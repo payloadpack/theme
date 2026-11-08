@@ -11,7 +11,7 @@
 
 <p align="center">
   <a href="https://www.npmjs.com/package/@payloadpack/theme"><img alt="npm version" src="https://img.shields.io/npm/v/@payloadpack/theme"></a>
-  <a href="https://github.com/payloadpack/theme/actions/workflows/ci.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/payloadpack/theme/ci.yml?branch=main"></a>
+  <a href="https://github.com/payloadpack/theme/actions/workflows/ci.yml"><img alt="Build status" src="https://github.com/payloadpack/theme/actions/workflows/ci.yml/badge.svg?branch=main"></a>
   <a href="https://payloadcms.com"><img alt="Payload version" src="https://img.shields.io/npm/dependency-version/@payloadpack/theme/peer/payload"></a>
   <a href="https://github.com/payloadpack/theme/blob/main/packages/theme/LICENSE"><img alt="PolyForm Perimeter license" src="https://img.shields.io/badge/license-PolyForm%20Perimeter-blue"></a>
 </p>
@@ -19,7 +19,8 @@
 <p align="center">
   <a href="https://theme.payloadpack.com/"><b>Documentation</b></a> ·
   <a href="https://theme.payloadpack.com/installation/">Installation</a> ·
-  <a href="https://github.com/payloadpack/theme/blob/main/packages/theme/CHANGELOG.md">Changelog</a>
+  <a href="https://github.com/payloadpack/theme/blob/main/packages/theme/CHANGELOG.md">Changelog</a> ·
+  <a href="https://github.com/payloadpack/theme/blob/main/CONTRIBUTING.md">Contributing</a>
 </p>
 
 <picture>
@@ -29,44 +30,12 @@
 
 ## What you get
 
-<table>
-  <tr>
-    <td width="50%" valign="top">
-      <img width="40" height="40" alt="" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/icons/styles.svg"><br>
-      <b>Three styles</b><br>
-      Payload's own, Enhanced and Studio. Fine-tune corners, typeface, density, icons, motion and nav.
-    </td>
-    <td width="50%" valign="top">
-      <img width="40" height="40" alt="" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/icons/palettes.svg"><br>
-      <b>Palettes and custom colors</b><br>
-      Payload, Neutral, Warm and Soft in light and dark. Editors mix their own, and you can ship yours.
-    </td>
-  </tr>
-  <tr>
-    <td valign="top">
-      <img width="40" height="40" alt="" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/icons/appearance.svg"><br>
-      <b>A setup per editor</b><br>
-      Saved in Payload's preferences and rendered on the server. It follows every editor, and pages never flash.
-    </td>
-    <td valign="top">
-      <img width="40" height="40" alt="" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/icons/fields.svg"><br>
-      <b>Field layouts</b><br>
-      Vertical tabs, radio cards and switches, each one <code>className</code> away.
-    </td>
-  </tr>
-  <tr>
-    <td valign="top">
-      <img width="40" height="40" alt="" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/icons/icons.svg"><br>
-      <b>Icons everywhere</b><br>
-      Lucide icons in the nav and document menu, matched to your collections automatically.
-    </td>
-    <td valign="top">
-      <img width="40" height="40" alt="" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/icons/tokens.svg"><br>
-      <b>One token sheet</b><br>
-      Restyle the whole admin from a short list of CSS custom properties.
-    </td>
-  </tr>
-</table>
+- 📐 **Three styles** with fine-tune options
+- 🎨 **Four palettes** in light and dark, plus custom colors
+- 👤 **A setup per editor**, saved in Payload's preferences
+- 🎛️ **Alternative field designs** for tabs, radios and checkboxes
+- ✨ **Lucide icons** in the nav and document menu
+- 🖌️ **One token sheet** to restyle the whole admin
 
 ## Install
 
@@ -83,7 +52,7 @@ export default buildConfig({
 ```
 
 ```sh
-payload generate:importmap
+bunx payload generate:importmap
 ```
 
 That's it. Every editor now has an Appearance button in the nav.
@@ -113,25 +82,29 @@ That's it. Every editor now has an Appearance button in the nav.
 
 ## Field layouts
 
+Give a field one of these as its `admin.className`. Each works under every style and palette.
+
 <table>
   <tr>
-    <th width="33%">Vertical tabs</th>
-    <th width="33%">Radio cards</th>
-    <th width="33%">Switch</th>
-  </tr>
-  <tr>
+    <td width="30%"><a href="https://theme.payloadpack.com/fields/vertical-tabs/"><b>Vertical tabs</b></a><br><code>VERTICAL_TABS</code></td>
     <td>
       <picture>
         <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/vertical-tabs-light.png">
         <img alt="A tabs field with its tabs in a column beside the fields" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/vertical-tabs-dark.png">
       </picture>
     </td>
+  </tr>
+  <tr>
+    <td width="30%"><a href="https://theme.payloadpack.com/fields/radio-cards/"><b>Radio cards</b></a><br><code>RADIO_CARDS</code></td>
     <td>
       <picture>
         <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/radio-cards-light.png">
         <img alt="A radio field shown as stacked cards" src="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/radio-cards-dark.png">
       </picture>
     </td>
+  </tr>
+  <tr>
+    <td width="30%"><a href="https://theme.payloadpack.com/fields/switch/"><b>Switch</b></a><br><code>SWITCH</code> or <code>SWITCH_END</code></td>
     <td>
       <picture>
         <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/payloadpack/theme/main/.github/assets/switch-light.png">
@@ -139,12 +112,18 @@ That's it. Every editor now has an Appearance button in the nav.
       </picture>
     </td>
   </tr>
-  <tr>
-    <td><code>className: VERTICAL_TABS</code></td>
-    <td><code>className: RADIO_CARDS</code></td>
-    <td><code>className: SWITCH</code> or <code>SWITCH_END</code></td>
-  </tr>
 </table>
+
+```ts
+import { SWITCH } from '@payloadpack/theme'
+
+const field = {
+  name: 'notify',
+  type: 'checkbox',
+  label: 'Notify subscribers',
+  admin: { className: SWITCH, description: 'Email everyone who follows this showcase' }
+}
+```
 
 ## Configure
 
@@ -172,7 +151,7 @@ Defaults and details are in the [configuration docs](https://theme.payloadpack.c
 
 ## Customize
 
-Override any token in your admin stylesheet. The theme's CSS sits in `@layer payload`, so yours always wins:
+Override any token in your admin stylesheet. The theme's CSS sits in `@layer payload`, so any rule of yours outside a layer wins:
 
 ```css
 html {
@@ -190,9 +169,3 @@ Payload 4.0.0-beta.7+, Next.js 16.4.2+ and React 19, in Safari 17, Chrome 114 or
 ## License
 
 Use it in any project, including client work you charge for and products you sell. What you can't do is offer the theme, or a copy or fork of it, to others as a competing admin theme, paid or free. The terms are the [PolyForm Perimeter License 1.0.1](https://github.com/payloadpack/theme/blob/main/packages/theme/LICENSE).
-
-<p align="center">
-  <a href="https://theme.payloadpack.com/">Documentation</a> ·
-  <a href="https://github.com/payloadpack/theme/blob/main/CONTRIBUTING.md">Contributing</a> ·
-  <a href="https://github.com/payloadpack/theme/blob/main/packages/theme/LICENSE">PolyForm Perimeter License</a>
-</p>
