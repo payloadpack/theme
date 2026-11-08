@@ -281,6 +281,8 @@ const waitForLoadingToFinish = async (page: Page) => {
 
 const NETWORK_QUIET_MS = 500
 
+const SETTLE_TIMEOUT_MS = 30_000
+
 const trackNetworkActivity = (page: Page) => {
   const requestsInFlight = new Set<Request>()
   let lastNetworkActivityAt = Date.now()
@@ -298,7 +300,9 @@ const trackNetworkActivity = (page: Page) => {
   return (quietSince: number) =>
     expect
       .poll(() => requestsInFlight.size === 0 && Date.now() - Math.max(lastNetworkActivityAt, quietSince) >= NETWORK_QUIET_MS, {
-        intervals: [100]
+        intervals: [100],
+        message: `no requests for ${NETWORK_QUIET_MS} ms after hydration`,
+        timeout: SETTLE_TIMEOUT_MS
       })
       .toBe(true)
 }
@@ -328,31 +332,45 @@ const readPageHeightAfterIdle = (page: Page) =>
 
 const measureSettledPageHeight = async (page: Page) => {
   let previousPageHeight = await readPageHeightAfterIdle(page)
-  let pageHeight = await readPageHeightAfterIdle(page)
-  while (pageHeight !== previousPageHeight) {
-    previousPageHeight = pageHeight
-    pageHeight = await readPageHeightAfterIdle(page)
-  }
-  return pageHeight
+  await expect
+    .poll(
+      async () => {
+        const pageHeight = await readPageHeightAfterIdle(page)
+        const pageHeightChange = pageHeight === previousPageHeight ? 'none' : `${previousPageHeight} px to ${pageHeight} px`
+        previousPageHeight = pageHeight
+        return pageHeightChange
+      },
+      { intervals: [0], message: 'page height to stop changing', timeout: SETTLE_TIMEOUT_MS }
+    )
+    .toBe('none')
+  return previousPageHeight
 }
 
-const growViewportToPage = async (page: Page) => {
+const fitViewportToPage = async (page: Page) => {
   const viewport = page.viewportSize()
   if (!viewport) {
     throw new Error('The page has no viewport')
   }
   const pageHeight = await measureSettledPageHeight(page)
+  const pageWidth = await page.evaluate(() => document.documentElement.scrollWidth)
+  expect(pageWidth, 'the page is wider than the viewport').toBeLessThanOrEqual(viewport.width)
   if (pageHeight <= viewport.height) {
     return
   }
   await page.setViewportSize({ height: pageHeight, width: viewport.width })
-  await expect.poll(() => page.evaluate(() => [...document.images].every((image) => image.complete))).toBe(true)
+  await page.evaluate(() => window.scrollTo(0, 0))
+  await expect
+    .poll(() => page.evaluate(() => [...document.images].every((image) => image.complete)), {
+      message: 'every image to finish loading',
+      timeout: SETTLE_TIMEOUT_MS
+    })
+    .toBe(true)
   await waitForLoadingToFinish(page)
 }
 
 const expectViewScreenshot = async (page: Page, view: View, shotName: string) => {
   await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())
-  await growViewportToPage(page)
+  await fitViewportToPage(page)
   await parkPointer(page)
   await expect(page).toHaveScreenshot(`${shotName}.png`, {
     mask: (view.timestampsToMask ?? []).map((selector) => page.locator(selector))
@@ -369,7 +387,7 @@ const expectOverlayScreenshot = async (
 ) => {
   await waitForLoadingToFinish(page)
   if (overlay.fullPage) {
-    await growViewportToPage(page)
+    await fitViewportToPage(page)
   }
   if (!overlay.hoversPointer) {
     await parkPointer(page)
@@ -402,7 +420,7 @@ test.describe('signed out', () => {
         await page.clock.setFixedTime(FROZEN_NOW)
         await page.context().addCookies([demoCookie('theme', theme)])
         await openSignedOutPathAndSettle(page, view.path)
-        await growViewportToPage(page)
+        await fitViewportToPage(page)
         await parkPointer(page)
         await expect(page).toHaveScreenshot(`${view.name}-${theme}.png`)
       })

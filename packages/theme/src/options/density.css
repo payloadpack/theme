@@ -176,6 +176,10 @@
       padding-inline: 0;
     }
 
+    .list-controls .search-input {
+      min-width: 0;
+    }
+
     .group-by-control__select-trigger,
     .condition__join .rs__control {
       min-height: var(--control-height);
