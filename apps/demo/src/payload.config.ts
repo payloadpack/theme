@@ -43,7 +43,7 @@ const AMENITIES = [
 
 export default buildConfig({
   admin: {
-    autoLogin: process.env.NODE_ENV === 'development' ? DEMO_USER : false,
+    autoLogin: process.env.NODE_ENV === 'development' ? { ...DEMO_USER, prefillOnly: true } : false,
     components: {
       afterNavLinks: ['/views/ToastsNavLink#ToastsNavLink'],
       views: { toasts: { Component: '/views/Toasts#ToastsView', meta: { title: 'Toasts' }, path: '/toasts' } }
