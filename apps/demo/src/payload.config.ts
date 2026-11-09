@@ -7,7 +7,7 @@ import { buildConfig } from 'payload'
 import { fileURLToPath } from 'url'
 
 import { collections, globals } from './collections'
-import { seed } from './seed'
+import { DEMO_USER, seed } from './seed'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -43,6 +43,7 @@ const AMENITIES = [
 
 export default buildConfig({
   admin: {
+    autoLogin: process.env.NODE_ENV === 'development' ? DEMO_USER : false,
     components: {
       afterNavLinks: ['/views/ToastsNavLink#ToastsNavLink'],
       views: { toasts: { Component: '/views/Toasts#ToastsView', meta: { title: 'Toasts' }, path: '/toasts' } }
