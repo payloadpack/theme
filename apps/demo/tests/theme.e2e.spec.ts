@@ -514,6 +514,7 @@ test.describe('Appearance panel', () => {
     }
 
     await page.goto('/admin')
+    await waitForHydration(page)
     expect(await beside()).toBe('left')
     const [toggle, menu] = [
       (await page.locator('.payloadpack-nav-toggle').boundingBox())!,
@@ -608,6 +609,7 @@ test.describe('Appearance panel', () => {
   test("keeps Payload's header height under the Payload style", async ({ page }) => {
     await saveAppearancePreference(page.request, { character: 'payload' })
     await page.goto('/admin')
+    await waitForHydration(page)
     const height = async () => (await page.locator('.app-header').boundingBox())?.height
     const withButton = await height()
 
@@ -625,6 +627,7 @@ test.describe('Appearance panel', () => {
 
   test('draws the bundled Lucide palette icon on the header button', async ({ page }) => {
     await page.goto('/admin')
+    await waitForHydration(page)
 
     expect(await computedStyleValue(page, '.payloadpack-appearance-panel__palette-icon', 'mask-image')).toContain(
       'data:image/svg+xml'
@@ -732,6 +735,7 @@ test.describe('Theme values', () => {
 
   test('list view keeps its layout when selecting rows', async ({ page }) => {
     await page.goto('/admin/collections/showcase')
+    await waitForHydration(page)
     const table = page.locator('table')
 
     expect(await elementSize(page, '.list-controls .dots')).toEqual({ height: 36, width: 36 })
@@ -994,6 +998,7 @@ test.describe('Theme values', () => {
 
   test('the toasts preview reuses the list heading and marks its nav link', async ({ page }) => {
     await page.goto('/admin/collections/showcase')
+    await waitForHydration(page)
     const listTitle = await computedStyleValue(page, '.list-header__title', 'font-size')
     await page.goto('/admin/toasts')
 
@@ -1096,6 +1101,7 @@ test.describe('Theme values', () => {
 
   test('app CSS picks the nav icon for its own collection', async ({ page }) => {
     await page.goto('/admin')
+    await waitForHydration(page)
     await page.addStyleTag({ content: "#nav-showcase { --payloadpack-icon: url('/icons/chef-hat.svg'); }" })
 
     expect(await computedStyleValue(page, '#nav-showcase', 'mask-image', '::after')).toContain('/icons/chef-hat.svg')
@@ -1773,6 +1779,7 @@ test.describe('Every palette but Payload', () => {
       test('dark tabs and segments set the active one clearly apart from its track', async ({ page }) => {
         await page.context().addCookies([demoCookie('theme', 'dark')])
         await page.goto('/admin/collections/showcase')
+        await waitForHydration(page)
         const lightness = async (selector: string) =>
           (await colorChannels(page, 'oklab', await computedStyleValue(page, selector, 'background-color')))[0]
 
@@ -1796,6 +1803,7 @@ test.describe('Raised nav pill', () => {
       test('the selected nav link is a white pill lifted by a shadow, and the other links are muted', async ({ page }) => {
         await page.context().addCookies([demoCookie('theme', 'light')])
         await page.goto('/admin/collections/showcase')
+        await waitForHydration(page)
 
         expect(await computedStyleValue(page, '.nav__link--selected', 'background-color', '::before')).toBe(
           await computedColor(page, 'var(--color-bg-elevated)')
@@ -1809,6 +1817,7 @@ test.describe('Raised nav pill', () => {
       test('the dark selected nav link steps clearly above the nav', async ({ page }) => {
         await page.context().addCookies([demoCookie('theme', 'dark')])
         await page.goto('/admin/collections/showcase')
+        await waitForHydration(page)
         const lightness = async (selector: string, pseudo?: string) =>
           (await colorChannels(page, 'oklab', await computedStyleValue(page, selector, 'background-color', pseudo)))[0]
 
@@ -2238,6 +2247,7 @@ test.describe('Custom palette', () => {
   test('solid selections take the primary, and an open submenu looks like a hovered menu item', async ({ page }) => {
     await saveCustom(page, '#c2410c', { primary: '#2563eb' })
     await page.goto('/admin/collections/showcase')
+    await waitForHydration(page)
     const background = (locator: Locator) => locator.evaluate((element) => getComputedStyle(element).backgroundColor)
 
     expect(await computedColor(page, 'var(--color-bg-selected-strong)')).toBe('rgb(37, 99, 235)')
@@ -2339,6 +2349,7 @@ test.describe('Rail', () => {
 
   test('keeps the hidden tab track at full width while the nav closes, so it never overflows', async ({ page }) => {
     await page.goto('/admin')
+    await waitForHydration(page)
     const track = page.locator('.sidebar-tabs__tabs')
     const open = await track.evaluate((element) => element.getBoundingClientRect().width)
 

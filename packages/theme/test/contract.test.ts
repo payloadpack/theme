@@ -300,8 +300,7 @@ const COPIED_FROM_PAYLOAD = [
   },
   {
     token: '--elevation-500-modal-window',
-    value:
-      '0 0.5px 0 0 rgba(255, 255, 255, 0.08) inset, 0 10px 24px 0 rgba(0, 0, 0, 0.45), 0 0 0.5px 0 rgba(255, 255, 255, 0.35) inset, 0 3px 5px 0 rgba(0, 0, 0, 0.35)'
+    value: '0 10px 24px 0 rgba(0, 0, 0, 0.45), 0 3px 5px 0 rgba(0, 0, 0, 0.35)'
   },
   { token: '--field-color-bg', value: 'var(--color-bg)' },
   { token: '--radius-medium', value: '0.3125rem' },
