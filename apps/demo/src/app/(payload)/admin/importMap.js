@@ -44,12 +44,13 @@ import { QueryPresetsAccessCell as QueryPresetsAccessCell_3817bf644402e67bfe6577
 import { LLMInstructionsDescription as LLMInstructionsDescription_3817bf644402e67bfe6577f60ef982de } from '@payloadcms/ui'
 import { LLMInstructionsCell as LLMInstructionsCell_ab83ff7e88da8d3530831f296ec4756a } from '@payloadcms/ui/rsc'
 import { AppearanceServerPanel as AppearanceServerPanel_518a69ce6606b4282299e343b77e30ca } from '@payloadpack/theme/rsc'
-import { ToastsNavLink as ToastsNavLink_470ab6fef553fc16111542c4a45d5261 } from '../../../views/ToastsNavLink'
+import { PreviewNavLinks as PreviewNavLinks_940ce0cf32371d58b5049d99b3508941 } from '../../../views/PreviewNavLinks'
 import { NavBar as NavBar_5441c603e82e992293b6f37bceb423a5 } from '@payloadpack/theme/client'
 import { AppearanceServerProvider as AppearanceServerProvider_518a69ce6606b4282299e343b77e30ca } from '@payloadpack/theme/rsc'
 import { FolderIcon as FolderIcon_3817bf644402e67bfe6577f60ef982de } from '@payloadcms/ui'
 import { HierarchySidebarTabServer as HierarchySidebarTabServer_ab83ff7e88da8d3530831f296ec4756a } from '@payloadcms/ui/rsc'
 import { TagIcon as TagIcon_3817bf644402e67bfe6577f60ef982de } from '@payloadcms/ui'
+import { NavIconsView as NavIconsView_140af2916372cde0f63996c17f89974a } from '../../../views/NavIcons'
 import { ToastsView as ToastsView_5b3363adc44275fd098e618e0f3eb18f } from '../../../views/Toasts'
 import { WelcomeWidget as WelcomeWidget_ab83ff7e88da8d3530831f296ec4756a } from '@payloadcms/ui/rsc'
 import { CollectionCards as CollectionCards_ab83ff7e88da8d3530831f296ec4756a } from '@payloadcms/ui/rsc'
@@ -108,12 +109,13 @@ export const importMap = {
   "@payloadcms/ui#LLMInstructionsDescription": LLMInstructionsDescription_3817bf644402e67bfe6577f60ef982de,
   "@payloadcms/ui/rsc#LLMInstructionsCell": LLMInstructionsCell_ab83ff7e88da8d3530831f296ec4756a,
   "@payloadpack/theme/rsc#AppearanceServerPanel": AppearanceServerPanel_518a69ce6606b4282299e343b77e30ca,
-  "/views/ToastsNavLink#ToastsNavLink": ToastsNavLink_470ab6fef553fc16111542c4a45d5261,
+  "/views/PreviewNavLinks#PreviewNavLinks": PreviewNavLinks_940ce0cf32371d58b5049d99b3508941,
   "@payloadpack/theme/client#NavBar": NavBar_5441c603e82e992293b6f37bceb423a5,
   "@payloadpack/theme/rsc#AppearanceServerProvider": AppearanceServerProvider_518a69ce6606b4282299e343b77e30ca,
   "@payloadcms/ui#FolderIcon": FolderIcon_3817bf644402e67bfe6577f60ef982de,
   "@payloadcms/ui/rsc#HierarchySidebarTabServer": HierarchySidebarTabServer_ab83ff7e88da8d3530831f296ec4756a,
   "@payloadcms/ui#TagIcon": TagIcon_3817bf644402e67bfe6577f60ef982de,
+  "/views/NavIcons#NavIconsView": NavIconsView_140af2916372cde0f63996c17f89974a,
   "/views/Toasts#ToastsView": ToastsView_5b3363adc44275fd098e618e0f3eb18f,
   "@payloadcms/ui/rsc#WelcomeWidget": WelcomeWidget_ab83ff7e88da8d3530831f296ec4756a,
   "@payloadcms/ui/rsc#CollectionCards": CollectionCards_ab83ff7e88da8d3530831f296ec4756a,

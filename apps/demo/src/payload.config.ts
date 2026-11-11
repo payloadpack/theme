@@ -45,8 +45,11 @@ export default buildConfig({
   admin: {
     autoLogin: process.env.NODE_ENV === 'development' ? { ...DEMO_USER, prefillOnly: true } : false,
     components: {
-      afterNavLinks: ['/views/ToastsNavLink#ToastsNavLink'],
-      views: { toasts: { Component: '/views/Toasts#ToastsView', meta: { title: 'Toasts' }, path: '/toasts' } }
+      afterNavLinks: ['/views/PreviewNavLinks#PreviewNavLinks'],
+      views: {
+        navIcons: { Component: '/views/NavIcons#NavIconsView', meta: { title: 'Nav icons' }, path: '/nav-icons' },
+        toasts: { Component: '/views/Toasts#ToastsView', meta: { title: 'Toasts' }, path: '/toasts' }
+      }
     },
     importMap: { baseDir: path.resolve(dirname) },
     user: 'users'
