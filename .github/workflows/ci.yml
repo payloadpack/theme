@@ -65,7 +65,7 @@ jobs:
       - name: Check whether the change can affect e2e
         id: e2e_impact
         if: github.event_name == 'pull_request'
-        run: echo "affected=$(git diff --quiet --no-renames HEAD^1 HEAD -- ':!*.md' ':!*.png' && echo false || echo true)" >> "$GITHUB_OUTPUT"
+        run: echo "affected=$(git -c safe.directory="$GITHUB_WORKSPACE" diff --quiet --no-renames HEAD^1 HEAD -- ':!*.md' ':!*.png' && echo false || echo true)" >> "$GITHUB_OUTPUT"
 
       - name: Setup Node
         uses: actions/setup-node@v4
