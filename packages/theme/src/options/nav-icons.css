@@ -58,6 +58,7 @@
     .nav__link[id*='newsletter' i] { --payloadpack-icon: url('lucide-static/icons/mail.svg'); }
     .nav__link[id*='subscriber' i] { --payloadpack-icon: url('lucide-static/icons/mail-check.svg'); }
     .nav__link[id*='template' i] { --payloadpack-icon: url('lucide-static/icons/layout-template.svg'); }
+    .nav__link[id*='dashboard' i] { --payloadpack-icon: url('lucide-static/icons/layout-dashboard.svg'); }
     .nav__link[id*='contact' i],
     .nav__link[id*='lead' i] { --payloadpack-icon: url('lucide-static/icons/book-user.svg'); }
     .nav__link[id*='inquir' i],
