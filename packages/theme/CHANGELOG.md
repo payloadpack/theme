@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.3.1](https://github.com/payloadpack/theme/compare/v0.3.0...v0.3.1) (2026-11-11)
+
+
+### Bug Fixes
+
+* match nav icons to common plugin slugs ([#53](https://github.com/payloadpack/theme/issues/53)) ([7b6b479](https://github.com/payloadpack/theme/commit/7b6b479ea8ca7991b92aaccaa890c85425c950b2))
+* support Payload 4.0.0-beta.8 ([#52](https://github.com/payloadpack/theme/issues/52)) ([1f27938](https://github.com/payloadpack/theme/commit/1f2793830c6e5e89677e95f9851f6abad932fee2))
+
+
+### Documentation
+
+* add a social preview, sharpen descriptions ([#47](https://github.com/payloadpack/theme/issues/47)) ([e70320e](https://github.com/payloadpack/theme/commit/e70320e27e21f5242cc4e44309d0e8edadfe27d1))
+
 ## [0.3.0](https://github.com/payloadpack/theme/compare/v0.2.4...v0.3.0) (2026-11-08)
 
 
