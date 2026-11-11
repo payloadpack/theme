@@ -39,6 +39,8 @@
     .nav__link[id*='news' i] { --payloadpack-icon: url('lucide-static/icons/newspaper.svg'); }
     .nav__link[id*='faq' i] { --payloadpack-icon: url('lucide-static/icons/circle-question-mark.svg'); }
     .nav__link[id*='testimonial' i] { --payloadpack-icon: url('lucide-static/icons/quote.svg'); }
+    .nav__link[id*='image' i],
+    .nav__link[id*='photo' i] { --payloadpack-icon: url('lucide-static/icons/file-image.svg'); }
     .nav__link[id*='galler' i] { --payloadpack-icon: url('lucide-static/icons/images.svg'); }
     .nav__link[id*='video' i] { --payloadpack-icon: url('lucide-static/icons/video.svg'); }
     .nav__link[id*='podcast' i],
