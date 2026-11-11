@@ -30,9 +30,9 @@
     .nav__link[id*='shipping' i],
     .nav__link[id*='shipment' i] { --payloadpack-icon: url('lucide-static/icons/truck.svg'); }
     .nav__link[id*='store' i] { --payloadpack-icon: url('lucide-static/icons/store.svg'); }
-    .nav__link[id*='wishlist' i],
+    .nav__link[id*='wishlist' i] { --payloadpack-icon: url('lucide-static/icons/file-heart.svg'); }
     .nav__link[id*='favorit' i],
-    .nav__link[id*='favourit' i] { --payloadpack-icon: url('lucide-static/icons/heart.svg'); }
+    .nav__link[id*='favourit' i] { --payloadpack-icon: url('lucide-static/icons/star.svg'); }
     .nav__link[id*='currenc' i] { --payloadpack-icon: url('lucide-static/icons/coins.svg'); }
     .nav__link[id*='author' i] { --payloadpack-icon: url('lucide-static/icons/user-pen.svg'); }
     .nav__link[id*='article' i],
