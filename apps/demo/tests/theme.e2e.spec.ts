@@ -1006,6 +1006,15 @@ test.describe('Theme values', () => {
     await expect(page.getByRole('link', { name: 'Toasts' })).toHaveAttribute('aria-current', 'page')
   })
 
+  test('the nav icons preview shows each match word with the icon its slug gets', async ({ page }) => {
+    await page.goto('/admin/nav-icons')
+
+    await expect(page.getByRole('link', { name: 'Nav icons' })).toHaveAttribute('aria-current', 'page')
+    await expect(page.locator('#nav-icons-address')).toHaveText('address')
+    expect(await computedStyleValue(page, '#nav-icons-address', '--payloadpack-icon')).toContain('map-pin-house')
+    expect(await computedStyleValue(page, '#nav-icons-budget-ticket', '--payloadpack-icon')).toContain('ticket')
+  })
+
   for (const character of ['enhanced', 'studio']) {
     test(`${character} widens the nav and lines it up on one gutter, with the group chevron inside its ring`, async ({
       page

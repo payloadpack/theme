@@ -35,3 +35,8 @@
   display: grid;
   gap: var(--spacer-3);
 }
+
+.nav-icons-overview {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+}

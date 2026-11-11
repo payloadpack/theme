@@ -3,7 +3,7 @@ title: Nav icons
 description: Every collection and global gets an icon, matched from its slug.
 ---
 
-With Icons set to Lucide, and always in the rail, every collection and global in the nav gets an icon. A slug containing `page`, `post`, `media`, `user`, `product`, `order`, `form`, `event` or [more than 30 other words](https://github.com/payloadpack/theme/blob/main/packages/theme/src/options/nav-icons.css) gets a matching one. Anything else gets a generic icon.
+With Icons set to Lucide, and always in the rail, every collection and global in the nav gets an icon. A slug containing `page`, `post`, `media`, `user`, `product`, `order`, `form`, `event` or [more than 170 other words](https://github.com/payloadpack/theme/blob/main/packages/theme/src/options/nav-icons.css) gets a matching one. Anything else gets a generic icon.
 
 ## Choose an icon
 
