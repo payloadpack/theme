@@ -164,7 +164,7 @@ Every token, and how to ship your own palette, is in the [customize docs](https:
 
 ## Requirements
 
-Payload 4.0.0-beta.7+, Next.js 16.4.2+ and React 19, in Safari 17, Chrome 114 or Firefox 128 and later.
+Payload 4.0.0-beta.8+, Next.js 16.4.2+ and React 19, in Safari 17, Chrome 114 or Firefox 128 and later.
 
 ## License
 

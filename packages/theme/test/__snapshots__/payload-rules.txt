@@ -647,12 +647,12 @@ html[data-enhanced-contrast] .nav-group__toggle .nav-group__indicator { opacity:
 .query-preset-bar__popup-content .popup-button-list__button.query-preset-bar__delete:hover { color: var(--color-text-danger); background-color: var(--color-bg-danger-tertiary); }
 
 == @payloadcms/ui/elements/QueryPresets/fields/Heading/index.css
-.field-type.row.query-preset-controls-row { margin-top: var(--spacer-4); .row__fields { align-items: center; column-gap: var(--spacer-2); flex-wrap: nowrap; } }
+.field-type.row.query-preset-controls-row { margin-top: var(--spacer-4); }
 .field-type.row.query-preset-controls-row .row__fields { align-items: center; column-gap: var(--spacer-2); flex-wrap: nowrap; }
 .field-type.row.query-preset-controls-row .row__fields &:has(> *:nth-child(2)) { margin-inline: 0; }
-.field-type.row.query-preset-controls-row .row__fields &:has(> *:nth-child(2)) > * { flex: 0 0 auto; margin-inline: 0; max-width: fit-content; }
+.field-type.row.query-preset-controls-row .row__fields > *:not(:only-child) { flex: 0 0 auto; margin-inline: 0; max-width: fit-content; }
 .field-type.row.query-preset-controls-row .row__fields @media (max-width: 1024px) { flex-direction: row; }
-.field-type.row.query-preset-controls-row .row__fields:has(> *:nth-child(2)) > .query-preset-heading { margin-block: 0; margin-inline-end: auto; }
+.field-type.row.query-preset-controls-row .row__fields > .query-preset-heading:not(:only-child) { margin-block: 0; margin-inline-end: auto; }
 
 == @payloadcms/ui/elements/QueryPresets/fields/fields.css
 .query-preset-columns-field, .query-preset-group-by-field, .query-preset-where-field .field-label { margin-bottom: var(--spacer-2); }
@@ -1006,11 +1006,11 @@ label.field-label:not(.unstyled), .field-label--with-control:not(.unstyled) html
 .relationship.error > .relationship__wrap .rs__control &:hover { border-color: var(--field-color-border-error); }
 
 == @payloadcms/ui/fields/Row/index.css
-.field-type.row { --row-gap: var(--spacer-3); .row__fields { --spacing-field: 0; display: flex; flex-wrap: wrap; row-gap: var(--row-gap); } @media (max-width: 1024px) { } }
+.field-type.row { --row-gap: var(--spacer-3); @media (max-width: 1024px) { } }
 .field-type.row .row__fields { --spacing-field: 0; display: flex; flex-wrap: wrap; row-gap: var(--row-gap); }
 .field-type.row .row__fields > * { flex: 0 1 var(--field-width); min-width: 0; display: flex; flex-direction: column; justify-content: flex-start; }
 .field-type.row .row__fields &:has(> *:nth-child(2)) { margin-inline: calc(var(--row-gap) / -2); }
-.field-type.row .row__fields &:has(> *:nth-child(2)) > * { flex: 0 1 calc(var(--field-width) - var(--row-gap)); margin-inline: calc(var(--row-gap) / 2); }
+.field-type.row .row__fields > *:not(:only-child) { flex: 0 1 calc(var(--field-width) - var(--row-gap)); margin-inline: calc(var(--row-gap) / 2); }
 .field-type.row @media (max-width: 1024px) .row__fields { flex-direction: column; margin-left: 0; margin-right: 0; width: 100%; }
 .field-type.row @media (max-width: 1024px) .row__fields > * { margin-left: 0; margin-right: 0; width: 100% !important; padding-left: 0; padding-right: 0; }
 

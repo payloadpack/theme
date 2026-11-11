@@ -43,7 +43,7 @@ cd apps/docs && bun run dev
 
 Run all three after bumping Payload. A failing contract test names the token, class or hard-coded value that changed.
 
-The approved screenshots are Linux images rendered in CI's Playwright container, and the CI visual job is the gate. On macOS, the first `bun run test:visual` records git-ignored `-darwin` images and fails on them; later runs compare against those, so refresh them with `bun run test:visual --update-snapshots=changed` after an intended change. On other platforms, rely on CI and the label below. It uses the same port as `test:e2e`, so run the two one after the other. To accept an intended visual change in a pull request, add the `update-visuals` label: CI renders the screenshots again, commits them to the branch, and the pull request shows each changed image.
+The approved screenshots are Linux images rendered in CI's Playwright container. `bun run test:visual` runs that same container in Docker as `linux/amd64`, so it needs Docker running and compares against exactly what CI does. The first run fills a few `payloadpack-visual-*` Docker volumes with Linux dependencies; later runs reuse them. It shares the e2e database with `test:e2e`, so run the two one after the other. To accept an intended visual change in a pull request, add the `update-visuals` label: CI renders the screenshots again, commits them to the branch, and the pull request shows each changed image.
 
 ## Images
 

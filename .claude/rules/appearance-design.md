@@ -211,7 +211,7 @@ The Warm palette mixes its field, nav and card surfaces from the accent into Pay
 
 ## What each setting drives
 
-From Payload 4.0.0-beta.7's CSS:
+From Payload 4.0.0-beta.8's CSS:
 
 - `primary`: `--color-bg-brand`, its hover and pressed shades, the `onbrand` text and icon colors, `--color-bg-selected-strong*` and the focus ring, in `palette.css`.
 - `accent`: every other brand token (`--color-bg-brand-secondary`, `--color-bg-brand-tertiary*`, `--color-border-brand`, `--color-text-brand`) reads one of Payload's 11 `--ramp-blue-*` and `--ramp-pale-blue-*` steps, declared once on `:root`. `palette.css` points the selection borders (`--color-border-selected*`, `--color-border-brand-strong`) and the marks drawn with `--color-icon-brand`, such as the active tab's underline, at the primary instead.
