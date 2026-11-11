@@ -138,7 +138,7 @@
     .nav__link[id*='ratelimit' i],
     .nav__link[id*='rate-limit' i] { --payloadpack-icon: url('lucide-static/icons/gauge.svg'); }
     .nav__link[id*='wallet' i] { --payloadpack-icon: url('lucide-static/icons/wallet.svg'); }
-    .nav__link[id*='review' i] { --payloadpack-icon: url('lucide-static/icons/star.svg'); }
+    .nav__link[id*='review' i] { --payloadpack-icon: url('lucide-static/icons/circle-dashed-check.svg'); }
     .nav__link[id*='search' i] { --payloadpack-icon: url('lucide-static/icons/search.svg'); }
     .nav__link[id*='tag' i] { --payloadpack-icon: url('lucide-static/icons/tags.svg'); }
     .nav__link[id*='analytics' i] { --payloadpack-icon: url('lucide-static/icons/bar-chart.svg'); }
