@@ -16,10 +16,6 @@ concurrency:
   group: payloadpack-screenshots
   cancel-in-progress: true
 
-env:
-  NODE_VERSION: '24.15.0'
-  BUN_VERSION: '1.4.4'
-
 jobs:
   screenshots:
     runs-on: macos-latest
@@ -30,12 +26,12 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: .nvmrc
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: ${{ env.BUN_VERSION }}
+          bun-version-file: package.json
 
       - name: Install dependencies (frozen lockfile)
         run: bun install --frozen-lockfile

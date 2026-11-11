@@ -6,11 +6,30 @@ on:
   push:
     branches: [main]
 
-env:
-  NODE_VERSION: '24.15.0'
-  BUN_VERSION: '1.4.4'
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      e2e: ${{ steps.diff.outputs.e2e }}
+      visual: ${{ steps.diff.outputs.visual }}
+    steps:
+      - name: Checkout
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check which test suites the change can affect
+        id: diff
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "e2e=$(git diff --quiet --no-renames HEAD^1 HEAD -- ':!*.md' ':!*.png' && echo false || echo true)" >> "$GITHUB_OUTPUT"
+          echo "visual=$(git diff --quiet --no-renames HEAD^1 HEAD -- ':!*.md' && echo false || echo true)" >> "$GITHUB_OUTPUT"
+
   unit-tests-and-typecheck:
     runs-on: ubuntu-latest
     steps:
@@ -20,12 +39,12 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: .nvmrc
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: ${{ env.BUN_VERSION }}
+          bun-version-file: package.json
 
       - name: Install dependencies (frozen lockfile)
         run: bun install --frozen-lockfile
@@ -48,6 +67,8 @@ jobs:
 
   e2e:
     name: e2e (${{ matrix.shard }}/${{ strategy.job-total }})
+    needs: changes
+    if: needs.changes.outputs.e2e != 'false'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -59,21 +80,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
-
-      - name: Check whether the change can affect e2e
-        id: e2e_impact
-        if: github.event_name == 'pull_request'
-        run: echo "affected=$(git -c safe.directory="$GITHUB_WORKSPACE" diff --quiet --no-renames HEAD^1 HEAD -- ':!*.md' ':!*.png' && echo false || echo true)" >> "$GITHUB_OUTPUT"
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: .nvmrc
 
       - name: Install Bun
-        run: npm install --global bun@${{ env.BUN_VERSION }}
+        run: npm install --global "$(node -p "require('./package.json').packageManager")"
 
       - name: Install dependencies (frozen lockfile)
         run: bun install --frozen-lockfile
@@ -83,7 +97,6 @@ jobs:
         working-directory: packages/theme
 
       - name: End-to-end tests
-        if: steps.e2e_impact.outputs.affected != 'false'
         run: bun run test:e2e --shard=${{ matrix.shard }}/${{ strategy.job-total }}
         working-directory: apps/demo
         env:
@@ -98,6 +111,8 @@ jobs:
 
   visual:
     name: visual (${{ matrix.shard }}/${{ strategy.job-total }})
+    needs: changes
+    if: needs.changes.outputs.visual != 'false'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -113,10 +128,10 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: .nvmrc
 
       - name: Install Bun
-        run: npm install --global bun@${{ env.BUN_VERSION }}
+        run: npm install --global "$(node -p "require('./package.json').packageManager")"
 
       - name: Install dependencies (frozen lockfile)
         run: bun install --frozen-lockfile
@@ -140,7 +155,7 @@ jobs:
 
   validate:
     if: always()
-    needs: [unit-tests-and-typecheck, e2e, visual]
+    needs: [changes, unit-tests-and-typecheck, e2e, visual]
     runs-on: ubuntu-latest
     steps:
       - name: Fail when a job did not pass
