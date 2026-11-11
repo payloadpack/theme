@@ -53,6 +53,9 @@ jobs:
       fail-fast: false
       matrix:
         shard: [1, 2, 3, 4]
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
+      options: --ipc=host
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -69,10 +72,8 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: ${{ env.BUN_VERSION }}
+      - name: Install Bun
+        run: npm install --global bun@${{ env.BUN_VERSION }}
 
       - name: Install dependencies (frozen lockfile)
         run: bun install --frozen-lockfile
@@ -80,11 +81,6 @@ jobs:
       - name: Build package
         run: bun run build
         working-directory: packages/theme
-
-      - name: Install Playwright browser
-        if: steps.e2e_impact.outputs.affected != 'false'
-        run: bunx playwright install --with-deps chromium
-        working-directory: apps/demo
 
       - name: End-to-end tests
         if: steps.e2e_impact.outputs.affected != 'false'
@@ -119,13 +115,8 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: Install unzip for the Bun installer
-        run: apt-get update && apt-get install --yes --no-install-recommends unzip
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: ${{ env.BUN_VERSION }}
+      - name: Install Bun
+        run: npm install --global bun@${{ env.BUN_VERSION }}
 
       - name: Install dependencies (frozen lockfile)
         run: bun install --frozen-lockfile
