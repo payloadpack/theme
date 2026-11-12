@@ -213,6 +213,16 @@ const SIGNED_IN_VIEWS: View[] = [
           await clickButton('Schedule Publish')(page)
           await page.getByRole('dialog').waitFor()
         }
+      },
+      {
+        name: 'tags-picker',
+        open: async (page) => {
+          await page.locator('.hierarchy-field__browse-button').click()
+          await page
+            .locator('.hierarchy-modal')
+            .getByText(/^Showing \d+ of \d+$/)
+            .waitFor()
+        }
       }
     ],
     path: '/admin/collections/posts/1'

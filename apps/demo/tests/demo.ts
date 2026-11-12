@@ -115,7 +115,7 @@ export const fillShowcaseChoiceFields = async (page: Page) => {
 }
 
 const LOADING_PLACEHOLDERS =
-  '.shimmer-effect, .loading-overlay:not(.loading-overlay--exiting), .monaco-editor:not(:has(.view-line))'
+  '.shimmer-effect, .loading-overlay:not(.loading-overlay--exiting), .monaco-editor:not(:has(.view-line)), .hierarchy-column__loading, .hierarchy-column-browser__column-wrapper--loading'
 
 type MonacoOnWindow = {
   editor: {

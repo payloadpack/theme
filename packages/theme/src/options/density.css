@@ -363,7 +363,7 @@
       line-height: var(--text-body-large-line-height);
     }
 
-    .dialog__body {
+    .dialog:not(.hierarchy-modal) .dialog__body {
       padding: var(--spacer-4);
     }
 

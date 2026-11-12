@@ -174,7 +174,7 @@ src/characters/enhanced/config.ts   defaults
 src/characters/enhanced/enhanced.css
 src/characters/studio/config.ts
 src/characters/studio/studio.css     the nav's layout: the collapse button's corner, the user menu at the bottom and its initial in the rail
-src/characters/shared.css           what Enhanced and Studio share: the 2px focus ring, the sidebar tabs, the 288px nav on a 12px gutter, inset group dividers, the nav group chevron and the checkbox cells' icons
+src/characters/shared.css           what Enhanced and Studio share: the 2px focus ring, the sidebar tabs, the 288px nav on a 12px gutter, inset group dividers, the nav group chevron, the checkbox cells' icons, the create-first-user form without Payload's empty field gap, Back to login 8px under Submit as on the login page and hierarchy row names lined up with their heading when a row has no icon
 src/palettes/index.ts               the names of the built-in palettes
 src/palettes/palette.css            derives Payload's colors from each palette's base colors, and what every palette but Payload's shares: focus ring, fields, toggles, date picker, toasts and the slash menu's scrollbar
 src/palettes/neutral.css
