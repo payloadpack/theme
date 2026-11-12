@@ -3175,6 +3175,23 @@ test.describe('Soft palette', () => {
       await expect(page.locator('.rs__menu')).toHaveCSS('background-color', menu)
     }
   })
+
+  test('marks the chosen select option with a check, so only the hovered one fills in light and dark', async ({ page }) => {
+    for (const theme of ['light', 'dark'] as const) {
+      await saveAppearancePreference(page.request, { palette: 'soft' })
+      await page.context().addCookies([demoCookie('theme', theme)])
+      await page.goto((await findShowcase(page)).path)
+      await waitForHydration(page)
+      await page.locator('.field-type.select .rs__control').first().click()
+      const hovered = page.locator('.rs__option:not(.rs__option--is-selected)').last()
+      await hovered.hover()
+      await expect(hovered).toHaveClass(/rs__option--is-focused/)
+      await expect(hovered).not.toHaveCSS('background-color', await computedStyleValue(page, '.rs__menu', 'background-color'))
+      await expect(page.locator('.rs__option--is-selected')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
+      expect(await computedStyleValue(page, '.rs__option--is-selected', 'mask-image', '::after')).toContain('svg')
+      expect(await computedStyleValue(page, '.rs__option--is-selected', 'display', '::after')).toBe('block')
+    }
+  })
 })
 
 test.describe('Checkbox cells', () => {

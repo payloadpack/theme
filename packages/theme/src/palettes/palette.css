@@ -464,6 +464,7 @@
     /* 12. Popovers */
     & {
       --color-bg-menu: var(--payloadpack-bg-popover, var(--color-bg-elevated));
+      --payloadpack-menu-item-hover: color-mix(in oklab, var(--color-text) var(--payloadpack-hover-step), var(--color-bg-menu));
     }
 
     .popup__content {
@@ -510,8 +511,35 @@
 
     .popup-button-list,
     .timezone-picker__menu {
-      --popup-item-bg-hover: color-mix(in oklab, var(--color-text) var(--payloadpack-hover-step), var(--color-bg-menu));
+      --popup-item-bg-hover: var(--payloadpack-menu-item-hover);
       --popup-item-color-hover: var(--color-text);
+    }
+
+    .rs__option--is-focused {
+      --color-bg-secondary: var(--payloadpack-menu-item-hover);
+    }
+
+    .rs__option--is-selected:not(.timezone-picker__menu *) {
+      --color-bg-selected: transparent;
+
+      position: relative;
+      padding-inline-end: calc(var(--spacer-3) + 1rem + var(--spacer-2));
+
+      &.rs__option--is-focused {
+        --color-bg-selected: var(--payloadpack-menu-item-hover);
+      }
+
+      &::after {
+        content: '';
+        position: absolute;
+        inset-block: 0;
+        inset-inline-end: var(--spacer-3);
+        width: 1rem;
+        height: 1rem;
+        margin-block: auto;
+        background-color: currentColor;
+        mask: url('lucide-static/icons/check.svg') center / contain no-repeat;
+      }
     }
 
     .popup-button-list__submenu-trigger {
