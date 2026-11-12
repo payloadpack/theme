@@ -430,7 +430,7 @@
     }
 
     .toast-error {
-      --payloadpack-toast-icon: var(--payloadpack-status-error, oklch(0.577 0.245 27.325));
+      --payloadpack-toast-icon: var(--color-icon-danger);
       --color-bg-danger: var(--color-bg-elevated);
       --color-bg-danger-hover: var(--color-bg-hover);
       --color-bg-danger-pressed: var(--color-bg-pressed);
@@ -448,10 +448,6 @@
 
       .toast-warning {
         --payloadpack-toast-icon: var(--payloadpack-status-warning, oklch(0.828 0.189 84.429));
-      }
-
-      .toast-error {
-        --payloadpack-toast-icon: var(--payloadpack-status-error, oklch(0.704 0.191 22.216));
       }
     }
 
@@ -563,7 +559,29 @@
       }
     }
 
-    /* 14. Selection */
+    /* 14. Errors */
+    & {
+      --color-text-danger: var(--payloadpack-status-error, oklch(0.577 0.245 27.325));
+      --color-icon-danger: var(--color-text-danger);
+      --color-bg-danger: oklch(from var(--color-text-danger) min(l, 0.58) c h);
+      --color-bg-danger-hover: color-mix(in oklab, var(--color-bg-danger) 90%, black);
+      --color-bg-danger-pressed: color-mix(in oklab, var(--color-bg-danger) 80%, black);
+      --color-border-danger-strong: var(--color-bg-danger);
+      --color-bg-danger-tertiary: color-mix(in oklab, var(--color-text-danger) 15%, var(--payloadpack-bg-surface));
+      --color-bg-danger-tertiary-hover: color-mix(in oklab, var(--color-text-danger) 30%, var(--payloadpack-bg-surface));
+      --color-bg-danger-tertiary-pressed: color-mix(in oklab, var(--color-text-danger) 40%, var(--payloadpack-bg-surface));
+      --color-border-danger: var(--color-bg-danger-tertiary-hover);
+      --color-text-ondanger: white;
+    }
+
+    &[data-theme='dark'] {
+      --color-text-danger: var(--payloadpack-status-error, oklch(0.704 0.191 22.216));
+      --color-bg-danger-tertiary: color-mix(in oklab, var(--color-text-danger) 27%, var(--payloadpack-bg-surface));
+      --color-bg-danger-tertiary-hover: color-mix(in oklab, var(--color-text-danger) 57%, var(--payloadpack-bg-surface));
+      --color-bg-danger-tertiary-pressed: color-mix(in oklab, var(--color-text-danger) 80%, var(--payloadpack-bg-surface));
+    }
+
+    /* 15. Selection */
     & {
       --color-bg-selected: var(--payloadpack-bg-selected, var(--color-bg-tertiary));
       --color-bg-selected-hover: var(--color-bg-selected);
@@ -572,17 +590,19 @@
       --color-icon-selected: var(--color-icon);
     }
 
-    /* 15. Without relative colors */
+    /* 16. Without relative colors */
     @supports not (color: oklch(from red l c h)) {
       &:not([data-theme='dark']),
       &[data-theme='dark'] {
         --accessibility-focus-color: var(--payloadpack-focus-ring, var(--color-bg-brand));
         --field-color-border-focus: var(--color-bg-brand);
         --color-text-onbrand: var(--payloadpack-action-primary-text, white);
+        --color-bg-danger: var(--color-text-danger);
       }
 
       &[data-theme='dark'] {
         --color-text-onbrand: var(--payloadpack-action-primary-text, black);
+        --color-bg-danger: color-mix(in oklab, var(--color-text-danger) 82%, black);
       }
     }
   }

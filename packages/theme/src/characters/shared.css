@@ -34,6 +34,10 @@
     }
 
     /* 3. Nav */
+    & {
+      --payloadpack-nav-inset: calc(var(--spacer-2-5) + var(--spacer-2));
+    }
+
     @media (min-width: 769px) {
       --nav-width: 18rem;
 
@@ -64,7 +68,7 @@
     .nav__link,
     .nav-group__toggle,
     .sidebar-row-wrapper > .sidebar-row {
-      padding-inline: calc(var(--spacer-2-5) + var(--spacer-2));
+      padding-inline: var(--payloadpack-nav-inset);
 
       &::before {
         inset-inline: var(--spacer-2-5);
@@ -72,7 +76,7 @@
     }
 
     .nav-group__indicator {
-      inset-inline: auto calc(var(--spacer-2-5) + var(--spacer-2));
+      inset-inline: auto var(--payloadpack-nav-inset);
       transform: none;
     }
 
@@ -149,6 +153,19 @@
     /* 8. Hierarchy tables */
     .hierarchy-tables__name-cell > .hierarchy-tables__name-link > .hierarchy-tables__name-icon:empty {
       margin-inline-start: calc(var(--spacer-2-5) - var(--spacer-1));
+    }
+
+    /* 9. Buttons with an empty icon */
+    .btn__icon:empty {
+      display: none;
+    }
+
+    .btn--size-medium:not(.btn--icon-only):has(> .btn__content > .btn__icon:empty) {
+      padding-inline: var(--spacer-2);
+    }
+
+    .btn--size-large:not(.btn--icon-only):has(> .btn__content > .btn__icon:empty) {
+      padding-inline: var(--spacer-3);
     }
   }
 }

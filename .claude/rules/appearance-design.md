@@ -133,7 +133,7 @@ Theme is Payload's own light/dark preference: the panel calls `useTheme().setThe
 
 ## The rail
 
-With `nav: 'rail'`, a collapsed nav becomes a 64px rail of icons instead of disappearing.
+With `nav: 'rail'`, a collapsed nav becomes a 56px rail of icons instead of disappearing, as wide as the open nav's icon column with its inset on both sides, so no icon moves sideways when the nav collapses.
 
 - Our own collapse button replaces Payload's `.nav__close`. Payload's nav stays open as far as Payload knows; the rail is our attribute shrinking `--nav-width`. Payload's real closed state makes the nav `inert`, so it cannot be styled into a rail.
 - The collapsed state lives in its own small cookie, so Reset does not expand the nav, and the server renders it with no flash.
@@ -174,9 +174,9 @@ src/characters/enhanced/config.ts   defaults
 src/characters/enhanced/enhanced.css
 src/characters/studio/config.ts
 src/characters/studio/studio.css     the nav's layout: the collapse button's corner, the user menu at the bottom and its initial in the rail
-src/characters/shared.css           what Enhanced and Studio share: the 2px focus ring, the sidebar tabs, the 288px nav on a 12px gutter, inset group dividers, the nav group chevron, the checkbox cells' icons, the create-first-user form without Payload's empty field gap, Back to login 8px under Submit as on the login page and hierarchy row names lined up with their heading when a row has no icon
+src/characters/shared.css           what Enhanced and Studio share: the 2px focus ring, the sidebar tabs, the 288px nav on a 12px gutter, inset group dividers, the nav group chevron, the checkbox cells' icons, the create-first-user form without Payload's empty field gap, Back to login 8px under Submit as on the login page, hierarchy row names lined up with their heading when a row has no icon and even padding on a button whose icon renders nothing
 src/palettes/index.ts               the names of the built-in palettes
-src/palettes/palette.css            derives Payload's colors from each palette's base colors, and what every palette but Payload's shares: focus ring, fields, toggles, date picker, toasts and the slash menu's scrollbar
+src/palettes/palette.css            derives Payload's colors from each palette's base colors, and what every palette but Payload's shares: focus ring, fields, toggles, date picker, toasts, error reds and the slash menu's scrollbar
 src/palettes/neutral.css
 src/palettes/warm.css
 src/palettes/soft.css
@@ -222,6 +222,7 @@ From Payload 4.0.0-beta.8's CSS:
   - Payload's blue info backgrounds and presence badges take the accent too.
   - A palette without an accent keeps Payload's exact ramp. A palette that sets `#0d99ff` gets mixed shades instead.
   - No component hard-codes a blue.
+- `status-error`: every danger token, so a field's error border, its tooltip, the required asterisk, danger buttons, error pills and the toast icon share one red, in `palette.css`. Text and icons take the palette's red. Fills and the error border take it capped at lightness 0.58, so white text on them stays readable in dark mode, where no one red holds 4.5:1 both for white text on it and for red text on the surface. The pale tints mix it into the surface, giving back the lightness of Payload's own tint steps. Without the token the red falls back to the toast icon's old red per mode. The Payload palette keeps Payload's reds.
 - `radius`: `--radius-small`, `--radius-medium`, `--radius-large`, `--button-radius`, `--field-border-radius`, `--popup-radius` and `--popup-item-radius`. Components pick a tier directly, so the option sets the tiers. Menus and toasts take `--popup-radius`, the menu item's corner plus up to 4px, instead of Payload's card tier. `full` sets `--button-radius` and `--field-border-radius` to half the control height rather than 9999px: controls still draw as pills, and taller boxes that read the same token, such as collapsibles and the focus ring, keep plain corners.
 - `font`: `--font-body`, the body font Payload reads, and the two body tokens Payload's dashboard widgets read, `--text-body-medium-font-family` and `--text-body-large-strong-font-family`, so `--font-family-sans` and the panel keep Inter. Geist ships in the package as a variable woff2 under the SIL Open Font License, declared with `@font-face` in `styles/index.css` as `payloadpack-geist`, so builds need no network and the browser downloads it only when an editor uses it. Until it loads, text sets in `payloadpack-geist-fallback`, Arial, or Arimo or Liberation Sans where Arial is missing, resized to Geist's metrics with the values `next/font` computes, so nothing shifts when Geist arrives.
 - `density`: what `density.css` already does.
@@ -230,6 +231,7 @@ From Payload 4.0.0-beta.8's CSS:
   - the tooltip's fade, now 150ms in and 100ms out
   - the focus ring's ease on every field, checkboxes, radios and switches included, a card's shadow, a checkbox's or switch's fill as it is ticked, and the switch's 200ms slide. Colors never fade: text, backgrounds and borders change at once on hover and when the theme switches between light and dark, react-select's own fade included. With motion off none of them animate.
   - new in this theme: popups and select menus fade in, sliding 8px from their trigger when they open above or below, and scale back out on close. Select menus also scale up from 95%; popups open at full size, because Payload measures a popup while it opens to place it, and a scaled one would land too low and overlap its trigger. Submenus fade in without a slide, because Payload flips them to the other side without saying so. Payload 3 never animated them. Modals stay still. The date picker opens at once: react-datepicker unmounts it on close, so only its opening could animate, and floating-ui moves it with a `transform` that a scale would pull toward the page's top-left corner.
+  - new in this theme: the Appearance button slides from beside the nav toggle to below it as the nav closes to the rail, and back, on the panel's duration and curve. It moves by margin, because a row turning into a column can't animate.
   - new in this theme: a nav group's chevron turns. Its links open and close at once, because Payload unmounts a closed group's links and an animation on open alone looks half done.
   - Timing is fixed per kind of component, never measured: popovers, menus and tooltips take 150ms in and 100ms out on a strong ease-out, `cubic-bezier(0.23, 1, 0.32, 1)`; the Appearance sheet takes 300ms in on an iOS-style drawer curve, `cubic-bezier(0.32, 0.72, 0, 1)`, and 200ms out; the nav group chevron takes 200ms. Menu items and nav links switch at once on hover, icon included.
 

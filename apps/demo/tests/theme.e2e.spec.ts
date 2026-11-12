@@ -669,6 +669,19 @@ test.describe('Appearance panel', () => {
 })
 
 test.describe('Theme values', () => {
+  test("pads a button evenly when its icon renders nothing, and keeps Payload's padding beside an icon", async ({ page }) => {
+    const { docs } = await (await page.request.get('/api/tags?limit=1&depth=0')).json()
+    await page.goto(`/admin/collections/tags/${docs[0].id}`)
+    const button = page.locator('.hierarchy-button')
+    await expect(button).toHaveCSS('padding-inline-start', '4px')
+    await expect(button).toHaveCSS('padding-inline-end', '8px')
+
+    await button.locator('.btn__icon').evaluate((icon) => icon.replaceChildren())
+    await expect(button).toHaveCSS('padding-inline-start', '8px')
+    await expect(button).toHaveCSS('padding-inline-end', '8px')
+    await expect(button.locator('.btn__icon')).toBeHidden()
+  })
+
   test('gives join tables the list rows in comfortable density and leaves them condensed in compact', async ({ page }) => {
     await saveAppearancePreference(page.request, { options: { enhanced: { density: 'comfortable' } } })
     const { docs } = await (await page.request.get('/api/categories?where[name][equals]=Community&limit=1&depth=0')).json()
@@ -1287,6 +1300,59 @@ test.describe('Motion', () => {
     await expect(page.locator('html')).not.toHaveAttribute('data-rail')
   })
 
+  for (const [character, besideToggle] of [
+    ['studio', 36],
+    ['enhanced', -36]
+  ] as const) {
+    test(`slides ${character}'s Appearance button below the nav toggle and back without jumping`, async ({ page }) => {
+      await page.route('**/api/payload-preferences/nav*', (route) =>
+        route.request().method() === 'POST' ? route.fulfill({ json: {} }) : route.fallback()
+      )
+      await saveAppearancePreference(page.request, { character })
+      await page.goto('/admin')
+      await waitForHydration(page)
+      await page.addStyleTag({ content: 'html { --payloadpack-motion-panel-duration: 1s; }' })
+      const slide = () =>
+        page.evaluate(async () => {
+          const toggle = document.querySelector<HTMLElement>('.payloadpack-nav-toggle')!
+          const toggleIcon = toggle.querySelector('.sidebar-toggle')!
+          const button = document.querySelector('.payloadpack-nav-bar > .payloadpack-appearance-panel--nav')!
+          const offsetFrom = (anchor: Element, element: Element) => {
+            const [anchorBox, elementBox] = [anchor.getBoundingClientRect(), element.getBoundingClientRect()]
+            return { x: elementBox.x - anchorBox.x, y: elementBox.y - anchorBox.y }
+          }
+          const frames = [{ button: offsetFrom(toggleIcon, button), toggleIcon: offsetFrom(toggle, toggleIcon) }]
+          toggle.click()
+          const end = performance.now() + 1300
+          while (performance.now() < end) {
+            await new Promise(requestAnimationFrame)
+            frames.push({ button: offsetFrom(toggleIcon, button), toggleIcon: offsetFrom(toggle, toggleIcon) })
+          }
+          const largestStep = (part: 'button' | 'toggleIcon') =>
+            Math.max(
+              ...frames
+                .slice(1)
+                .map((frame, index) =>
+                  Math.max(Math.abs(frame[part].x - frames[index][part].x), Math.abs(frame[part].y - frames[index][part].y))
+                )
+            )
+          return { buttonStep: largestStep('button'), settled: frames.at(-1)!.button, toggleIconStep: largestStep('toggleIcon') }
+        })
+
+      const collapse = await slide()
+      await expect(page.locator('html')).toHaveAttribute('data-rail', '')
+      expect(collapse.buttonStep).toBeLessThanOrEqual(6)
+      expect(collapse.toggleIconStep).toBe(0)
+      expect(collapse.settled).toEqual({ x: 0, y: 36 })
+
+      const expand = await slide()
+      await expect(page.locator('html')).not.toHaveAttribute('data-rail')
+      expect(expand.buttonStep).toBeLessThanOrEqual(6)
+      expect(expand.toggleIconStep).toBe(0)
+      expect(expand.settled).toEqual({ x: besideToggle, y: 0 })
+    })
+  }
+
   const openDrawer = async (page: Page) => {
     const transitions = await recordTransitions(page, ['drawer__blur-bg', 'drawer__content'])
     await openShowcase(page)
@@ -1738,6 +1804,46 @@ test.describe('Every palette but Payload', () => {
           expect(hoveredChroma).toBeLessThan(0.02)
           expect(colors.color).toBe(colors.text)
           expect(colors.icon).toBe('1')
+        })
+
+        test(`a field error draws its border, tooltip and caret in one red with readable text, in ${theme} mode`, async ({
+          page
+        }) => {
+          await page.context().addCookies([demoCookie('theme', theme)])
+          await page.goto((await findShowcase(page)).path)
+          await waitForHydration(page)
+          await page.locator('#field-title').fill('')
+          await page.getByRole('button', { name: 'Publish changes' }).click()
+          const tooltip = page.locator('.field-error.tooltip')
+          await expect(tooltip).toBeVisible()
+
+          const border = await computedStyleValue(page, '#field-title', 'border-top-color')
+          await expect(tooltip).toHaveCSS('background-color', border)
+          await expect(tooltip.locator('.tooltip__caret-fill')).toHaveCSS('fill', border)
+          const textContrast = await tooltip.evaluate((element) => {
+            const context = document.createElement('canvas').getContext('2d')!
+            const paint = (color: string) => {
+              context.fillStyle = color
+              context.fillRect(0, 0, 1, 1)
+              return [...context.getImageData(0, 0, 1, 1).data.slice(0, 3)]
+            }
+            const luminance = (rgb: number[]) =>
+              rgb
+                .map((channel) => channel / 255)
+                .map((channel) => (channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4))
+                .reduce((sum, channel, index) => sum + channel * [0.2126, 0.7152, 0.0722][index], 0)
+            const style = getComputedStyle(element)
+            const [text, ground] = [luminance(paint(style.color)), luminance(paint(style.backgroundColor))]
+            return (Math.max(text, ground) + 0.05) / (Math.min(text, ground) + 0.05)
+          })
+          expect(textContrast).toBeGreaterThanOrEqual(4.5)
+
+          if (palette === 'soft') {
+            await expect(page.locator('.field-type.text').filter({ hasText: 'Title' }).locator('.required')).toHaveCSS(
+              'color',
+              theme === 'dark' ? 'rgb(243, 97, 87)' : 'rgb(224, 55, 58)'
+            )
+          }
         })
       }
 
@@ -2341,13 +2447,13 @@ test.describe('Rail', () => {
     })
   }
 
-  test('collapses the nav into a 64px rail of Lucide icons without labels', async ({ page }) => {
+  test('collapses the nav into a 56px rail of Lucide icons without labels', async ({ page }) => {
     await saveAppearancePreference(page.request, { options: { enhanced: { icons: 'payload' } } })
     await page.goto('/admin')
     await page.getByRole('button', { name: 'Hide sidebar' }).click()
 
     await expect(page.getByRole('button', { name: 'Show sidebar' })).toHaveAttribute('aria-expanded', 'false')
-    await expect.poll(() => navWidth(page)).toBe(64)
+    await expect.poll(() => navWidth(page)).toBe(56)
     await expect(page.locator('.nav-group__toggle').first()).toBeHidden()
     await expect(page.locator('.nav__header .user-menu')).toBeHidden()
     for (const link of await page.locator('.nav__link').all()) {
@@ -2377,7 +2483,7 @@ test.describe('Rail', () => {
   test('never scrolls the rail sideways', async ({ page }) => {
     await page.goto('/admin')
     await page.getByRole('button', { name: 'Hide sidebar' }).click()
-    await expect.poll(() => navWidth(page)).toBe(64)
+    await expect.poll(() => navWidth(page)).toBe(56)
 
     const scroller = page.locator('.nav__scroll')
     const box = (await scroller.boundingBox())!
@@ -2422,12 +2528,12 @@ test.describe('Rail', () => {
 
     await page.route(NEXT_SCRIPTS_GLOB, (route) => route.abort())
     await page.reload()
-    expect(await navWidth(page)).toBe(64)
+    expect(await navWidth(page)).toBe(56)
 
     await page.unroute(NEXT_SCRIPTS_GLOB)
     await page.reload()
     await expect(page.getByRole('button', { name: 'Show sidebar' })).toBeVisible()
-    expect(await navWidth(page)).toBe(64)
+    expect(await navWidth(page)).toBe(56)
   })
 
   for (const palette of ['payload', 'neutral', 'warm', 'soft'] as const) {
@@ -2522,7 +2628,7 @@ test.describe('Rail', () => {
     await page.goto('/admin')
     await page.getByRole('button', { name: 'Previews' }).click()
     await page.getByRole('button', { name: 'Hide sidebar' }).click()
-    await expect.poll(() => navWidth(page)).toBe(64)
+    await expect.poll(() => navWidth(page)).toBe(56)
 
     const group = page.getByRole('button', { name: 'Previews' })
     await group.hover()
@@ -2636,17 +2742,17 @@ test.describe('Studio character', () => {
         async (selector) => (await page.locator(selector).boundingBox())!
       )
     )
-    expect(nav.width).toBe(64)
-    expect(card.x).toBe(65)
-    expect(await page.evaluate(() => document.elementFromPoint(64.5, 400)?.closest('.nav'))).toBeNull()
+    expect(nav.width).toBe(56)
+    expect(card.x).toBe(57)
+    expect(await page.evaluate(() => document.elementFromPoint(56.5, 400)?.closest('.nav'))).toBeNull()
     expect(open.x + open.width / 2).toBe(28)
-    expect(rail.x + rail.width / 2).toBe(32)
+    expect(rail.x + rail.width / 2).toBe(28)
     expect(rail.y).toBe(open.y)
     expect((await page.locator('#nav-showcase').boundingBox())!.y).toBeGreaterThan(rail.y + rail.height)
     const avatar = page.locator('.user-menu__trigger')
     const circle = (await avatar.boundingBox())!
     expect(circle).toMatchObject({ height: 32, width: 32 })
-    expect(circle.x + circle.width / 2).toBe(32)
+    expect(circle.x + circle.width / 2).toBe(28)
     const letter = await avatar.locator('.btn__label').evaluate((element) => {
       const range = document.createRange()
       range.setStart(element.firstChild!, 0)

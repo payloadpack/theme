@@ -58,8 +58,11 @@
 
         .payloadpack-nav-bar {
           inset-inline-end: calc(100% - (var(--payloadpack-rail-width) + var(--spacer-5)) / 2);
-          flex-direction: column;
           padding: 0;
+        }
+
+        .payloadpack-nav-bar > .payloadpack-appearance-panel--nav {
+          margin-inline: 0 calc(-1 * (var(--spacer-5) + var(--spacer-1)));
         }
       }
     }
