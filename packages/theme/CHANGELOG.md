@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.2](https://github.com/payloadpack/theme/compare/v0.3.1...v0.3.2) (2026-11-12)
+
+
+### Bug Fixes
+
+* tidy hierarchy and auth form spacing ([#55](https://github.com/payloadpack/theme/issues/55)) ([cd27b18](https://github.com/payloadpack/theme/commit/cd27b189f34bc6c52f58c8b9d2fd46432c1859c2))
+
 ## [0.3.1](https://github.com/payloadpack/theme/compare/v0.3.0...v0.3.1) (2026-11-11)
 
 
