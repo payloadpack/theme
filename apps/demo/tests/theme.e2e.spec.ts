@@ -1880,9 +1880,15 @@ test.describe('Every palette but Payload', () => {
           page
         }) => {
           await page.context().addCookies([demoCookie('theme', theme)])
-          await page.goto((await findShowcase(page)).path)
+          const { path } = await findShowcase(page)
+          await page.goto(path)
           await waitForHydration(page)
-          await page.locator('#field-title').fill('')
+          await Promise.all([
+            page.waitForResponse(
+              (response) => new URL(response.url()).pathname === path && response.request().method() === 'POST'
+            ),
+            page.locator('#field-title').fill('')
+          ])
           await page.getByRole('button', { name: 'Publish changes' }).click()
           const tooltip = page.locator('.field-error.tooltip')
           await expect(tooltip).toBeVisible()
