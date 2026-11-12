@@ -521,9 +521,11 @@
 
     .rs__option--is-selected:not(.timezone-picker__menu *) {
       --color-bg-selected: transparent;
+      --payloadpack-select-check-size: 1rem;
+      --payloadpack-select-check-inset: var(--spacer-3);
 
       position: relative;
-      padding-inline-end: calc(var(--spacer-3) + 1rem + var(--spacer-2));
+      padding-inline-end: calc(var(--payloadpack-select-check-inset) + var(--payloadpack-select-check-size) + var(--spacer-2));
 
       &.rs__option--is-focused {
         --color-bg-selected: var(--payloadpack-menu-item-hover);
@@ -533,9 +535,9 @@
         content: '';
         position: absolute;
         inset-block: 0;
-        inset-inline-end: var(--spacer-3);
-        width: 1rem;
-        height: 1rem;
+        inset-inline-end: var(--payloadpack-select-check-inset);
+        width: var(--payloadpack-select-check-size);
+        height: var(--payloadpack-select-check-size);
         margin-block: auto;
         background-color: currentColor;
         mask: url('lucide-static/icons/check.svg') center / contain no-repeat;
