@@ -127,6 +127,7 @@
 
     svg.icon--chevron[width='24'] { --payloadpack-icon-size: 1.125rem; }
     .collapsible__indicator svg.icon--chevron { --payloadpack-icon-size: 1rem; }
+    .document-card__thumbnail--empty svg.icon--document { --payloadpack-icon-size: 1.625rem; }
     .sidebar-tabs__tab svg.icon--align-justified { --payloadpack-icon: url('lucide-static/icons/layers-2.svg'); }
 
     .checkbox-input__check,
