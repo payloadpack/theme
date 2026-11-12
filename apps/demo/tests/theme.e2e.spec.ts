@@ -3175,22 +3175,39 @@ test.describe('Soft palette', () => {
       await expect(page.locator('.rs__menu')).toHaveCSS('background-color', menu)
     }
   })
+})
 
-  test('marks the chosen select option with a check, so only the hovered one fills in light and dark', async ({ page }) => {
-    for (const theme of ['light', 'dark'] as const) {
-      await saveAppearancePreference(page.request, { palette: 'soft' })
-      await page.context().addCookies([demoCookie('theme', theme)])
-      await page.goto((await findShowcase(page)).path)
-      await waitForHydration(page)
-      await page.locator('.field-type.select .rs__control').first().click()
-      const hovered = page.locator('.rs__option:not(.rs__option--is-selected)').last()
-      await hovered.hover()
-      await expect(hovered).toHaveClass(/rs__option--is-focused/)
-      await expect(hovered).not.toHaveCSS('background-color', await computedStyleValue(page, '.rs__menu', 'background-color'))
-      await expect(page.locator('.rs__option--is-selected')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
-      expect(await computedStyleValue(page, '.rs__option--is-selected', 'mask-image', '::after')).toContain('svg')
-      expect(await computedStyleValue(page, '.rs__option--is-selected', 'display', '::after')).toBe('block')
+test.describe('Select lists', () => {
+  const openSelectAndHoverAnotherOption = async (page: Page) => {
+    await page.goto((await findShowcase(page)).path)
+    await waitForHydration(page)
+    await page.locator('.field-type.select .rs__control').first().click()
+    const hovered = page.locator('.rs__option:not(.rs__option--is-selected)').last()
+    await hovered.hover()
+    await expect(hovered).toHaveClass(/rs__option--is-focused/)
+    return hovered
+  }
+
+  test('mark the chosen option with a check, so only the hovered one fills in light and dark', async ({ page }) => {
+    for (const palette of ['neutral', 'soft'] as const) {
+      for (const theme of ['light', 'dark'] as const) {
+        await saveAppearancePreference(page.request, { palette })
+        await page.context().addCookies([demoCookie('theme', theme)])
+        const hovered = await openSelectAndHoverAnotherOption(page)
+        await expect(hovered).not.toHaveCSS('background-color', await computedStyleValue(page, '.rs__menu', 'background-color'))
+        await expect(page.locator('.rs__option--is-selected')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
+        expect(await computedStyleValue(page, '.rs__option--is-selected', 'mask-image', '::after')).toContain('svg')
+        expect(await computedStyleValue(page, '.rs__option--is-selected', 'display', '::after')).toBe('block')
+      }
     }
+  })
+
+  test("keep Payload's fill and no check on the Payload palette", async ({ page }) => {
+    await saveAppearancePreference(page.request, { palette: 'payload' })
+    await page.context().addCookies([demoCookie('theme', 'light')])
+    await openSelectAndHoverAnotherOption(page)
+    await expect(page.locator('.rs__option--is-selected')).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
+    expect(await computedStyleValue(page, '.rs__option--is-selected', 'content', '::after')).toBe('none')
   })
 })
 
