@@ -1,6 +1,6 @@
 {
   "name": "@payloadpack/theme",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Custom admin UI theme for Payload v4. Three styles and four palettes, in light and dark.",
   "keywords": [
     "payload",
