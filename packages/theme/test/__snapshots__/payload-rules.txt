@@ -1223,7 +1223,12 @@ form > .form-submit .btn { width: 100%; }
 @container edit-main (min-width: 1024px) .template-default__wrap:has(.collection-edit__main-wrapper--scroll-fields-only) { height: 100dvh; overflow: hidden; }
 
 == @payloadcms/ui/views/ForgotPassword/ForgotPasswordForm/index.css
+.forgot-password__form { display: flex; flex-direction: column; gap: var(--spacer-5); width: 100%; }
+.forgot-password__form .form-header { margin-bottom: 0; }
 .forgot-password__form__submit.btn--style-primary.btn--disabled:not(.btn--loading) { border: var(--stroke-width-small) solid var(--color-border); color: var(--color-text); background-color: var(--color-bg-secondary); }
+
+== @payloadcms/ui/views/ForgotPassword/index.css
+.forgot-password__back { display: flex; gap: var(--spacer-1); align-items: center; justify-content: center; min-height: var(--spacer-4); margin-top: var(--spacer-2); padding: 0 var(--spacer-2); color: var(--color-text-brand); }
 
 == @payloadcms/ui/views/HierarchyList/HierarchyTable/index.css
 .hierarchy-tables__name-cell { display: flex; align-items: center; gap: var(--spacer-1); min-width: 0; }

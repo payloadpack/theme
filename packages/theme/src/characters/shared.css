@@ -137,9 +137,13 @@
       inset: -7px;
     }
 
-    /* 7. Create first user */
+    /* 7. Auth forms */
     .create-first-user__form__inputWrap > .render-fields:not(:has(> :not([type='hidden']))) {
       display: none;
+    }
+
+    .forgot-password__form > .forgot-password__back {
+      margin-top: calc(var(--spacer-2) - var(--spacer-5));
     }
 
     /* 8. Hierarchy tables */
