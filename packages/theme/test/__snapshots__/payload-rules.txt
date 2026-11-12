@@ -187,6 +187,9 @@ html[data-theme='dark'] @media (max-width: 768px) .rich-text-lexical &.error > .
 == @payloadcms/ui/elements/BulkUpload/ActionsBar/index.css
 .bulk-upload--actions-bar__controls .btn { padding: 0; }
 
+== @payloadcms/ui/elements/BulkUpload/AddingFilesView/index.css
+.dialog.bulk-upload--file-manager { height: min(720px, var(--dialog-max-height)); }
+
 == @payloadcms/ui/elements/BulkUpload/EditMany/index.css
 .edit-many-bulk-uploads__header__actions .btn { margin: 0; }
 
@@ -371,6 +374,8 @@ html[data-enhanced-contrast] .column-selector__search-bar { outline: var(--strok
 .dialog-title { flex: 1 0 0; min-width: 0; margin: 0; font-weight: var(--text-body-medium-bold-font-weight); letter-spacing: var(--text-body-medium-letter-spacing); }
 
 == @payloadcms/ui/elements/Dialog/index.css
+dialog:has(> .dialog) { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: var(--color-modalbackdrop); }
+.dialog { --dialog-max-height: calc(100dvh - var(--spacer-5)); position: relative; display: flex; flex-direction: column; max-height: var(--dialog-max-height); width: var(--dialog-width); max-width: calc(100vw - var(--spacer-5)); background: var(--color-bg); border-radius: var(--radius-large); overflow: clip; font-size: var(--text-body-medium-font-size); font-weight: var(--text-body-medium-font-weight); line-height: var(--text-body-medium-line-height); letter-spacing: var(--text-body-medium-letter-spacing); color: var(--color-text); box-shadow: var(--elevation-500-modal-window); }
 .dialog--small { --dialog-width: 280px; }
 .dialog__header { display: flex; align-items: center; gap: var(--spacer-2); min-height: var(--spacer-6); padding: var(--spacer-2) var(--spacer-3); border-bottom: var(--stroke-width-small) solid var(--color-border); flex-shrink: 0; }
 .dialog__header--has-close { padding-inline-end: var(--spacer-2); }
@@ -397,6 +402,10 @@ html[data-enhanced-contrast] .column-selector__search-bar { outline: var(--strok
 == @payloadcms/ui/elements/DocumentFields/RequiredFieldsInfo/index.css
 .document-fields__edit:has(> .required-fields-info):dir(ltr) > .document-fields__fields > .field-type:first-child .field-error.tooltip--caret-right { translate: max(calc(-1 * var(--spacer-5)), calc(var(--spacer-1) - var(--tooltip-x))) 0; }
 .document-fields__edit:has(> .required-fields-info):dir(rtl) > .document-fields__fields > .field-type:first-child .field-error.tooltip--caret-left { translate: min(var(--spacer-5), calc(100vw - var(--tooltip-x) - 100% - var(--spacer-1))) 0; }
+
+== @payloadcms/ui/elements/DocumentFields/index.css
+.document-fields--has-sidebar:has( .document-fields__sidebar-wrap .document-fields__sidebar-fields > .render-fields:empty ) { --main-width: 100%; --main-border: none; --main-field-margin: initial; }
+.document-fields__sidebar-wrap:has(.document-fields__sidebar-fields > .render-fields:empty) { --sidebar-wrap-width: 0; --sidebar-wrap-min-width: 0; --sidebar-wrap-position: initial; --sidebar-wrap-top: initial; --sidebar-wrap-height: initial; --sidebar-wrap-flex-shrink: initial; display: none; }
 
 == @payloadcms/ui/elements/DocumentHeader/Tabs/Tab/index.css
 .doc-tab:hover .pill-version-count { background-color: var(--color-bg-tertiary); color: var(--color-text); }
@@ -456,6 +465,7 @@ html[data-enhanced-contrast] .column-selector__search-bar { outline: var(--strok
 .hierarchy-field .field-label { display: flex; font-size: var(--text-body-large-font-size); font-weight: var(--text-body-large-font-weight); line-height: var(--text-body-large-line-height); letter-spacing: var(--text-body-large-letter-spacing); margin: unset; }
 
 == @payloadcms/ui/elements/Hierarchy/Modal/index.css
+.dialog.hierarchy-modal { width: min(900px, calc(100vw - var(--spacer-6))); height: min(700px, calc(100vh - var(--spacer-6))); max-width: calc(100vw - var(--spacer-6)); }
 .dialog.hierarchy-modal .dialog__body { display: flex; flex-direction: column; padding: 0; }
 
 == @payloadcms/ui/elements/Hierarchy/Search/index.css
@@ -1070,6 +1080,7 @@ label.field-label:not(.unstyled), .field-label--with-control:not(.unstyled) html
 
 == @payloadcms/ui/forms/RenderFields/index.css
 .field-type { display: flex; flex-direction: column; gap: var(--spacer-2); flex-grow: 1; }
+.render-fields { --spacing-field: var(--spacer-4); & > .field-type { margin-bottom: var(--spacing-field); position: relative; } }
 .render-fields & > .field-type { margin-bottom: var(--spacing-field); position: relative; }
 .render-fields & > .field-type &[type='hidden'] { margin-bottom: 0; }
 .render-fields & > .field-type &:first-child { margin-top: 0; }
@@ -1080,6 +1091,7 @@ label.field-label:not(.unstyled), .field-label--with-control:not(.unstyled) html
 .render-fields & > .field-type &.group-field &:first-child { margin-top: 0; }
 .render-fields & > .field-type &.group-field &:last-of-type { margin-bottom: 0; }
 .render-fields & > .field-type &.group-field--within-group { margin-top: var(--spacing-field); }
+@media (max-width: 768px) .render-fields { --spacing-field: var(--spacer-2-5); }
 
 == @payloadcms/ui/forms/Submit/index.css
 form > .form-submit .btn { width: 100%; }
@@ -1178,6 +1190,7 @@ form > .form-submit .btn { width: 100%; }
 .query-inspector__results .code-editor.read-only { background: var(--color-bg-secondary); border: 0; border-radius: 0; }
 
 == @payloadcms/ui/views/CreateFirstUser/index.css
+.create-first-user__form__inputWrap { display: flex; flex-direction: column; gap: var(--spacer-3); }
 .create-first-user__form__actions .form-submit .btn { width: 100%; height: var(--spacer-4); justify-content: center; }
 
 == @payloadcms/ui/views/Dashboard/Default/ModularDashboard/index.css
@@ -1211,6 +1224,11 @@ form > .form-submit .btn { width: 100%; }
 
 == @payloadcms/ui/views/ForgotPassword/ForgotPasswordForm/index.css
 .forgot-password__form__submit.btn--style-primary.btn--disabled:not(.btn--loading) { border: var(--stroke-width-small) solid var(--color-border); color: var(--color-text); background-color: var(--color-bg-secondary); }
+
+== @payloadcms/ui/views/HierarchyList/HierarchyTable/index.css
+.hierarchy-tables__name-cell { display: flex; align-items: center; gap: var(--spacer-1); min-width: 0; }
+.hierarchy-tables__name-link { display: flex; align-items: center; gap: var(--spacer-1); min-width: 0; }
+.hierarchy-tables__name-icon { display: flex; flex-shrink: 0; }
 
 == @payloadcms/ui/views/HierarchyList/index.css
 .hierarchy-list .list-header a { text-decoration: none; }

@@ -136,5 +136,15 @@
     :is(.select-row, .select-all) .checkbox-input__control::before {
       inset: -7px;
     }
+
+    /* 7. Create first user */
+    .create-first-user__form__inputWrap > .render-fields:not(:has(> :not([type='hidden']))) {
+      display: none;
+    }
+
+    /* 8. Hierarchy tables */
+    .hierarchy-tables__name-cell > .hierarchy-tables__name-link > .hierarchy-tables__name-icon:empty {
+      margin-inline-start: calc(var(--spacer-2-5) - var(--spacer-1));
+    }
   }
 }
