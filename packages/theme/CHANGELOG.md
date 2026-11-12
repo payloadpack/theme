@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.3](https://github.com/payloadpack/theme/compare/v0.3.2...v0.3.3) (2026-11-12)
+
+
+### Bug Fixes
+
+* make document cards react as a whole ([#58](https://github.com/payloadpack/theme/issues/58)) ([2303c9b](https://github.com/payloadpack/theme/commit/2303c9beef72fd42761308b56b1e9c39aca165bc))
+* one error red, a steady rail and even buttons ([#57](https://github.com/payloadpack/theme/issues/57)) ([646d1dd](https://github.com/payloadpack/theme/commit/646d1dd0011e67f1467c3c3789edbd38034f055d))
+
 ## [0.3.2](https://github.com/payloadpack/theme/compare/v0.3.1...v0.3.2) (2026-11-12)
 
 
