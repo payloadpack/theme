@@ -35,7 +35,7 @@
     /* 2. Rail */
     @media (min-width: 769px) {
       &[data-rail] {
-        --payloadpack-rail-width: 4rem;
+        --payloadpack-rail-width: calc(2 * var(--payloadpack-nav-inset) + 1rem);
 
         .template-default {
           grid-template-columns: var(--payloadpack-rail-width) auto;

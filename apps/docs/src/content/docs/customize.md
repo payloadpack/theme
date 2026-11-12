@@ -7,7 +7,7 @@ The theme's CSS sits in `@layer payload`, so your own admin stylesheet overrides
 
 ## Token sheet
 
-Every palette except Payload's is drawn from these tokens. A palette sets at least the background, surface, text and primary for light, and the first three again for dark, usually with an accent. The rest follow from them until you set them too. Danger, success and warning stay Payload's red, green and yellow, apart from the toast icons.
+Every palette except Payload's is drawn from these tokens. A palette sets at least the background, surface, text and primary for light, and the first three again for dark, usually with an accent. The rest follow from them until you set them too. Errors take the error status color: field errors, the required mark, danger buttons and the error toast's icon. Success and warning stay Payload's green and yellow, apart from the toast icons.
 
 | Token                                 | Controls                                                                                            |
 | ------------------------------------- | --------------------------------------------------------------------------------------------------- |
@@ -29,7 +29,7 @@ Every palette except Payload's is drawn from these tokens. A palette sets at lea
 | `--payloadpack-status-success`        | Success toast icon                                                                                  |
 | `--payloadpack-status-info`           | Info toast icon                                                                                     |
 | `--payloadpack-status-warning`        | Warning toast icon                                                                                  |
-| `--payloadpack-status-error`          | Error toast icon                                                                                    |
+| `--payloadpack-status-error`          | Field errors and their tooltips, the required mark, danger buttons and the error toast icon         |
 | `--payloadpack-elevation-card`        | The active sidebar tab, the panel's segments and previews, the selected nav link and Studio's frame |
 | `--payloadpack-elevation-selected`    | The selected nav link, the card shadow by default; `none` with a selected fill is flat              |
 | `--payloadpack-elevation-popover`     | Menus, select lists, drawers, the list's sticky header and Enhanced's toasts                        |

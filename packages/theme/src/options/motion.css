@@ -169,6 +169,7 @@
       .nav__header,
       .nav__close,
       .payloadpack-nav-bar,
+      .payloadpack-nav-bar > .payloadpack-appearance-panel--nav,
       .user-menu,
       .nav__link,
       .nav-group__toggle {
@@ -179,6 +180,7 @@
       .nav__header,
       .nav__close,
       .payloadpack-nav-bar,
+      .payloadpack-nav-bar > .payloadpack-appearance-panel--nav,
       .nav__link {
         transition-property: margin, padding, inset;
       }

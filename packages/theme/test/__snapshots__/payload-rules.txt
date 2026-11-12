@@ -230,6 +230,7 @@ html[data-theme='dark'] @media (max-width: 768px) .rich-text-lexical &.error > .
 .btn--size-large { height: var(--spacer-5, 2rem); padding: 0 var(--spacer-3); }
 .btn--size-large &:not(.btn--icon-only).btn--icon-position-left { padding-inline-start: var(--spacer-2); }
 .btn--size-large &:not(.btn--icon-only).btn--icon-position-right { padding-inline-end: var(--spacer-2); }
+.btn--icon-only { aspect-ratio: 1; padding: 0; border-width: 0; justify-content: center; }
 .btn--round { aspect-ratio: 1; padding: 0; border-radius: var(--button-radius); justify-content: center; }
 .btn--round &.btn--size-medium { width: var(--spacer-4); }
 .btn--round &.btn--size-large { width: var(--spacer-5); }
