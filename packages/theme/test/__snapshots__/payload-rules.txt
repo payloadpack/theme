@@ -184,6 +184,9 @@ html[data-theme='dark'] @media (max-width: 768px) .rich-text-lexical &.error > .
 .app-header__sidebar-toggle &:focus-visible { outline: none; border-color: var(--color-border-selected); }
 .app-header--nav-open:not(.app-header--embedded) .app-header__sidebar-toggle { display: none; }
 
+== @payloadcms/ui/elements/ArrayAction/index.css
+.array-actions__button.popup-button--active, .array-actions__button.popup-button--active:hover, .array-actions__button.popup-button--active:active { background: var(--color-bg-selected); color: var(--color-icon-selected); }
+
 == @payloadcms/ui/elements/BulkUpload/ActionsBar/index.css
 .bulk-upload--actions-bar__controls .btn { padding: 0; }
 
@@ -289,6 +292,9 @@ html[data-theme='dark'] @media (max-width: 768px) .rich-text-lexical &.error > .
 .chip--size-medium { height: var(--spacer-4); padding: 0 var(--spacer-2); }
 .chip--size-medium &:has(.chip__remove) { padding-inline-end: 0; }
 .chip--size-medium &:has(.chip__icon) { padding-inline-start: 0; }
+
+== @payloadcms/ui/elements/ClipboardAction/index.css
+.clipboard-action__button.popup-button--active, .clipboard-action__button.popup-button--active:hover, .clipboard-action__button.popup-button--active:active { background: var(--color-bg-selected); color: var(--color-icon-selected); }
 
 == @payloadcms/ui/elements/CodeEditor/index.css
 .code-editor { direction: ltr; width: 100%; contain: inline-size; height: auto; padding: var(--spacer-2) 0; -webkit-appearance: none; background: var(--field-color-bg); border: var(--stroke-width-small) solid var(--field-color-border); border-radius: var(--field-border-radius); box-shadow: none; font-family: var(--font-mono); font-size: var(--text-body); color: var(--color-text-default-primary); .monaco-editor { } }
@@ -399,6 +405,7 @@ dialog:has(> .dialog) { position: fixed; inset: 0; display: flex; align-items: c
 .doc-controls__meta { flex-grow: 1; display: flex; flex-direction: column; list-style: none; padding: 0; color: var(--color-text); gap: 0; margin: 0; width: auto; overflow: visible; }
 .doc-controls__meta button { margin: 0; }
 .doc-controls__popup { position: relative; }
+.doc-controls__popup-button.popup-button--active, .doc-controls__popup-button.popup-button--active:hover, .doc-controls__popup-button.popup-button--active:active { background: var(--color-bg-selected); color: var(--color-icon-selected); }
 .doc-controls .popup__trigger-wrap { display: flex; }
 .doc-controls__meta:has(.autosave) .doc-controls__value-wrap { display: none; }
 @media (width > 768px) .doc-controls__meta { flex-direction: row; width: 100%; gap: var(--spacer-2); overflow: hidden; }

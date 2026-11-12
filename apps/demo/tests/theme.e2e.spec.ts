@@ -694,14 +694,62 @@ test.describe('Theme values', () => {
     const card = page.locator('.document-card').first()
     const thumbnail = card.locator('.document-card__thumbnail--empty')
     await expect(card).toHaveCSS('cursor', 'pointer')
+    await expect(thumbnail.locator('svg.icon--document')).toHaveCSS('mask-size', 'min(100%, 26px) auto')
+
+    const mixHalfStepOfTextOver = (background: string, step: string) =>
+      computedColor(page, `color-mix(in oklab, var(--color-text) calc(var(${step}) / 2), var(${background}))`)
 
     await card.hover()
-    await expect(card).toHaveCSS('background-color', await computedColor(page, 'var(--color-bg-hover)'))
-    await expect(thumbnail).toHaveCSS('background-color', await computedColor(page, 'var(--color-bg-secondary-hover)'))
+    await expect(card).toHaveCSS('background-color', await mixHalfStepOfTextOver('--color-bg', '--payloadpack-hover-step'))
+    await expect(thumbnail).toHaveCSS(
+      'background-color',
+      await mixHalfStepOfTextOver('--color-bg-secondary', '--payloadpack-hover-step')
+    )
 
-    await thumbnail.click()
+    await thumbnail.hover()
+    await page.mouse.down()
+    await expect(card).toHaveCSS('background-color', await mixHalfStepOfTextOver('--color-bg', '--payloadpack-pressed-step'))
+    await expect(thumbnail).toHaveCSS(
+      'background-color',
+      await mixHalfStepOfTextOver('--color-bg-secondary', '--payloadpack-pressed-step')
+    )
+
+    await page.mouse.up()
     await expect(card).toHaveAttribute('aria-pressed', 'true')
     await expect(card).toHaveCSS('border-top-color', await computedColor(page, 'var(--color-border-selected)'))
+  })
+
+  test('presses a secondary button one step past its hover in dark mode and keeps the scrollbar color', async ({ page }) => {
+    await saveAppearancePreference(page.request, { character: 'studio', palette: 'neutral' })
+    await page.context().addCookies([demoCookie('theme', 'dark')])
+    await page.goto('/admin/collections/pages')
+    await waitForHydration(page)
+    const filters = page.getByRole('button', { name: 'Filters' })
+
+    await filters.hover()
+    await page.mouse.down()
+
+    await expect(filters).toHaveCSS(
+      'background-color',
+      await computedColor(
+        page,
+        'color-mix(in oklab, var(--payloadpack-text-primary) calc(var(--payloadpack-pressed-step) - var(--payloadpack-hover-step)), var(--color-bg-secondary-hover))'
+      )
+    )
+    expect(await computedColor(page, 'var(--scrollbar-color)')).toBe(await computedColor(page, 'var(--ramp-grey-500)'))
+    await page.mouse.up()
+  })
+
+  test('keeps an open popup button pressed while the pointer is still on it', async ({ page }) => {
+    await saveAppearancePreference(page.request, { character: 'studio', palette: 'warm' })
+    await page.goto('/admin/collections/pages')
+    await waitForHydration(page)
+    const trigger = page.locator('.list-controls__popup .popup-button')
+
+    await trigger.click()
+
+    await expect(trigger).toHaveAttribute('aria-expanded', 'true')
+    await expect(trigger).toHaveCSS('background-color', await computedColor(page, 'var(--color-bg-transparent-pressed)'))
   })
 
   test('gives join tables the list rows in comfortable density and leaves them condensed in compact', async ({ page }) => {

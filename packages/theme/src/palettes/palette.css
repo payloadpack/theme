@@ -73,6 +73,12 @@
       );
       --ramp-grey-800: var(--payloadpack-bg-surface);
       --ramp-grey-900: var(--payloadpack-bg-app);
+      --color-bg-secondary-pressed: color-mix(
+        in oklab,
+        var(--payloadpack-text-primary) calc(var(--payloadpack-pressed-step) - var(--payloadpack-hover-step)),
+        var(--color-bg-secondary-hover)
+      );
+      --scrollbar-color: var(--ramp-grey-500);
       --ramp-white-100: color-mix(in srgb, var(--payloadpack-text-primary) 5%, transparent);
       --ramp-white-200: color-mix(in srgb, var(--payloadpack-text-primary) 10%, transparent);
       --ramp-white-300: color-mix(in srgb, var(--payloadpack-text-primary) 20%, transparent);
@@ -592,18 +598,35 @@
 
     /* 16. Document cards */
     .document-card:is([role='button'], .document-card--link):hover {
-      background-color: var(--color-bg-hover);
+      background-color: color-mix(in oklab, var(--color-text) calc(var(--payloadpack-hover-step) / 2), var(--color-bg));
 
       .document-card__thumbnail--empty {
-        background-color: var(--color-bg-secondary-hover);
+        background-color: color-mix(
+          in oklab,
+          var(--color-text) calc(var(--payloadpack-hover-step) / 2),
+          var(--color-bg-secondary)
+        );
       }
     }
 
-    .document-card:is([role='button'], .document-card--link):active .document-card__thumbnail--empty {
-      background-color: var(--color-bg-secondary-pressed);
+    .document-card:is([role='button'], .document-card--link):active {
+      background-color: color-mix(in oklab, var(--color-text) calc(var(--payloadpack-pressed-step) / 2), var(--color-bg));
+
+      .document-card__thumbnail--empty {
+        background-color: color-mix(
+          in oklab,
+          var(--color-text) calc(var(--payloadpack-pressed-step) / 2),
+          var(--color-bg-secondary)
+        );
+      }
     }
 
-    /* 17. Without relative colors */
+    /* 17. Open popup buttons */
+    .popup-button--active {
+      --color-bg-transparent-hover: var(--color-bg-transparent-pressed);
+    }
+
+    /* 18. Without relative colors */
     @supports not (color: oklch(from red l c h)) {
       &:not([data-theme='dark']),
       &[data-theme='dark'] {
