@@ -386,7 +386,13 @@ dialog:has(> .dialog) { position: fixed; inset: 0; display: flex; align-items: c
 .dialog__footer { display: flex; justify-content: flex-end; gap: var(--spacer-2); padding-block: var(--spacer-2); padding-inline-start: var(--spacer-3); padding-inline-end: var(--spacer-2); border-block-start: var(--stroke-width-small) solid var(--color-border); flex-shrink: 0; }
 
 == @payloadcms/ui/elements/DocumentCard/index.css
+.document-card { position: relative; overflow: hidden; border: var(--stroke-width-small) solid var(--color-border); border-radius: var(--radius-large); background: var(--color-bg); }
+.document-card__thumbnail--empty { min-height: 120px; display: flex; align-items: center; justify-content: center; }
+.document-card__thumbnail--empty svg { width: var(--spacer-6); height: var(--spacer-6); }
 .document-card__thumbnail--empty .icon--document { color: var(--color-text-tertiary); }
+.document-card--link .document-card__title::after { position: absolute; content: ''; inset: 0; }
+.document-card--link .document-card__metadata :is(a, button, input, select, textarea, [tabindex]) { position: relative; z-index: 1; }
+.document-card:focus-visible { border-radius: var(--radius-large); box-shadow: 0 0 0 var(--stroke-width-small) var(--accessibility-focus-color); }
 
 == @payloadcms/ui/elements/DocumentControls/index.css
 .doc-controls { position: sticky; width: 100%; top: 0; display: flex; justify-content: space-between; z-index: var(--z-nav); gap: var(--spacer-2); padding: var(--spacer-2-5) var(--gutter-h); border-bottom: var(--stroke-width-small) solid var(--color-border); background-color: var(--color-bg); }
@@ -1263,6 +1269,13 @@ form > .form-submit .btn { width: 100%; }
 .activity-widget__select-documents { height: auto; min-block-size: var(--spacer-4); max-inline-size: 100%; }
 .activity-widget__select-documents .btn__label { white-space: normal; overflow-wrap: anywhere; }
 .activity-widget__select-documents[aria-disabled='true'] { cursor: progress; }
+
+== @payloadcms/ui/widgets/Activity/Tabs/PinnedDocuments/index.css
+.activity-widget .document-card .document-card__metadata .activity-widget__pin { position: absolute; }
+
+== @payloadcms/ui/widgets/Activity/components/DocumentList/index.css
+.activity-widget .document-card { min-block-size: var(--activity-row-height); }
+@container (min-width: 800px) .activity-widget .document-card { display: flex; flex-direction: column; block-size: var(--activity-row-height); }
 
 == @payloadcms/ui/widgets/Activity/index.css
 .card.widget-card.activity-widget { container-type: inline-size; gap: var(--spacer-3); height: auto; max-height: none; overflow: visible; padding: 0; border: 0; border-radius: 0; background: var(--color-bg); }

@@ -682,6 +682,28 @@ test.describe('Theme values', () => {
     await expect(button.locator('.btn__icon')).toBeHidden()
   })
 
+  test('makes a whole document card react: a pointer, a hover in the palette and a selected border on a click', async ({
+    page
+  }) => {
+    await saveAppearancePreference(page.request, { character: 'studio', palette: 'warm' })
+    await expect(
+      await page.request.post('/api/payload-preferences/collection-pages', { data: { value: { documentLayout: 'grid' } } })
+    ).toBeOK()
+    await page.goto('/admin/collections/pages')
+    await waitForHydration(page)
+    const card = page.locator('.document-card').first()
+    const thumbnail = card.locator('.document-card__thumbnail--empty')
+    await expect(card).toHaveCSS('cursor', 'pointer')
+
+    await card.hover()
+    await expect(card).toHaveCSS('background-color', await computedColor(page, 'var(--color-bg-hover)'))
+    await expect(thumbnail).toHaveCSS('background-color', await computedColor(page, 'var(--color-bg-secondary-hover)'))
+
+    await thumbnail.click()
+    await expect(card).toHaveAttribute('aria-pressed', 'true')
+    await expect(card).toHaveCSS('border-top-color', await computedColor(page, 'var(--color-border-selected)'))
+  })
+
   test('gives join tables the list rows in comfortable density and leaves them condensed in compact', async ({ page }) => {
     await saveAppearancePreference(page.request, { options: { enhanced: { density: 'comfortable' } } })
     const { docs } = await (await page.request.get('/api/categories?where[name][equals]=Community&limit=1&depth=0')).json()

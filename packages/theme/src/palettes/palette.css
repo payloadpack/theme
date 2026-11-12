@@ -590,7 +590,20 @@
       --color-icon-selected: var(--color-icon);
     }
 
-    /* 16. Without relative colors */
+    /* 16. Document cards */
+    .document-card:is([role='button'], .document-card--link):hover {
+      background-color: var(--color-bg-hover);
+
+      .document-card__thumbnail--empty {
+        background-color: var(--color-bg-secondary-hover);
+      }
+    }
+
+    .document-card:is([role='button'], .document-card--link):active .document-card__thumbnail--empty {
+      background-color: var(--color-bg-secondary-pressed);
+    }
+
+    /* 17. Without relative colors */
     @supports not (color: oklch(from red l c h)) {
       &:not([data-theme='dark']),
       &[data-theme='dark'] {

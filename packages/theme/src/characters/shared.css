@@ -167,5 +167,10 @@
     .btn--size-large:not(.btn--icon-only):has(> .btn__content > .btn__icon:empty) {
       padding-inline: var(--spacer-3);
     }
+
+    /* 10. Document cards */
+    .document-card[role='button'] {
+      cursor: pointer;
+    }
   }
 }
