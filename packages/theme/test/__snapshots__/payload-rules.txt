@@ -706,10 +706,13 @@ html[data-enhanced-contrast] .nav-group__toggle .nav-group__indicator { opacity:
 .rs__menu { z-index: 4; border-radius: var(--radius-medium); box-shadow: var(--elevation-400-menu-panel); background: var(--color-bg); overflow: clip; }
 .rs__menu--placement-top { margin-bottom: var(--spacer-1); }
 .rs__floating-menu-portal .rs__menu--placement-bottom, .rs__menu--placement-top { margin-block: 0; }
+.rs__option--is-focused { background-color: var(--color-bg-secondary); }
+.rs__option--is-selected { background-color: var(--color-bg-selected); }
 .react-select--error div.rs__control { border: var(--stroke-width-small) solid var(--field-color-border-error); }
 .react-select--error div.rs__control & > div.rs__indicator > button.dropdown-indicator[type='button'] { border: none; }
 .react-select--error .rs__control:hover { border-color: var(--field-color-border-error); }
 .react-select--error:focus-within div.rs__control { border-color: var(--field-color-border-focus); }
+html[data-enhanced-contrast] :is(.rs__option--is-focused, .rs__option--is-selected) { --color-text-secondary: var(--color-text); }
 
 == @payloadcms/ui/elements/RelationshipTable/cells/DrawerLink/index.css
 .drawer-link { display: flex; align-items: center; gap: var(--spacer-1); }
